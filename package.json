@@ -18,6 +18,7 @@
         "check-types": "tsc --noEmit --skipLibCheck --incremental false"
     },
     "dependencies": {
+        "@prisma/client": "^5.15.0",
         "bullmq": "^5.8.0",
         "date-and-time": "^3.1.1",
         "dedent-js": "^1.0.1",
@@ -47,9 +48,13 @@
         "eslint-plugin-prefer-arrow": "^1.2.3",
         "jest": "^29.7.0",
         "jest-cli": "^29.7.0",
+        "prisma": "^5.15.0",
         "ts-jest": "^29.1.2",
         "tsc-alias": "^1.8.8",
         "tsconfig-paths": "^4.2.0",
         "typescript": "^5.4.5"
+    },
+    "prisma": {
+        "schema": ".src/lib/prisma/schema.prisma"
     }
 }

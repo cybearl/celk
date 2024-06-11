@@ -1,6 +1,7 @@
 name: celk-js
 services:
   postgres:
+    container_name: postgres
     image: postgres
     restart: always
     env_file:
@@ -22,6 +23,7 @@ services:
       timeout: 30s
       retries: 3
   redis:
+    container_name: redis
     image: redis
     restart: always
     env_file:
