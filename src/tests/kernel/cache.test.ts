@@ -1151,7 +1151,6 @@ describe("Cache", () => {
 
             it("Should fill the cache with a value at the specified offset", () => {
                 cache.fill(0xFF, 5, 5);
-                console.log(cache.toHexString());
 
                 for (let i = 0; i < cache.length; i++) {
                     if (i < 5) {
