@@ -1,7 +1,7 @@
 import minimist from "minimist";
 
 import executeCacheBenchmark from "benchmarks/kernel/cache";
-import config, { verifyConfig } from "configs/main.config";
+import { verifyConfig } from "configs/main.config";
 
 import "dotenv/config";
 
@@ -13,7 +13,6 @@ import "dotenv/config";
 function main(args: string[]) {
     const argv = minimist(args.slice(2));
 
-    config.environment = argv.environment || argv.e || "production";
     verifyConfig();
 
     executeCacheBenchmark();

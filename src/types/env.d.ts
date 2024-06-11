@@ -4,7 +4,7 @@ declare module NodeJS {
         [key: string]: string | undefined;
 
         // Node environment
-        NODE_ENV: "development" | "production";
+        NODE_ENV: "development" | "test" | "production";
 
         // PostgreSQL database
         POSTGRES_HOST: string;

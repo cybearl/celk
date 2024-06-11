@@ -6,11 +6,6 @@ import type { PrivateKeyGenMode } from "lib/kernel/crypto/generators/privateKeyG
  */
 export type Config = {
     /**
-     * The environment of the configuration, either `production` or `development`.
-     */
-    environment: "production" | "development";
-
-    /**
      * The address to find, if any.
      *
      * **Note:** There's no need to add the `0x` prefix to the address (for Ethereum).

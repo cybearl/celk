@@ -2,7 +2,6 @@ import fs from "fs";
 
 import { LocalStorage } from "node-localstorage";
 
-import config from "configs/main.config";
 import envPaths from "lib/utils/envPaths";
 
 
@@ -12,7 +11,8 @@ import envPaths from "lib/utils/envPaths";
  */
 export default function createStorage() {
     let appName = "celk";
-    if (config.environment === "development") appName += " (development)";
+    if (process.env.NODE_ENV === "development") appName += " (development)";
+    else if (process.env.NODE_ENV === "test") appName += " (test)";
 
     const paths = envPaths(appName);
 

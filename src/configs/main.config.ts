@@ -10,7 +10,6 @@ import type { Config } from "types/main.config";
  * The main configuration object, shared across the entire system.
  */
 const config: Config = {
-    environment: "production",
     addressToFind: "13zb1hQbWVsc2S7ZTZnP2G4undNNpdh5so",
     publicKeyToFind: null,
     reverseAddressIntoPublicKey: false,
@@ -29,10 +28,6 @@ export function verifyConfig() {
     const privateKeyGenModes: PrivateKeyGenMode[] = ["RANDOM", "ASCENDING", "DESCENDING"];
 
     const errors: string[] = [];
-
-    if (config.environment !== "production" && config.environment !== "development") {
-        errors.push("The environment must be either 'production' or 'development'.");
-    }
 
     if (config.addressToFind === null && config.publicKeyToFind === null) {
         errors.push("The address OR public key to find must be set.");
