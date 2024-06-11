@@ -1,0 +1,6 @@
+# Dist/build directories
+dist
+build
+
+# Archives
+archives

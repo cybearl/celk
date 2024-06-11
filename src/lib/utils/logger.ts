@@ -34,5 +34,4 @@ const logger = createLogger({
     ]
 });
 
-
 export default logger;
