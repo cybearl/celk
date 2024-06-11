@@ -1,3 +1,4 @@
+name: celk-js
 services:
   redis:
     image: redis
@@ -16,8 +17,7 @@ services:
     ports:
       - "${REDIS_PORT}:${REDIS_PORT}"
     volumes:
-      # Using AdonisJS default database path
-      - ./database/docker/redis:/data
+      - ./env/docker/redis:/data
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 30s
