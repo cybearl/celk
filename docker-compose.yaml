@@ -1,0 +1,26 @@
+services:
+  redis:
+    image: redis
+    restart: always
+    env_file:
+      - path: .env
+        required: true
+    environment:
+      # Using environment to add error handling for missing variables
+      REDIS_PORT: ${REDIS_PORT:?'REDIS_PORT' variable is not set}
+      REDIS_PASSWORD: ${REDIS_PASSWORD:?'REDIS_PASSWORD' variable is not set}
+    command:
+      - /bin/sh
+      - -c
+      - redis-server --requirepass ${REDIS_PASSWORD}
+    ports:
+      - "${REDIS_PORT}:${REDIS_PORT}"
+    volumes:
+      # Using AdonisJS default database path
+      - ./database/docker/redis:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 30s
+      retries: 3
+

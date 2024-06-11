@@ -3,6 +3,8 @@ import minimist from "minimist";
 import executeCacheBenchmark from "benchmarks/kernel/cache";
 import config, { verifyConfig } from "configs/main.config";
 
+import "dotenv/config";
+
 
 /**
  * Main function.

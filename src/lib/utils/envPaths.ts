@@ -52,6 +52,11 @@ const linux = (name: string) => {
     };
 };
 
+/**
+ * Returns the path to use to store the application data.
+ * @param name The name of the application.
+ * @returns The path to use to store the application data.
+ */
 export default function envPaths(name: string) {
     if (typeof name !== "string") {
         throw new TypeError(`Expected a string, got ${typeof name}`);
