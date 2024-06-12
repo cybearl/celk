@@ -1,4 +1,4 @@
-import { helpErrorMessage } from "docs/commands";
+import { M_INVALID_CONFIG } from "docs/messages";
 import { SECP256K1_CURVE } from "lib/constants/crypto";
 import type { PrivateKeyGenMode } from "lib/kernel/crypto/generators/privateKeyGenerator";
 import logger from "lib/utils/logger";
@@ -85,9 +85,8 @@ export function verifyConfig() {
 
     // If there are any errors, log them and exit the process
     if (errors.length > 0) {
-        logger.error("[FATAL] Invalid configuration!");
+        logger.error(M_INVALID_CONFIG);
         for (const error of errors) logger.error(`>> ${error}`);
-        logger.error(helpErrorMessage);
 
         process.exit(1);
     }

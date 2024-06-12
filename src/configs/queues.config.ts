@@ -15,7 +15,7 @@ const queueConfig: QueueOptions = {
         // Delayed jobs
         backoff: {
             type: "exponential",
-            delay: 1000
+            delay: 5000
         },
 
         // Auto-removal
