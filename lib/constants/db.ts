@@ -24,6 +24,11 @@ export const MAX_EXTERNAL_USER_ID_LENGTH = 128
 export const MIN_EMAIL_LENGTH = 8
 
 /**
+ * The maximum length of an email.
+ */
+export const MAX_EMAIL_LENGTH = 255
+
+/**
  * The minimum length of a username.
  */
 export const MIN_USERNAME_LENGTH = 4

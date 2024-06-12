@@ -11,7 +11,7 @@ export type ErrorCode = {
 /**
  * Contains all the available error codes for the application.
  */
-const errors = {
+const errorCodes = {
     //=======
     //  400
     //=======
@@ -107,4 +107,4 @@ const errors = {
     },
 }
 
-export default errors
+export default errorCodes

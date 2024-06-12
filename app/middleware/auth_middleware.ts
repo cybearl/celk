@@ -1,7 +1,7 @@
 import type { HttpContext } from "@adonisjs/core/http"
 import type { NextFn } from "@adonisjs/core/types/http"
 import type { Authenticators } from "@adonisjs/auth/types"
-import errors from "#config/errors"
+import errorCodes from "#lib/constants/errors"
 import { REDIRECT_TO } from "#lib/constants/db"
 import logger from "@adonisjs/core/services/logger"
 
@@ -21,14 +21,14 @@ export default class AuthMiddleware {
         await ctx.auth.authenticateUsing(options.guards, { loginRoute: REDIRECT_TO })
 
         if (!ctx.auth.user || (ctx.auth.user && ctx.auth.user.isLocked === true)) {
-            logger.info(
+            logger.warn(
                 `user ${ctx.auth.user?.id} (${ctx.auth.user?.email}) tried to interact with the API but their account is locked`
             )
 
             return ctx.response.forbidden({
                 success: false,
-                message: "Your account is locked. Please contact the administrator.",
-                error: errors.LOCKED,
+                message: errorCodes.LOCKED.message,
+                error: errorCodes.LOCKED,
             })
         }
 
