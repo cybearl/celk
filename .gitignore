@@ -19,7 +19,9 @@ yarn-error.log
 # Editors specific
 .fleet
 .idea
-.vscode
 
 # Platform specific
 .DS_Store
+
+# Development PostgreSQL data directory
+database/docker

@@ -1,3 +1,4 @@
+name: celk-js
 services:
   redis:
     image: redis
@@ -16,7 +17,6 @@ services:
     ports:
       - "${REDIS_PORT}:${REDIS_PORT}"
     volumes:
-      # Using AdonisJS default database path
       - ./database/docker/redis:/data
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
@@ -37,8 +37,8 @@ services:
       POSTGRES_DB: ${POSTGRES_DB:?'POSTGRES_DB' variable is not set}
     ports:
       - "${POSTGRES_PORT}:${POSTGRES_PORT}"
+    command: -p ${POSTGRES_PORT}
     volumes:
-      # Using AdonisJS default database path
       - ./database/docker/postgres:/var/lib/postgresql/data
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
