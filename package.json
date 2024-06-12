@@ -1,6 +1,5 @@
 {
     "name": "celk.js",
-    "productName": "Celk.js",
     "version": "1.0.9",
     "description": "A brute-forcing tool for Bitcoin and Ethereum addresses. entirely written in Typescript.",
     "repository": "https://github.com/cybearl/celk.js",

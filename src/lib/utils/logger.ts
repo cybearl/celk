@@ -9,10 +9,12 @@ import { createLogger, format, transports } from "winston";
  * @returns The formatted log message.
  */
 function printf(info: TransformableInfo) {
-    return `[${info.timestamp}] ${info.message}`.replace(
-        /\n/g,
-        `\n${" ".repeat(11)}`
-    );
+    // return `[${info.timestamp}] ${info.message}`.replace(
+    //     /\n/g,
+    //     `\n${" ".repeat(11)}`
+    // );
+
+    return info.message;
 }
 
 /**
