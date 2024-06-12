@@ -1,0 +1,81 @@
+{
+    "name": "celk.js",
+    "version": "1.0.9",
+    "description": "A brute-forcing tool for Bitcoin and Ethereum addresses. entirely written in Typescript.",
+    "repository": "https://github.com/cybearl/celk.js",
+    "author": "yoratoni <yoratoni.dev@gmail.com>",
+    "license": "MIT",
+    "private": true,
+    "type": "module",
+    "scripts": {
+        "migration:run": "node ace migration:run",
+        "db:wipe": "node ace db:wipe",
+        "db:seed": "node ace db:seed",
+        "generate:key": "node ace generate:key",
+        "start": "node bin/server.js",
+        "build": "node ace build",
+        "dev": "node ace serve --hmr",
+        "test": "node ace test",
+        "lint": "eslint .",
+        "format": "prettier --write .",
+        "typecheck": "tsc --noEmit"
+    },
+    "imports": {
+        "#config/*": "./config/*.js",
+        "#database/*": "./database/*.js",
+        "#lib/*": "./lib/*.js",
+        "#start/*": "./start/*.js",
+        "#tests/*": "./tests/*.js",
+        "#types/*": "./types/*.js",
+        "#abilities/*": "./app/abilities/*.js",
+        "#controllers/*": "./app/controllers/*.js",
+        "#exceptions/*": "./app/exceptions/*.js",
+        "#middleware/*": "./app/middleware/*.js",
+        "#models/*": "./app/models/*.js",
+        "#policies/*": "./app/policies/*.js",
+        "#providers/*": "./app/providers/*.js",
+        "#queues/*": "./app/queues/*.js",
+        "#validators/*": "./app/validators/*.js",
+        "#workers/*": "./app/workers/*.js"
+    },
+    "dependencies": {
+        "@adonisjs/auth": "^9.2.1",
+        "@adonisjs/core": "^6.9.0",
+        "@adonisjs/cors": "^2.2.1",
+        "@adonisjs/lucid": "^20.6.0",
+        "@vinejs/vine": "^2.0.0",
+        "bullmq": "^5.7.14",
+        "ethers": "^6.12.1",
+        "luxon": "^3.4.4",
+        "pg": "^8.12.0",
+        "reflect-metadata": "^0.2.2"
+    },
+    "devDependencies": {
+        "@adonisjs/assembler": "^7.6.1",
+        "@adonisjs/eslint-config": "^1.3.0",
+        "@adonisjs/prettier-config": "^1.3.0",
+        "@adonisjs/tsconfig": "^1.3.0",
+        "@japa/api-client": "^2.0.3",
+        "@japa/assert": "^3.0.0",
+        "@japa/plugin-adonisjs": "^3.0.1",
+        "@japa/runner": "^3.1.4",
+        "@swc/core": "^1.5.7",
+        "@types/luxon": "^3.4.2",
+        "@types/node": "^20.12.12",
+        "eslint": "^8.57.0",
+        "hot-hook": "^0.2.6",
+        "pino-pretty": "^11.1.0",
+        "prettier": "^3.2.5",
+        "ts-node": "^10.9.2",
+        "typescript": "^5.4.5"
+    },
+    "hotHook": {
+        "boundaries": [
+            "./app/controllers/**/*.ts",
+            "./app/middleware/*.ts"
+        ]
+    },
+    "eslintConfig": {
+        "extends": "@adonisjs/eslint-config/app"
+    }
+}
