@@ -1,4 +1,4 @@
-name: celk-js
+name: celk
 services:
   redis:
     image: redis

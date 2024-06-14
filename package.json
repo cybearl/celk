@@ -1,8 +1,8 @@
 {
-    "name": "celk.js",
+    "name": "celk",
     "version": "1.0.9",
     "description": "A brute-forcing tool for Bitcoin and Ethereum addresses. entirely written in Typescript.",
-    "repository": "https://github.com/cybearl/celk.js",
+    "repository": "https://github.com/cybearl/celk",
     "author": "yoratoni <yoratoni.dev@gmail.com>",
     "license": "MIT",
     "private": true,
