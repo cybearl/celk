@@ -24,7 +24,7 @@ export default class extends BaseSeeder {
 
         if (!adminRole) {
             internalError(errorCodes.MISSING_FIELD_FOR_SEEDING, null, "Admin role not found during user seeding.")
-            return
+            process.exit(1)
         }
 
         await users[0].related("roles").attach([adminRole.id as number])
