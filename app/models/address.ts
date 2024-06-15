@@ -30,10 +30,10 @@ export default class Address extends BaseModel {
     declare hash: string
 
     @column()
-    declare bytecode: number[]
+    declare bytecode: number[] | null
 
     @column()
-    declare balance: number
+    declare balance: number | null
 
     // Relationships
     // Belongs to a chain
@@ -56,5 +56,8 @@ export default class Address extends BaseModel {
     declare updatedAt: DateTime
 
     @column.dateTime()
-    declare lastTxAt: DateTime
+    declare fetchedAt: DateTime | null
+
+    @column.dateTime()
+    declare lastUsedAt: DateTime | null
 }

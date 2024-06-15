@@ -11,8 +11,8 @@ export default class extends BaseSchema {
 
             table.enum("type", Object.values(AddressType)).notNullable()
             table.string("hash", MAX_ADDRESS_LENGTH).notNullable()
-            table.specificType("bytecode", `integer ARRAY`).notNullable()
-            table.double("balance").checkPositive().notNullable()
+            table.specificType("bytecode", `bytea`).nullable()
+            table.double("balance").checkPositive().nullable()
 
             // Relationships
             // Belongs to a chain
@@ -24,7 +24,8 @@ export default class extends BaseSchema {
             // Dates
             table.timestamp("created_at").notNullable()
             table.timestamp("updated_at").notNullable()
-            table.timestamp("last_tx_at").notNullable()
+            table.timestamp("fetched_at").notNullable()
+            table.timestamp("last_used_at").nullable()
         })
     }
 

@@ -75,6 +75,12 @@ const errorCodes = {
         message: "The requested resource was not found.",
         data: null,
     },
+    CHAIN_NOT_FOUND: {
+        status: 404,
+        code: "CHAIN_NOT_FOUND",
+        message: "The requested chain was not found.",
+        data: null,
+    },
 
     //=======
     //  405
