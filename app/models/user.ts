@@ -8,6 +8,7 @@ import type { HasMany, ManyToMany } from "@adonisjs/lucid/types/relations"
 import Role from "#models/role"
 import Address from "#models/address"
 
+// The AuthFinder mixin is used to authenticate users
 const AuthFinder = withAuthFinder(() => hash.use("scrypt"), {
     uids: ["email", "username"],
     passwordColumnName: "password",
@@ -41,7 +42,6 @@ export default class User extends compose(BaseModel, AuthFinder) {
         pivotTable: "user_roles",
         pivotForeignKey: "user_id",
         pivotRelatedForeignKey: "role_id",
-        pivotTimestamps: true,
     })
     declare roles: ManyToMany<typeof Role>
 
