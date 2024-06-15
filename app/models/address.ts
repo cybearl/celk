@@ -40,7 +40,7 @@ export default class Address extends BaseModel {
         pivotForeignKey: "address_id",
         pivotRelatedForeignKey: "tag_id",
     })
-    declare roles: ManyToMany<typeof Tag>
+    declare tags: ManyToMany<typeof Tag>
 
     // Dates
     @column.dateTime({ autoCreate: true })

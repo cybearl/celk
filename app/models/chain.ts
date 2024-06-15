@@ -14,9 +14,6 @@ export default class Chain extends BaseModel {
     declare name: string
 
     @column()
-    declare apiUrls: string[]
-
-    @column()
     declare nativeCurrency: string
 
     @column()

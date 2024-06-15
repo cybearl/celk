@@ -9,7 +9,6 @@ export default class extends BaseSchema {
             table.integer("id").primary()
 
             table.string("name", MAX_NAME_LENGTH).notNullable()
-            table.specificType("api_urls", `varchar(${MAX_URL_LENGTH}) ARRAY`).notNullable()
             table.string("native_currency", MAX_NATIVE_CURRENCY_LENGTH).notNullable()
             table.string("explorer_url", MAX_URL_LENGTH).notNullable()
 
