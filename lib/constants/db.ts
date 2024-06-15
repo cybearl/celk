@@ -4,11 +4,6 @@
 export const REDIRECT_TO = "/login"
 
 /**
- * The maximum length of a version.
- */
-export const MAX_VERSION_LENGTH = 8
-
-/**
  * The maximum length of a URL.
  */
 export const MAX_URL_LENGTH = 255

@@ -1,4 +1,6 @@
-import { BaseModel, column } from "@adonisjs/lucid/orm"
+import Address from "#models/address"
+import { BaseModel, column, hasMany } from "@adonisjs/lucid/orm"
+import type { HasMany } from "@adonisjs/lucid/types/relations"
 import { DateTime } from "luxon"
 
 /**
@@ -12,13 +14,18 @@ export default class Chain extends BaseModel {
     declare name: string
 
     @column()
-    declare rpcUrls: string[]
+    declare apiUrls: string[]
 
     @column()
     declare nativeCurrency: string
 
     @column()
-    declare blockExplorerUrl: string
+    declare explorerUrl: string
+
+    // Relationships
+    // Has many addresses
+    @hasMany(() => Address)
+    declare addresses: HasMany<typeof Address>
 
     // Dates
     @column.dateTime({ autoCreate: true })
