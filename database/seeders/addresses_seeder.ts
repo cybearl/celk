@@ -12,7 +12,7 @@ export default class extends BaseSeeder {
             "14zfBQx95CP2iRxUuyouhqJsBzgj9iKt4X",
             "1MeUgutKkYiyy6rchnhs52c3y2XdjC9AMp",
             "15CDoDQrMDRnwtLtiMQe2pS3D1YK7Nj5Br",
-            "0x33fcac229f3b10ad0cc1fbd30633e8f09fb3f06d",
+            // "0x33fcac229f3b10ad0cc1fbd30633e8f09fb3f06d",
         ]
 
         const addresses = await Address.createMany(
@@ -45,9 +45,15 @@ export default class extends BaseSeeder {
 
         for (const address of addresses) {
             const addressData = await AddressesController.updateAddressData(address)
-            logger.debug(
-                `address ${address.hash} seeded, balance: ${Math.floor(addressData.balance || 0)}, tx count: ${addressData.txCount}, last used at: ${addressData.lastUsedAt}`
-            )
+
+            if (addressData) {
+                logger.debug(
+                    `address ${address.hash} seeded, balance: ${Math.floor(addressData.balance || 0)}, tx count: ${addressData.txCount}, last used at: ${addressData.lastUsedAt}`
+                )
+            } else {
+                logger.error(`failed to seed address ${address.hash}, discarding...`)
+                await address.delete()
+            }
         }
         console.log("Seeded addresses")
     }

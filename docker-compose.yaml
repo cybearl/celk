@@ -1,4 +1,5 @@
 name: celk
+
 services:
   redis:
     container_name: redis
@@ -24,6 +25,7 @@ services:
       interval: 30s
       timeout: 30s
       retries: 3
+
   postgres:
     container_name: postgres
     image: postgres
@@ -47,3 +49,22 @@ services:
       interval: 30s
       timeout: 30s
       retries: 3
+
+  # esplora:
+  #   container_name: esplora
+  #   image: blockstream/esplora
+  #   env_file:
+  #     - path: .env
+  #       required: true
+  #   environment:
+  #     # Using environment to add error handling for missing variables
+  #     ESPLORA_PORT: ${ESPLORA_PORT:?'ESPLORA_PORT' variable is not set}
+  #   ports:
+  #     - "${ESPLORA_PORT}:${ESPLORA_PORT}"
+  #     - "8080:80"
+  #   command: bash -c "/srv/explorer/run.sh bitcoin-mainnet explorer"
+  #   stdin_open: true
+  #   tty: true
+  #   volumes:
+  #     - ./database/docker/esplora:/data
+  #   restart: always

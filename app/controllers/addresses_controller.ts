@@ -9,17 +9,29 @@ import { addressCreationValidator } from "#validators/addresses_validator"
 import { HttpContext } from "@adonisjs/core/http"
 import { DateTime } from "luxon"
 
+/**
+ * The return type of the static `updateAddressData` method.
+ */
+export type AddressData = {
+    balance: number | null
+    txCount: number | null
+    lastUsedAt: DateTime | null
+    fetchedAt: DateTime
+}
+
 export default class AddressesController extends Controller {
     /**
      * Updates an address with its data.
      * @param address The address to update.
      * @returns The fetched address data.
      */
-    static async updateAddressData(address: Address) {
+    static async updateAddressData(address: Address): Promise<AddressData | null> {
         await address.load("chain")
 
         if (address.chain.name === "bitcoin") {
             const addressData = await getBitcoinAddressData(address.hash)
+            if (!addressData) return null
+
             address.balance = addressData.final_balance / 1e8 // Convert from satoshis to BTC
             address.txCount = addressData.n_tx
 
@@ -29,6 +41,8 @@ export default class AddressesController extends Controller {
             address.bytecode = getEthereumBytecode(address.hash)
 
             const addressData = await getEthereumAddressData(address.hash)
+            if (!addressData) return null
+
             address.balance = addressData.balance
             address.txCount = addressData.txCount
 

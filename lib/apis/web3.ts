@@ -3,11 +3,6 @@ import env from "#start/env"
 import { formatEther } from "ethers"
 
 /**
- * The base url for the Bitcoin API.
- */
-const baseUrl = "https://blockchain.info/"
-
-/**
  * The input data of a Bitcoin transaction.
  */
 type BitcoinAddressTransactionInput = {
@@ -83,10 +78,14 @@ type BitcoinAddressData = {
  * @returns The fetched address data.
  */
 export async function getBitcoinAddressData(address: string, limit = 32, offset = 0) {
-    const response = await fetch(`${baseUrl}rawaddr/${address}?limit=${limit}&offset=${offset}`)
+    const response = await fetch(`https://blockchain.info/rawaddr/${address}?limit=${limit}&offset=${offset}`)
 
-    const data = await response.json()
-    return data as BitcoinAddressData
+    try {
+        const data = await response.json()
+        return data as BitcoinAddressData
+    } catch (error) {
+        return null
+    }
 }
 
 /**
@@ -99,11 +98,14 @@ export async function getBitcoinAddressData(address: string, limit = 32, offset 
 export async function getEthereumAddressData(address: string, page = 1, offset = 32) {
     const provider = new EthProvider("homestead", env.get("ETHERSCAN_API"))
 
-    const balance = Number(formatEther(await provider.getBalance(address)))
-    const txCount = await provider.getTransactionCount(address)
-
-    const txs = await provider.getHistory(address, { page, offset })
-    return { balance, txCount, txs }
+    try {
+        const balance = Number(formatEther(await provider.getBalance(address)))
+        const txCount = await provider.getTransactionCount(address)
+        const txs = await provider.getHistory(address, { page, offset })
+        return { balance, txCount, txs }
+    } catch (error) {
+        return null
+    }
 }
 
 /**
