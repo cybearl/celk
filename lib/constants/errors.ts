@@ -119,12 +119,6 @@ const errorCodes = {
         message: "An internal server error has occurred.",
         data: null,
     },
-    MISSING_FIELD_FOR_SEEDING: {
-        status: 500,
-        code: "MISSING_FIELD_FOR_SEEDING",
-        message: "A field is missing for seeding the database.",
-        data: null,
-    },
 
     //=======
     //  501

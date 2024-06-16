@@ -1,7 +1,6 @@
-import errorCodes from "#lib/constants/errors"
-import { internalError } from "#lib/utils/logging"
 import Role, { RoleNames } from "#models/role"
 import User from "#models/user"
+import logger from "@adonisjs/core/services/logger"
 import { BaseSeeder } from "@adonisjs/lucid/seeders"
 
 export default class extends BaseSeeder {
@@ -23,7 +22,7 @@ export default class extends BaseSeeder {
         const adminRole = await Role.findBy("name", RoleNames.AdminRole)
 
         if (!adminRole) {
-            internalError(errorCodes.MISSING_FIELD_FOR_SEEDING, null, "Admin role not found during user seeding.")
+            logger.error(`Role with name ${RoleNames.AdminRole} not found`)
             process.exit(1)
         }
 

@@ -1,3 +1,7 @@
+import EthProvider from "#lib/utils/etherscan_provider"
+import env from "#start/env"
+import { formatEther } from "ethers"
+
 /**
  * The base url for the Bitcoin API.
  */
@@ -76,10 +80,42 @@ type BitcoinAddressData = {
  * @param address The address to get the transactions of.
  * @param limit The maximum number of transactions to get (optional, default/max is 50).
  * @param offset The number of transactions to skip (optional, default is 0).
+ * @returns The fetched address data.
  */
-export async function getBitcoinAddressData(address: string, limit = 50, offset = 0) {
+export async function getBitcoinAddressData(address: string, limit = 32, offset = 0) {
     const response = await fetch(`${baseUrl}rawaddr/${address}?limit=${limit}&offset=${offset}`)
 
     const data = await response.json()
     return data as BitcoinAddressData
+}
+
+/**
+ * Get all the data of an Ethereum address with its transactions.
+ * @param address The address to get the transactions of.
+ * @param page The page number to fetch (optional, default is 1).
+ * @param offset The number of transactions to display per page (optional, default is 32).
+ * @returns The fetched address data.
+ */
+export async function getEthereumAddressData(address: string, page = 1, offset = 32) {
+    const provider = new EthProvider("homestead", env.get("ETHERSCAN_API"))
+
+    const balance = Number(formatEther(await provider.getBalance(address)))
+    const txCount = await provider.getTransactionCount(address)
+
+    const txs = await provider.getHistory(address, { page, offset })
+    return { balance, txCount, txs }
+}
+
+/**
+ * Convert an Ethereum address to its bytecode.
+ */
+export function getEthereumBytecode(address: string) {
+    const bytes = address.slice(2).split("")
+
+    const byteNumbers = []
+    for (let i = 0; i < bytes.length; i += 2) {
+        byteNumbers.push(Number.parseInt(bytes[i] + bytes[i + 1], 16))
+    }
+
+    return byteNumbers
 }

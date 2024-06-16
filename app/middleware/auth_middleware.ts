@@ -18,8 +18,6 @@ export default class AuthMiddleware {
             guards?: (keyof Authenticators)[]
         } = {}
     ) {
-        logger.debug(ctx)
-
         try {
             await ctx.auth.authenticateUsing(options.guards, { loginRoute: REDIRECT_TO })
         } catch (error) {

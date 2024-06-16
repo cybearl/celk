@@ -25,7 +25,7 @@ export default class extends BaseSchema {
             // Dates
             table.timestamp("created_at").notNullable()
             table.timestamp("updated_at").notNullable()
-            table.timestamp("fetched_at").notNullable()
+            table.timestamp("fetched_at").nullable()
             table.timestamp("last_used_at").nullable()
         })
     }

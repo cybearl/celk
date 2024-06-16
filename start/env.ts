@@ -33,4 +33,11 @@ export default await Env.create(new URL("../", import.meta.url), {
     DEFAULT_ADMIN_EMAIL: Env.schema.string({ format: "email" }),
     DEFAULT_ADMIN_USERNAME: Env.schema.string(),
     DEFAULT_ADMIN_PASSWORD: Env.schema.string(),
+
+    // Infura API
+    INFURA_API_KEY: Env.schema.string(),
+    INFURA_API_SECRET: Env.schema.string(),
+
+    // Etherscan API
+    ETHERSCAN_API_KEY: Env.schema.string(),
 })
