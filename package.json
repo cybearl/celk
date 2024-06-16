@@ -44,7 +44,6 @@
         "@adonisjs/cors": "^2.2.1",
         "@adonisjs/lucid": "^20.6.0",
         "@vinejs/vine": "^2.0.0",
-        "binance": "^2.11.4",
         "bullmq": "^5.7.14",
         "ethers": "^6.12.1",
         "luxon": "^3.4.4",

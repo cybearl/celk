@@ -1,5 +1,5 @@
 import errorCodes from "#lib/constants/errors"
-import { internalError } from "#lib/utils/internal_responses"
+import { internalError } from "#lib/utils/logging"
 import Role from "#models/role"
 import User from "#models/user"
 import { BaseSeeder } from "@adonisjs/lucid/seeders"

@@ -107,12 +107,6 @@ const errorCodes = {
         message: "A field is missing for seeding the database.",
         data: null,
     },
-    COULD_NOT_CONNECT_TO_BINANCE: {
-        status: 500,
-        code: "COULD_NOT_CONNECT_TO_BINANCE",
-        message: "Could not connect to Binance.",
-        data: null,
-    },
 
     //=======
     //  501
