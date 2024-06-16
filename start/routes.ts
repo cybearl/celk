@@ -1,3 +1,5 @@
+const AddressesController = () => import("#controllers/addresses_controller")
+import { RoleNames } from "#models/role"
 import { middleware } from "#start/kernel"
 import router from "@adonisjs/core/services/router"
 
@@ -12,6 +14,17 @@ router.post("/login", [AuthController, "login"])
 // All routes needing an access token
 router
     .group(() => {
+        // Addresses
+        router
+            .group(() => {
+                router.get("/", [AddressesController, "index"])
+                router.post("/", [AddressesController, "store"])
+                router.get("/:address_id", [AddressesController, "show"])
+                router.put("/", [AddressesController, "update"])
+                router.delete("/:address_id", [AddressesController, "destroy"])
+            })
+            .prefix("/addresses")
+
         // Chains
         router
             .group(() => {
@@ -35,6 +48,6 @@ router
                     .prefix("/chains")
             })
             .prefix("/admin")
-            .use(middleware.role({ role: "admin" }))
+            .use(middleware.role({ role: RoleNames.AdminRole }))
     })
     .use(middleware.auth({ guards: ["token"] }))

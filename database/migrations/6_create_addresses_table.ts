@@ -10,9 +10,10 @@ export default class extends BaseSchema {
             table.increments("id").primary()
 
             table.enum("type", Object.values(AddressType)).notNullable()
-            table.string("hash", MAX_ADDRESS_LENGTH).notNullable()
+            table.string("hash", MAX_ADDRESS_LENGTH).notNullable().unique()
             table.specificType("bytecode", `bytea`).nullable()
             table.double("balance").checkPositive().nullable()
+            table.integer("tx_count").checkPositive().nullable()
 
             // Relationships
             // Belongs to a chain

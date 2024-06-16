@@ -1,5 +1,5 @@
 import errorCodes from "#lib/constants/errors"
-import Role from "#models/role"
+import Role, { RoleNames } from "#models/role"
 import User from "#models/user"
 import type { HttpContext } from "@adonisjs/core/http"
 import logger from "@adonisjs/core/services/logger"
@@ -18,7 +18,7 @@ export default class RoleMiddleware {
         next: NextFn,
         options: {
             role: Role["name"]
-        } = { role: "admin" }
+        } = { role: RoleNames.AdminRole }
     ) {
         if (!ctx.auth.isAuthenticated) {
             return ctx.response.forbidden({

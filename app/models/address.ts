@@ -5,15 +5,16 @@ import type { BelongsTo } from "@adonisjs/lucid/types/relations"
 import { DateTime } from "luxon"
 
 /**
- * The type of the address.
+ * The type of an address.
+ *
+ * See https://bitbox.swiss/blog/content/images/2021/10/grafik-1.png for more information.
  */
 export enum AddressType {
-    P2PKH = "BTC::P2PKH",
-    P2SH = "BTC::P2SH",
-    P2WPKH = "BTC::P2WPKH",
-    P2WSH = "BTC::P2WSH",
-    P2TR = "BTC::P2TR",
-    ETH = "ETH::ETH",
+    P2TR = "BTC::P2TR", // Pay to Taproot
+    P2WPKH = "BTC::P2WPKH", // Pay to Witness Public Key Hash (SegWit)
+    P2SH_P2WPKH = "BTC::P2SH_P2WPKH", // Pay to Script Hash (Legacy SegWit)
+    P2PKH = "BTC::P2PKH", // Pay to Public Key Hash (Legacy)
+    ETH = "ETH::ETH", // Ethereum
 }
 
 /**
@@ -34,6 +35,9 @@ export default class Address extends BaseModel {
 
     @column()
     declare balance: number | null
+
+    @column()
+    declare txCount: number | null
 
     // Relationships
     // Belongs to a chain

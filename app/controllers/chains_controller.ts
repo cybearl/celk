@@ -41,5 +41,13 @@ export default class ChainsController extends Controller {
     /**
      * Delete chain by ID (only for administrators).
      */
-    async destroy({}: HttpContext) {}
+    async destroy({ params }: HttpContext) {
+        const chain = await Chain.find(params.chain_id)
+        if (!chain) {
+            return this.errorResponse(errorCodes.CHAIN_NOT_FOUND)
+        }
+
+        await chain.delete()
+        return this.successResponse()
+    }
 }

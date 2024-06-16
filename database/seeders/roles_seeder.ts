@@ -1,4 +1,4 @@
-import Role from "#models/role"
+import Role, { RoleNames } from "#models/role"
 import { BaseSeeder } from "@adonisjs/lucid/seeders"
 
 export default class extends BaseSeeder {
@@ -7,11 +7,11 @@ export default class extends BaseSeeder {
     async run() {
         await Role.createMany([
             {
-                name: "admin",
+                name: RoleNames.AdminRole,
                 description: "All permissions are granted to this role.",
             },
             {
-                name: "user",
+                name: RoleNames.UserRole,
                 description: "The default role for all users.",
             },
         ])

@@ -1,6 +1,6 @@
 import errorCodes from "#lib/constants/errors"
 import { internalError } from "#lib/utils/logging"
-import Role from "#models/role"
+import Role, { RoleNames } from "#models/role"
 import User from "#models/user"
 import { BaseSeeder } from "@adonisjs/lucid/seeders"
 
@@ -20,7 +20,7 @@ export default class extends BaseSeeder {
         ])
 
         // Link the default administrator to the 'admin' role using the pivot table
-        const adminRole = await Role.findBy("name", "admin")
+        const adminRole = await Role.findBy("name", RoleNames.AdminRole)
 
         if (!adminRole) {
             internalError(errorCodes.MISSING_FIELD_FOR_SEEDING, null, "Admin role not found during user seeding.")

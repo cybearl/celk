@@ -5,6 +5,14 @@ import type { ManyToMany } from "@adonisjs/lucid/types/relations"
 import { DateTime } from "luxon"
 
 /**
+ * An enum listing all available user roles.
+ */
+export enum RoleNames {
+    AdminRole = "admin",
+    UserRole = "user",
+}
+
+/**
  * The model for a user role.
  */
 export default class Role extends BaseModel {

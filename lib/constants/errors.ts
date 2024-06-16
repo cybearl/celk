@@ -27,6 +27,18 @@ const errorCodes = {
         message: "A number parameter is invalid.",
         data: null,
     },
+    INVALID_CHAIN_ID_FOR_ADDRESS_TYPE: {
+        status: 400,
+        code: "INVALID_CHAIN_ID_FOR_ADDRESS_TYPE",
+        message: "The chain ID does not match the address type.",
+        data: null,
+    },
+    INVALID_ADDRESS_TYPE: {
+        status: 400,
+        code: "INVALID_ADDRESS_TYPE",
+        message: "The address type is invalid.",
+        data: null,
+    },
 
     //=======
     //  401
@@ -79,6 +91,12 @@ const errorCodes = {
         status: 404,
         code: "CHAIN_NOT_FOUND",
         message: "The requested chain was not found.",
+        data: null,
+    },
+    ADDRESS_NOT_FOUND: {
+        status: 404,
+        code: "ADDRESS_NOT_FOUND",
+        message: "The requested address was not found.",
         data: null,
     },
 

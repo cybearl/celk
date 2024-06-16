@@ -18,11 +18,29 @@ export default class AuthMiddleware {
             guards?: (keyof Authenticators)[]
         } = {}
     ) {
-        await ctx.auth.authenticateUsing(options.guards, { loginRoute: REDIRECT_TO })
+        logger.debug(ctx)
 
-        if (!ctx.auth.user || (ctx.auth.user && ctx.auth.user.isLocked === true)) {
+        try {
+            await ctx.auth.authenticateUsing(options.guards, { loginRoute: REDIRECT_TO })
+        } catch (error) {
+            return ctx.response.unauthorized({
+                success: false,
+                message: "The authentication credentials are invalid.",
+                error: errorCodes.UNAUTHORIZED,
+            })
+        }
+
+        if (!ctx.auth.user) {
+            return ctx.response.unauthorized({
+                success: false,
+                message: "Invalid connection attempt for unknown reason.",
+                error: errorCodes.UNAUTHORIZED,
+            })
+        }
+
+        if (ctx.auth.user && ctx.auth.user.isLocked === true) {
             logger.warn(
-                `user ${ctx.auth.user?.id} (${ctx.auth.user?.email}) tried to interact with the API but their account is locked`
+                `user ${ctx.auth.user.id} (${ctx.auth.user.email}) tried to interact with the API but their account is locked`
             )
 
             return ctx.response.forbidden({

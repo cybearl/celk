@@ -33,7 +33,7 @@ export default class AuthController extends Controller {
         }
 
         const token = await User.accessTokens.create(user, undefined, {
-            name: "Initial login token, issued via credentials",
+            name: "Login token, issued via credentials",
         })
 
         logger.debug(`user ${user.id} (${user.email}) logged in successfully, issuing a new access token`)
