@@ -7,6 +7,8 @@ export default class extends BaseSeeder {
     static environment = ["development", "testing", "production"]
 
     async run() {
+        logger.info("Seeding users..")
+
         const users = await User.createMany([
             {
                 // Default administrator

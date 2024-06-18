@@ -1,4 +1,3 @@
-import { getBitcoinAddressData, getEthereumAddressData, getEthereumBytecode } from "#lib/apis/web3"
 import errorCodes from "#lib/constants/errors"
 import Controller from "#lib/templates/controller"
 import { getAddressType } from "#lib/utils/addresses"
@@ -7,67 +6,12 @@ import Address from "#models/address"
 import { RoleNames } from "#models/role"
 import { addressCreationValidator } from "#validators/addresses_validator"
 import { HttpContext } from "@adonisjs/core/http"
-import { DateTime } from "luxon"
-
-/**
- * The return type of the static `updateAddressData` method.
- */
-export type AddressData = {
-    balance: number | null
-    txCount: number | null
-    lastUsedAt: DateTime | null
-    fetchedAt: DateTime
-}
 
 export default class AddressesController extends Controller {
     /**
-     * Updates an address with its data.
-     * @param address The address to update.
-     * @returns The fetched address data.
-     */
-    static async updateAddressData(address: Address): Promise<AddressData | null> {
-        await address.load("chain")
-
-        if (address.chain.name === "bitcoin") {
-            const addressData = await getBitcoinAddressData(address.hash)
-            if (!addressData) return null
-
-            address.balance = addressData.final_balance / 1e8 // Convert from satoshis to BTC
-            address.txCount = addressData.n_tx
-
-            const lastTx = addressData.txs[0]
-            address.lastUsedAt = DateTime.fromSeconds(lastTx.time)
-        } else if (address.chain.name === "ethereum") {
-            address.bytecode = getEthereumBytecode(address.hash)
-
-            const addressData = await getEthereumAddressData(address.hash)
-            if (!addressData) return null
-
-            address.balance = addressData.balance
-            address.txCount = addressData.txCount
-
-            const lastTx = addressData.txs[0]
-            address.lastUsedAt = DateTime.fromSeconds(Number(lastTx.timeStamp))
-        }
-
-        address.fetchedAt = DateTime.now()
-        await address.save()
-
-        return {
-            balance: address.balance,
-            txCount: address.txCount,
-            lastUsedAt: address.lastUsedAt,
-            fetchedAt: address.fetchedAt,
-        }
-    }
-
-    /**
      * Get all addresses.
      */
-    async index() {
-        const addressData = await getBitcoinAddressData("0xf6952f61e736e444e644a7fb75d44ef4f81db5f4")
-        console.log(addressData)
-    }
+    async index() {}
 
     /**
      * Add a new address (also fetches its data).
@@ -86,7 +30,6 @@ export default class AddressesController extends Controller {
             userId: auth.user!.id,
         })
 
-        await AddressesController.updateAddressData(address)
         return this.successResponse(address)
     }
 
@@ -110,26 +53,10 @@ export default class AddressesController extends Controller {
     }
 
     /**
-     * Updates all addresses data.
-     * @param interval The interval in minutes to fetch the data for (optional, defaults to 5 minutes).
+     * Update address by ID.
      */
-    async update({ params }: HttpContext) {
-        let interval = 5
-        if (params.interval && !Number.isNaN(Number.parseInt(params.interval))) {
-            interval = Number.parseInt(params.interval)
-        }
-
-        const addresses = await Address.query().where(
-            "fetchedAt",
-            "<",
-            DateTime.now().minus({ minutes: interval }).toSQL()
-        )
-
-        for (const address of addresses) {
-            await AddressesController.updateAddressData(address)
-        }
-
-        return this.successResponse()
+    async update({}: HttpContext) {
+        // TODO
     }
 
     /**

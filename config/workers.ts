@@ -7,7 +7,7 @@ import { WorkerOptions } from "bullmq"
 const workersConfig: WorkerOptions = {
     connection: redisConfig,
     autorun: true,
-    concurrency: 8,
+    concurrency: 1,
 }
 
 export default workersConfig

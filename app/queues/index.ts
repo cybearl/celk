@@ -2,6 +2,6 @@ import queuesConfig from "#config/queues"
 import { Queue } from "bullmq"
 
 /**
- * The queue..
+ * A queue used to fetch address data from different blockchains.
  */
-export const mainQueue = new Queue("main", { ...queuesConfig })
+export const addressDataQueue = new Queue("address:data", { ...queuesConfig })

@@ -72,6 +72,8 @@ type BitcoinAddressData = {
 
 /**
  * Get all the data of a Bitcoin address with its transactions.
+ *
+ * **Warning:** This API rate limits requests to 1 requests every 10 seconds.
  * @param address The address to get the transactions of.
  * @param limit The maximum number of transactions to get (optional, default/max is 50).
  * @param offset The number of transactions to skip (optional, default is 0).

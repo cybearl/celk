@@ -15,7 +15,7 @@ services:
     command:
       - /bin/sh
       - -c
-      - redis-server --requirepass ${REDIS_PASSWORD}
+      - redis-server --requirepass ${REDIS_PASSWORD} --port ${REDIS_PORT}
     ports:
       - "${REDIS_PORT}:${REDIS_PORT}"
     volumes:
