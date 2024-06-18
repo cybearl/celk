@@ -25,6 +25,12 @@ export default class Address extends BaseModel {
     declare id: number
 
     @column()
+    declare isReady: boolean
+
+    @column()
+    declare isPaused: boolean
+
+    @column()
     declare type: AddressType
 
     @column()

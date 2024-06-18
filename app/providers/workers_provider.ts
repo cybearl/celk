@@ -1,3 +1,4 @@
+import addressDataConfig from "#config/address_data"
 import { addressDataQueue } from "#queues/index"
 import addressDataWorker from "#workers/address_data_worker"
 import logger from "@adonisjs/core/services/logger"
@@ -13,6 +14,16 @@ const workers: { [workerName: string]: Worker } = {
  */
 export default class WorkersProvider {
     /**
+     * The options for the address data cron job.
+     */
+    private addressDataCronOptions = {
+        delay: addressDataConfig.initialDelay,
+        repeat: {
+            every: addressDataConfig.repeatEvery,
+        },
+    }
+
+    /**
      * Starts all the workers when the application is ready to accept incoming requests,
      * and schedules the address data queue to run every 10 seconds.
      *
@@ -27,9 +38,10 @@ export default class WorkersProvider {
             if (!worker.isRunning()) worker.run()
 
             const addressDataWorkerName = Object.keys({ addressDataWorker })[0]
+
             if (workerName === addressDataWorkerName) {
+                await addressDataQueue.add("cron:address:data", {}, this.addressDataCronOptions)
                 logger.info(`scheduled '${workerName}' to run every 10 seconds`)
-                await addressDataQueue.add("address:data:cron", {}, { delay: 2000, repeat: { every: 10000 } })
             }
         }
 
@@ -53,6 +65,12 @@ export default class WorkersProvider {
         for (const workerName in workers) {
             const worker = workers[workerName]
             if (worker.isRunning()) worker.close()
+
+            const addressDataWorkerName = Object.keys({ addressDataWorker })[0]
+
+            if (workerName === addressDataWorkerName) {
+                await addressDataQueue.removeRepeatable("cron:address:data", this.addressDataCronOptions.repeat)
+            }
         }
 
         if (Object.keys(workers).length === 0) {

@@ -6,7 +6,7 @@ export default class extends BaseSeeder {
     static environment = ["development", "testing", "production"]
 
     async run() {
-        logger.info("Seeding roles..")
+        logger.info("seeding roles..")
 
         await Role.createMany([
             {

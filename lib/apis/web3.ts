@@ -1,4 +1,4 @@
-import EthProvider from "#lib/utils/etherscan_provider"
+import EthProvider from "#lib/utils/etherscan"
 import env from "#start/env"
 import { formatEther } from "ethers"
 

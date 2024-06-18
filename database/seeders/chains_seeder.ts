@@ -6,7 +6,7 @@ export default class extends BaseSeeder {
     static environment = ["development", "testing", "production"]
 
     async run() {
-        logger.info("Seeding chains..")
+        logger.info("seeding chains..")
 
         await Chain.createMany([
             {

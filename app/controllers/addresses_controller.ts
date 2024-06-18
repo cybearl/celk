@@ -25,7 +25,6 @@ export default class AddressesController extends Controller {
         const address = await Address.create({
             type,
             hash,
-            // TODO: bytecode
             chainId,
             userId: auth.user!.id,
         })
