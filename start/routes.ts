@@ -40,20 +40,7 @@ router
         // Administrator only routes
         router
             .group(() => {
-                // Users management
-                router
-                    .group(() => {
-                        router.get("/", [AuthController, "index"])
-                        router.post("/", [AuthController, "store"])
-                        router.get("/:user_id", [AuthController, "show"])
-                        router.patch("/:user_id", [AuthController, "update"])
-                        router.delete("/:user_id", [AuthController, "destroy"])
-
-                        // Short path routes to lock/unlock a user
-                        router.post("/:user_id/lock", [AuthController, "lock"])
-                        router.post("/:user_id/unlock", [AuthController, "unlock"])
-                    })
-                    .prefix("/users")
+                //
             })
             .prefix("/admin")
             .use(middleware.role({ role: RoleNames.AdminRole }))
