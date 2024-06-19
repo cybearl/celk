@@ -9,13 +9,15 @@ export default class extends BaseSchema {
         this.schema.createTable(this.tableName, (table) => {
             table.increments("id").primary()
 
-            table.boolean("is_ready").notNullable().defaultTo(false)
-            table.boolean("is_paused").notNullable().defaultTo(false)
             table.enum("type", Object.values(AddressType)).notNullable()
             table.string("hash", MAX_ADDRESS_LENGTH).notNullable().unique()
             table.specificType("bytecode", `bytea`).nullable()
             table.double("balance").checkPositive().nullable()
             table.integer("tx_count").checkPositive().nullable()
+
+            // Flags
+            table.boolean("is_ready").notNullable().defaultTo(false)
+            table.boolean("is_paused").notNullable().defaultTo(false)
 
             // Relationships
             // Belongs to a chain

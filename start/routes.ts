@@ -20,7 +20,7 @@ router
                 router.get("/", [AddressesController, "index"])
                 router.post("/", [AddressesController, "store"])
                 router.get("/:address_id", [AddressesController, "show"])
-                router.put("/", [AddressesController, "update"])
+                router.patch("/:address_id", [AddressesController, "update"])
                 router.delete("/:address_id", [AddressesController, "destroy"])
             })
             .prefix("/addresses")

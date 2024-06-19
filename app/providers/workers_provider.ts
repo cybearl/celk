@@ -30,7 +30,11 @@ export default class WorkersProvider {
      * More info: https://docs.adonisjs.com/guides/concepts/service-providers#ready
      */
     async ready() {
-        if (process.env.CC === "true") return
+        if (process.env.CC === "true") {
+            // Ensures that the address data cron job is not running
+            await addressDataQueue.removeRepeatable("cron:address:data", this.addressDataCronOptions.repeat)
+            return
+        }
 
         // Start all the workers if they are not already running
         for (const workerName in workers) {
@@ -61,21 +65,15 @@ export default class WorkersProvider {
     async shutdown() {
         if (process.env.CC === "true") return
 
+        if (Object.keys(workers).length === 0) {
+            logger.debug("no workers to stop, skipping...")
+            return
+        }
+
         // Stop all the workers if they are running
         for (const workerName in workers) {
             const worker = workers[workerName]
             if (worker.isRunning()) worker.close()
-
-            const addressDataWorkerName = Object.keys({ addressDataWorker })[0]
-
-            if (workerName === addressDataWorkerName) {
-                await addressDataQueue.removeRepeatable("cron:address:data", this.addressDataCronOptions.repeat)
-            }
-        }
-
-        if (Object.keys(workers).length === 0) {
-            logger.debug("no workers to stop, skipping...")
-            return
         }
 
         logger.debug(`stopped all workers successfully (${Object.keys(workers).join(", ")})`)

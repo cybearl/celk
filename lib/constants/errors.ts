@@ -111,6 +111,16 @@ const errorCodes = {
     },
 
     //=======
+    //  409
+    //=======
+    ADDRESS_DATA_FETCHED_TOO_SOON: {
+        status: 409,
+        code: "ADDRESS_DATA_FETCHED_TOO_SOON",
+        message: "Address data must be fetched at least 10 seconds apart.",
+        data: null,
+    },
+
+    //=======
     //  500
     //=======
     INTERNAL_SERVER_ERROR: {

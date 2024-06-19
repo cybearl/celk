@@ -11,7 +11,7 @@ import { DateTime } from "luxon"
  * Fetch the data of a Bitcoin address.
  * @param address The address to fetch the data of.
  */
-async function fetchBitcoinAddressData(address: Address) {
+export async function fetchBitcoinAddressData(address: Address) {
     const addressData = await getBitcoinAddressData(address.hash)
     if (!addressData) {
         logger.debug(`failed to fetch data for address '${address.hash}', skipping..`)
@@ -28,7 +28,7 @@ async function fetchBitcoinAddressData(address: Address) {
  * Fetch the data of an Ethereum address.
  * @param address The address to fetch the data of.
  */
-async function fetchEthereumAddressData(address: Address) {
+export async function fetchEthereumAddressData(address: Address) {
     const addressData = await getEthereumAddressData(address.hash)
     if (!addressData) {
         logger.debug(`failed to fetch data for address '${address.hash}', skipping..`)
