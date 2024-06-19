@@ -25,7 +25,7 @@ export default class WorkersProvider {
 
     /**
      * Starts all the workers when the application is ready to accept incoming requests,
-     * and schedules the address data queue to run every 10 seconds.
+     * and schedules the address data queue to run every x seconds.
      *
      * More info: https://docs.adonisjs.com/guides/concepts/service-providers#ready
      */
@@ -45,7 +45,7 @@ export default class WorkersProvider {
 
             if (workerName === addressDataWorkerName) {
                 await addressDataQueue.add("cron:address:data", {}, this.addressDataCronOptions)
-                logger.info(`scheduled '${workerName}' to run every 10 seconds`)
+                logger.info(`scheduled '${workerName}' to run every ${addressDataConfig.repeatEvery / 1000} seconds`)
             }
         }
 
