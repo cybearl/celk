@@ -45,7 +45,7 @@ export default class WorkersProvider {
 
             if (workerName === addressDataWorkerName) {
                 await addressDataQueue.add("cron:address:data", {}, this.addressDataCronOptions)
-                logger.info(`scheduled '${workerName}' to run every ${addressDataConfig.repeatEvery / 1000} seconds`)
+                logger.info(`scheduled '${workerName}' to run every ${addressDataConfig.repeatEvery / 1000} second(s)`)
             }
         }
 
