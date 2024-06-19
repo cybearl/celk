@@ -19,11 +19,11 @@ export default class AddressesController extends Controller {
 
         if (roles.includes(RoleNames.AdminRole)) {
             const addresses = await Address.all()
-            return this.successResponse({ addresses })
+            return this.successResponse(addresses)
         }
 
         const addresses = await Address.query().where("userId", auth.user!.id)
-        return this.successResponse({ addresses })
+        return this.successResponse(addresses)
     }
 
     /**
@@ -55,13 +55,13 @@ export default class AddressesController extends Controller {
             const address = await Address.find(params.address_id)
             if (!address) return this.errorResponse(errorCodes.ADDRESS_NOT_FOUND)
 
-            return this.successResponse({ address })
+            return this.successResponse(address)
         }
 
         const address = await Address.query().where("userId", auth.user!.id).andWhere("id", params.address_id).first()
         if (!address) return this.errorResponse(errorCodes.ADDRESS_NOT_FOUND)
 
-        return this.successResponse({ address })
+        return this.successResponse(address)
     }
 
     /**
@@ -108,8 +108,13 @@ export default class AddressesController extends Controller {
     /**
      * Delete address by ID.
      */
-    async destroy({ params }: HttpContext) {
-        const address = await Address.find(params.address_id)
+    async destroy({ params, auth }: HttpContext) {
+        const roles = await getUserRoles(auth)
+
+        let address: Address | null = null
+        if (roles.includes(RoleNames.AdminRole)) address = await Address.find(params.address_id)
+        else address = await Address.query().where("userId", auth.user!.id).andWhere("id", params.address_id).first()
+
         if (!address) return this.errorResponse(errorCodes.ADDRESS_NOT_FOUND)
 
         await address.delete()

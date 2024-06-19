@@ -37,6 +37,6 @@ export default class AuthController extends Controller {
         })
 
         logger.debug(`user ${user.id} (${user.email}) logged in successfully, issuing a new access token`)
-        return this.successResponse({ token })
+        return this.successResponse(token)
     }
 }

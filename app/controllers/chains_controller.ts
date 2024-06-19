@@ -9,7 +9,7 @@ export default class ChainsController extends Controller {
      */
     async index() {
         const chains = await Chain.all()
-        return this.successResponse({ chains })
+        return this.successResponse(chains)
     }
 
     /**
@@ -30,7 +30,7 @@ export default class ChainsController extends Controller {
             )
         }
 
-        return this.successResponse({ chain })
+        return this.successResponse(chain)
     }
 
     /**
