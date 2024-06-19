@@ -1,5 +1,5 @@
 # celk
-A brute-forcing tool to work with Bitcoin and Ethereum addresses, entirely written in Typescript.
+A brute-forcing tool to work with Bitcoin and Ethereum addresses entirely written in Typescript.
 
 Note that, the goal of this project is not about providing the fastest generator. It is more like
 an experiment to see how far I can optimize a Typescript/Node.js project for heavy computations.
