@@ -12,11 +12,10 @@ export default class extends BaseSeeder {
         const users = await User.createMany([
             {
                 // Default administrator
-                isSeeded: true,
-                isLocked: false,
                 email: process.env.DEFAULT_ADMIN_EMAIL,
                 username: process.env.DEFAULT_ADMIN_USERNAME,
                 password: process.env.DEFAULT_ADMIN_PASSWORD,
+                isSeeded: true,
             },
         ])
 

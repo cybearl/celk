@@ -99,6 +99,18 @@ const errorCodes = {
         message: "The requested address was not found.",
         data: null,
     },
+    ROLE_NOT_FOUND: {
+        status: 404,
+        code: "ROLE_NOT_FOUND",
+        message: "The requested role was not found.",
+        data: null,
+    },
+    USER_NOT_FOUND: {
+        status: 404,
+        code: "USER_NOT_FOUND",
+        message: "The requested user was not found.",
+        data: null,
+    },
 
     //=======
     //  405

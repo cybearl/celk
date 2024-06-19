@@ -17,7 +17,7 @@ export default class extends BaseSchema {
 
             // Flags
             table.boolean("is_ready").notNullable().defaultTo(false)
-            table.boolean("is_paused").notNullable().defaultTo(false)
+            table.boolean("is_locked").notNullable().defaultTo(false)
 
             // Relationships
             // Belongs to a chain

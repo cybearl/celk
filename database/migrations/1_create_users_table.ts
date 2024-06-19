@@ -14,7 +14,7 @@ export default class extends BaseSchema {
 
             // Flags
             table.boolean("is_seeded").notNullable().defaultTo(false)
-            table.boolean("is_locked").notNullable().defaultTo(true)
+            table.boolean("is_locked").notNullable().defaultTo(false)
 
             // Dates
             table.timestamp("created_at").notNullable()

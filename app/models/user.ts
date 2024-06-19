@@ -22,12 +22,6 @@ export default class User extends compose(BaseModel, AuthFinder) {
     declare id: number
 
     @column()
-    declare isSeeded: boolean
-
-    @column()
-    declare isLocked: boolean
-
-    @column()
     declare email: string | null
 
     @column()
@@ -35,6 +29,13 @@ export default class User extends compose(BaseModel, AuthFinder) {
 
     @column({ serializeAs: null })
     declare password: string
+
+    // Flags
+    @column()
+    declare isSeeded: boolean
+
+    @column()
+    declare isLocked: boolean
 
     // Relationships
     // Many-to-many relationship with the `roles` table

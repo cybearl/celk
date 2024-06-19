@@ -13,11 +13,6 @@ export default class ChainsController extends Controller {
     }
 
     /**
-     * Add a new chain (only for administrators).
-     */
-    async store({}: HttpContext) {}
-
-    /**
      * Get chain by ID.
      */
     async show({ params }: HttpContext) {
@@ -31,21 +26,5 @@ export default class ChainsController extends Controller {
         }
 
         return this.successResponse(chain)
-    }
-
-    /**
-     * Update chain by ID (only for administrators).
-     */
-    async update({}: HttpContext) {}
-
-    /**
-     * Delete chain by ID (only for administrators).
-     */
-    async destroy({ params }: HttpContext) {
-        const chain = await Chain.find(params.chain_id)
-        if (!chain) return this.errorResponse(errorCodes.CHAIN_NOT_FOUND)
-
-        await chain.delete()
-        return this.successResponse()
     }
 }

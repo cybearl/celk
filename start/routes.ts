@@ -22,6 +22,10 @@ router
                 router.get("/:address_id", [AddressesController, "show"])
                 router.patch("/:address_id", [AddressesController, "update"])
                 router.delete("/:address_id", [AddressesController, "destroy"])
+
+                // Short path routes to lock/unlock an address
+                router.post("/:address_id/lock", [AddressesController, "lock"])
+                router.post("/:address_id/unlock", [AddressesController, "unlock"])
             })
             .prefix("/addresses")
 
@@ -36,16 +40,20 @@ router
         // Administrator only routes
         router
             .group(() => {
-                // Chains management
+                // Users management
                 router
                     .group(() => {
-                        router.get("/", [ChainsController, "index"])
-                        router.post("/", [ChainsController, "store"])
-                        router.get("/:chain_id", [ChainsController, "show"])
-                        router.patch("/:chain_id", [ChainsController, "update"])
-                        router.delete("/:chain_id", [ChainsController, "destroy"])
+                        router.get("/", [AuthController, "index"])
+                        router.post("/", [AuthController, "store"])
+                        router.get("/:user_id", [AuthController, "show"])
+                        router.patch("/:user_id", [AuthController, "update"])
+                        router.delete("/:user_id", [AuthController, "destroy"])
+
+                        // Short path routes to lock/unlock a user
+                        router.post("/:user_id/lock", [AuthController, "lock"])
+                        router.post("/:user_id/unlock", [AuthController, "unlock"])
                     })
-                    .prefix("/chains")
+                    .prefix("/users")
             })
             .prefix("/admin")
             .use(middleware.role({ role: RoleNames.AdminRole }))

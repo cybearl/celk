@@ -63,9 +63,6 @@ const addressDataWorker = new Worker(
             case "ethereum":
                 await fetchEthereumAddressData(address)
                 break
-            default:
-                logger.error(`unknown chain '${address.chain.name}' for address '${address.hash}', skipping..`)
-                return
         }
 
         address.isReady = true

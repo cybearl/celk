@@ -25,12 +25,6 @@ export default class Address extends BaseModel {
     declare id: number
 
     @column()
-    declare isReady: boolean
-
-    @column()
-    declare isPaused: boolean
-
-    @column()
     declare type: AddressType
 
     @column()
@@ -44,6 +38,13 @@ export default class Address extends BaseModel {
 
     @column()
     declare txCount: number | null
+
+    // Flags
+    @column()
+    declare isReady: boolean
+
+    @column()
+    declare isLocked: boolean
 
     // Relationships
     // Belongs to a chain

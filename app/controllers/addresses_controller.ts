@@ -3,6 +3,7 @@ import Controller from "#lib/templates/controller"
 import { getAddressType } from "#lib/utils/addresses"
 import { getUserRoles } from "#lib/utils/roles"
 import Address from "#models/address"
+import Chain from "#models/chain"
 import { RoleNames } from "#models/role"
 import { addressCreationValidator } from "#validators/addresses_validator"
 import { fetchBitcoinAddressData, fetchEthereumAddressData } from "#workers/address_data_worker"
@@ -34,6 +35,15 @@ export default class AddressesController extends Controller {
 
         const type = getAddressType(hash)
         if (!type) return this.errorResponse(errorCodes.INVALID_ADDRESS_TYPE)
+
+        const chain = await Chain.find(chainId)
+        if (!chain) {
+            return this.errorResponse(
+                errorCodes.CHAIN_NOT_FOUND,
+                null,
+                "This chain does not exist or is not supported."
+            )
+        }
 
         const address = await Address.create({
             type,
@@ -119,5 +129,43 @@ export default class AddressesController extends Controller {
 
         await address.delete()
         return this.successResponse()
+    }
+
+    /**
+     * Locks an address, preventing it from being used in any research stack.
+     */
+    async lock({ params, auth }: HttpContext) {
+        const roles = await getUserRoles(auth)
+
+        let address: Address | null = null
+        if (roles.includes(RoleNames.AdminRole)) address = await Address.find(params.address_id)
+        else address = await Address.query().where("userId", auth.user!.id).andWhere("id", params.address_id).first()
+
+        if (!address) return this.errorResponse(errorCodes.ADDRESS_NOT_FOUND)
+
+        address.isLocked = true
+        await address.save()
+
+        logger.debug(`user ${auth.user!.id} (${auth.user!.email}) paused address '${address.hash}'`)
+        return this.successResponse(address)
+    }
+
+    /**
+     * Unlocks an address, allowing it to be used in research stacks again.
+     */
+    async unlock({ params, auth }: HttpContext) {
+        const roles = await getUserRoles(auth)
+
+        let address: Address | null = null
+        if (roles.includes(RoleNames.AdminRole)) address = await Address.find(params.address_id)
+        else address = await Address.query().where("userId", auth.user!.id).andWhere("id", params.address_id).first()
+
+        if (!address) return this.errorResponse(errorCodes.ADDRESS_NOT_FOUND)
+
+        address.isLocked = false
+        await address.save()
+
+        logger.debug(`user ${auth.user!.id} (${auth.user!.email}) unpaused address '${address.hash}'`)
+        return this.successResponse(address)
     }
 }
