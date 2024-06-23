@@ -19,7 +19,8 @@
         "test": "node ace test",
         "lint": "eslint .",
         "format": "prettier --write .",
-        "typecheck": "tsc --noEmit"
+        "typecheck": "tsc --noEmit",
+        "sandbox": "node --no-warnings=ExperimentalWarning --loader ts-node/esm ./tests/sandbox.ts"
     },
     "imports": {
         "#config/*": "./config/*.js",
