@@ -15,6 +15,7 @@ const dbConfig = defineConfig({
                 user: env.get("POSTGRES_USER"),
                 password: env.get("POSTGRES_PASSWORD"),
                 database: env.get("POSTGRES_DB"),
+                ssl: true,
             },
             migrations: {
                 naturalSort: true,
