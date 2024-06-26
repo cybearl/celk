@@ -1,5 +1,6 @@
 import EthProvider from "#lib/utils/etherscan"
 import env from "#start/env"
+import logger from "@adonisjs/core/services/logger"
 import { formatEther } from "ethers"
 
 /**
@@ -80,12 +81,15 @@ type BitcoinAddressData = {
  * @returns The fetched address data.
  */
 export async function getBitcoinAddressData(address: string, limit = 32, offset = 0) {
-    const response = await fetch(`https://blockchain.info/rawaddr/${address}?limit=${limit}&offset=${offset}`)
+    const url = `https://blockchain.info/rawaddr/${address}?limit=${limit}&offset=${offset}`
+    const response = await fetch(url)
 
     try {
         const data = await response.json()
         return data as BitcoinAddressData
     } catch (error) {
+        logger.warn(`Bitcoin API endpoint returned an error while fetching with URL: ${url}`)
+        logger.warn(error)
         return null
     }
 }
@@ -106,20 +110,8 @@ export async function getEthereumAddressData(address: string, page = 1, offset =
         const txs = await provider.getHistory(address, { page, offset })
         return { balance, txCount, txs }
     } catch (error) {
+        logger.warn(`Ethereum API endpoint returned an error while fetching with address: ${address}`)
+        logger.warn(error)
         return null
     }
-}
-
-/**
- * Convert an Ethereum address to its bytecode.
- */
-export function getEthereumBytecode(address: string) {
-    const bytes = address.slice(2).split("")
-
-    const byteNumbers = []
-    for (let i = 0; i < bytes.length; i += 2) {
-        byteNumbers.push(Number.parseInt(bytes[i] + bytes[i + 1], 16))
-    }
-
-    return byteNumbers
 }

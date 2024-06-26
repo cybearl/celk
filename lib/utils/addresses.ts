@@ -20,3 +20,17 @@ export function getAddressType(address: string): AddressType | null {
 
     return null
 }
+
+/**
+ * Convert an Ethereum address to its bytecode.
+ */
+export function getEthereumBytecode(address: string) {
+    const bytes = address.slice(2).split("")
+
+    const byteNumbers = []
+    for (let i = 0; i < bytes.length; i += 2) {
+        byteNumbers.push(Number.parseInt(bytes[i] + bytes[i + 1], 16))
+    }
+
+    return byteNumbers
+}

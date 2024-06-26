@@ -31,7 +31,7 @@ export default class Address extends BaseModel {
     declare hash: string
 
     @column()
-    declare bytecode: number[] | null
+    declare bytecode: Uint8Array | null
 
     @column()
     declare balance: number | null
