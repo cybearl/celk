@@ -1,7 +1,7 @@
 import { EtherscanProvider, Networkish, BlockTag } from "ethers" //^v6
 
 /**
- * The data of an Ethereum transaction.
+ * The type definition of an Ethereum transaction data.
  */
 type EthereumAddressTransaction = {
     blockNumber: string
@@ -21,7 +21,7 @@ type EthereumAddressTransaction = {
 }
 
 /**
- * The options for the `getHistory` method.
+ * The type definition of the options for the `getHistory` method.
  */
 type GetHistoryOptions = {
     startBlock?: BlockTag

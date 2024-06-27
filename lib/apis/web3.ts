@@ -4,7 +4,7 @@ import logger from "@adonisjs/core/services/logger"
 import { formatEther } from "ethers"
 
 /**
- * The input data of a Bitcoin transaction.
+ * The type definition of a Bitcoin transaction input data.
  */
 type BitcoinAddressTransactionInput = {
     sequence: number
@@ -23,7 +23,7 @@ type BitcoinAddressTransactionInput = {
 }
 
 /**
- * The output data of a Bitcoin transaction.
+ * The type definition of a Bitcoin transaction output data.
  */
 type BitcoinAddressTransactionOutput = {
     spent: boolean
@@ -36,7 +36,7 @@ type BitcoinAddressTransactionOutput = {
 }
 
 /**
- * The data of a Bitcoin transaction.
+ * The type definition of a Bitcoin transaction data.
  */
 type BitcoinAddressTransaction = {
     hash: string
@@ -58,7 +58,7 @@ type BitcoinAddressTransaction = {
 }
 
 /**
- * All the data of a Bitcoin address with its transactions.
+ * The type definition of a Bitcoin address with its transactions.
  */
 type BitcoinAddressData = {
     hash160: string
@@ -81,6 +81,7 @@ type BitcoinAddressData = {
  * @returns The fetched address data.
  */
 export async function getBitcoinAddressData(address: string, limit = 32, offset = 0) {
+    // TODO: Add fallback API
     const url = `https://blockchain.info/rawaddr/${address}?limit=${limit}&offset=${offset}`
     const response = await fetch(url)
 

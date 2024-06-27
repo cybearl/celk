@@ -5,7 +5,7 @@ import type { BelongsTo } from "@adonisjs/lucid/types/relations"
 import { DateTime } from "luxon"
 
 /**
- * The type of an address.
+ * The type definition of an address.
  *
  * See https://bitbox.swiss/blog/content/images/2021/10/grafik-1.png for more information.
  */

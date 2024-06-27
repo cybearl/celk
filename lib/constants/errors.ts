@@ -1,5 +1,5 @@
 /**
- * Error code interface.
+ * The type definition for an error code.
  */
 export type ErrorCode = {
     status: number
