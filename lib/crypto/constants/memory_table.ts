@@ -34,15 +34,17 @@ const baseMemoryTable = {
 
 /**
  * The memory table indexes the data stored in a single Cache instance (= Uint8Array)
- * for the legacy address generation.
+ * for the legacy address generation (base58 encoding).
  *
- * This table is only compatible with legacy addresses.
+ * This table is only compatible with:
+ * - Legacy P2PKH addresses (starting with `1`).
+ * - Legacy P2SH-P2WPKH addresses (starting with `3`).
  *
  * Note that the `end` index is exclusive.
  *
  * More info [here](https://en.bitcoin.it/w/images/en/9/9b/PubKeyToAddr.png).
  */
-export const legacyMemoryTable = {
+export const base58MemoryTable = {
     ...baseMemoryTable,
 
     // The network byte is stored at index 129
@@ -65,17 +67,23 @@ export const legacyMemoryTable = {
 
 /**
  * The SegWit memory table indexes the data stored in a single Cache instance (= Uint8Array)
- * for the SegWit address generation.
+ * for the SegWit address generation (Bech32 encoding).
  *
- * This table is only compatible with SegWit addresses.
+ * This table is only compatible with:
+ * - Native SegWit P2TR addresses (starting with `bc1p`).
+ * - Native SegWit P2WPKH addresses (starting with `bc1q`).
  *
  * Note that the `end` index is exclusive.
+ *
+ * More info [here](https://en.bitcoin.it/wiki/Bech32).
  */
 export const segWitMemoryTable = {
     ...baseMemoryTable,
 
+    // The witness version is stored at index 150
+    witnessVersion: { start: 150, length: 1, end: 151 },
+
     // Converts the RIPEMD-160 hash into a 'squashed' format of 5-bit integers
-    // to be encoded into the final Bech32 address
-    // The squashed format is stored at indexes 150-162
-    squashed: { start: 150, length: 13, end: 163 },
+    // The squashed format is stored at indexes 151-183
+    squashed: { start: 151, length: 32, end: 183 },
 }

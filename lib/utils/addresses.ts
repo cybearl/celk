@@ -7,15 +7,15 @@ import { AddressType } from "#models/address"
  */
 export function getAddressType(address: string): AddressType | null {
     if (address.startsWith("bc1p")) {
-        return AddressType.P2TR
+        return AddressType.P2TR // Bech32
     } else if (address.startsWith("bc1q")) {
-        return AddressType.P2WPKH
-    } else if (address.startsWith("3")) {
-        return AddressType.P2SH_P2WPKH
+        return AddressType.P2WPKH // Bech32
     } else if (address.startsWith("1")) {
-        return AddressType.P2PKH
+        return AddressType.P2PKH // Base58
+    } else if (address.startsWith("3")) {
+        return AddressType.P2SH_P2WPKH // Base58
     } else if (address.startsWith("0x")) {
-        return AddressType.ETH
+        return AddressType.ETH // Hex
     }
 
     return null
