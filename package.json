@@ -41,19 +41,19 @@
         "#workers/*": "./app/workers/*.js"
     },
     "dependencies": {
-        "@adonisjs/auth": "^9.2.1",
-        "@adonisjs/core": "^6.9.0",
+        "@adonisjs/auth": "^9.2.3",
+        "@adonisjs/core": "^6.12.1",
         "@adonisjs/cors": "^2.2.1",
-        "@adonisjs/lucid": "^20.6.0",
-        "@vinejs/vine": "^2.0.0",
-        "bullmq": "^5.7.14",
-        "ethers": "^6.13.0",
+        "@adonisjs/lucid": "^21.1.0",
+        "@vinejs/vine": "^2.1.0",
+        "bullmq": "^5.8.3",
+        "ethers": "^6.13.1",
         "luxon": "^3.4.4",
         "pg": "^8.12.0",
         "reflect-metadata": "^0.2.2"
     },
     "devDependencies": {
-        "@adonisjs/assembler": "^7.6.1",
+        "@adonisjs/assembler": "^7.7.0",
         "@adonisjs/eslint-config": "^1.3.0",
         "@adonisjs/prettier-config": "^1.3.0",
         "@adonisjs/tsconfig": "^1.3.0",
@@ -63,14 +63,14 @@
         "@japa/runner": "^3.1.4",
         "@swc/core": "^1.5.7",
         "@types/luxon": "^3.4.2",
-        "@types/node": "^20.12.12",
+        "@types/node": "^20.14.9",
         "cross-env": "^7.0.3",
         "eslint": "^8.57.0",
         "hot-hook": "^0.2.6",
-        "pino-pretty": "^11.1.0",
-        "prettier": "^3.2.5",
+        "pino-pretty": "^11.2.1",
+        "prettier": "^3.3.2",
         "ts-node": "^10.9.2",
-        "typescript": "^5.4.5"
+        "typescript": "^5.5.2"
     },
     "hotHook": {
         "boundaries": [
