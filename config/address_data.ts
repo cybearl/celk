@@ -4,7 +4,7 @@
 const addressDataConfig = {
     initialDelay: 2000, // in milliseconds
     repeatEvery: 10000, // in milliseconds
-    fetchEvery: 2, // in hours (per address)
+    fetchEvery: 24, // in hours (per address)
 }
 
 export default addressDataConfig

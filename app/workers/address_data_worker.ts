@@ -1,7 +1,6 @@
 import addressDataConfig from "#config/address_data"
 import workersConfig from "#config/workers"
 import { getBitcoinAddressData, getEthereumAddressData } from "#lib/apis/web3"
-import { getEthereumBytecode } from "#lib/utils/addresses"
 import Address from "#models/address"
 import { addressDataQueue } from "#queues/index"
 import logger from "@adonisjs/core/services/logger"
