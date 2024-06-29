@@ -1,11 +1,11 @@
+import BaseController from "#controllers/templates/base_controller"
 import errorCodes from "#lib/constants/errors"
-import Controller from "#lib/templates/controller"
 import User from "#models/user"
 import { credentialsValidator } from "#validators/auth_validator"
 import { HttpContext } from "@adonisjs/core/http"
 import logger from "@adonisjs/core/services/logger"
 
-export default class AuthController extends Controller {
+export default class AuthController extends BaseController {
     /**
      * Issue an access token for a user, based on their credentials.
      * It is the initial route used by a user to issue their first token.

@@ -1,5 +1,5 @@
+import BaseController from "#controllers/templates/base_controller"
 import errorCodes from "#lib/constants/errors"
-import Controller from "#lib/templates/controller"
 import { getAddressType } from "#lib/utils/addresses"
 import { getUserRoles } from "#lib/utils/roles"
 import Address from "#models/address"
@@ -11,7 +11,7 @@ import { HttpContext } from "@adonisjs/core/http"
 import logger from "@adonisjs/core/services/logger"
 import { DateTime } from "luxon"
 
-export default class AddressesController extends Controller {
+export default class AddressesController extends BaseController {
     /**
      * Get all addresses.
      */

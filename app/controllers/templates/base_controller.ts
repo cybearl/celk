@@ -3,7 +3,7 @@ import { inject } from "@adonisjs/core"
 import { HttpContext } from "@adonisjs/core/http"
 
 @inject()
-export default class Controller {
+export default class BaseController {
     constructor(protected ctx: HttpContext) {}
 
     /**

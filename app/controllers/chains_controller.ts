@@ -1,9 +1,9 @@
 import errorCodes from "#lib/constants/errors"
-import Controller from "#lib/templates/controller"
 import Chain from "#models/chain"
 import { HttpContext } from "@adonisjs/core/http"
+import BaseController from "#controllers/templates/base_controller"
 
-export default class ChainsController extends Controller {
+export default class ChainsController extends BaseController {
     /**
      * Get all chains.
      */
