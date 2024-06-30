@@ -1,5 +1,6 @@
 import Cache from "#kernel/cache"
 import { MemorySlot } from "#kernel/table"
+import errorCodes, { formatError } from "#lib/constants/errors"
 
 /**
  * The Bech32 encoder class is used to encode Bech32 strings
@@ -42,8 +43,8 @@ export default class Bech32Encoder {
     /**
      * Computes the Bech32 checksum for the data stored
      * at the `MemorySlot` inside of a `Cache` instance.
-     * @param cache The `Cache` instance containing the data.
-     * @param slot The `MemorySlot` containing the data.
+     * @param cache The `Cache` instance to read from.
+     * @param slot The position in the `Cache` to read from.
      * @returns The computed checksum.
      */
     private polymod(cache: Cache, slot: MemorySlot): number {
@@ -63,31 +64,57 @@ export default class Bech32Encoder {
 
     /**
      * Expands the HRP (Human Readable Part) into its binary representation.
+     * @param cache The `Cache` instance to write to.
+     * @param slot The position in the `Cache` to write to.
      * @param hrp The HRP to expand.
      * @returns The expanded HRP as a `Cache` instance.
      */
-    private expandHrp(hrp: string): Cache {
-        const res = new Cache(hrp.length * 2 + 1)
+    private expandHrp(cache: Cache, slot: MemorySlot, hrp: string): Cache {
+        const expandedHrpLength = hrp.length * 2 + 1
 
-        for (let i = 0; i < hrp.length; i++) {
-            res[i] = hrp.charCodeAt(i) >> 5
-            res[i + hrp.length + 1] = hrp.charCodeAt(i) & 31
+        if (slot.length < expandedHrpLength || slot.end - slot.start < expandedHrpLength) {
+            throw new Error(formatError(errorCodes.BECH32_INVALID_HRP_SLOT_SIZE, undefined, { slot, hrp }))
         }
 
-        res[hrp.length] = 0
-        return res
+        for (let i = 0; i < hrp.length; i++) {
+            cache[slot.start + i] = hrp.charCodeAt(i) >> 5
+            cache[slot.start + i + hrp.length + 1] = hrp.charCodeAt(i) & 31
+        }
+
+        cache[slot.start + hrp.length] = 0
+
+        return cache
     }
 
     /**
      * Creates a Bech32 checksum from the HRP and data based on the current encoding.
+     * @param cache The `Cache` instance to write to.
+     * @param slot The position in the `Cache` to write to.
      * @param hrp The HRP to use.
      * @param data The data to use.
      */
-    private createChecksum(hrp: string, data: Uint8Array): Cache {
-        const expandedHrp = this.expandHrp(hrp)
-        const cache = new Cache(expandedHrp.length + data.length + 6)
+    private createChecksum(cache: Cache, slot: MemorySlot, hrp: string, data: Uint8Array) {
+        const expandedHrpLength = hrp.length * 2 + 1
+        const checksumLength = expandedHrpLength + data.length + 6
 
-        let i = 0
-        for (; i < expandedHrp.length; i++) cache[i] = expandedHrp[i]
+        if (slot.length < checksumLength || slot.end - slot.start < checksumLength) {
+            throw new Error(formatError(errorCodes.BECH32_INVALID_CHECKSUM_SLOT_SIZE, undefined, { slot, hrp, data }))
+        }
+
+        // Write the expanded HRP to the cache
+        this.expandHrp(cache, slot, hrp)
+
+        // Write the data to the cache
+        for (const [i, datum] of data.entries()) {
+            cache[slot.start + expandedHrpLength + i] = datum
+        }
+
+        // Compute the checksum
+        const polymod =
+            this.polymod(cache, {
+                start: slot.start,
+                length: checksumLength,
+                end: slot.start + checksumLength,
+            }) ^ this.bech32m
     }
 }

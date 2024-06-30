@@ -98,6 +98,7 @@ export default class Bench {
     print = (category: string, clear = true) => {
         console.log("")
         externalLogger.info(`${category.toUpperCase()}:`)
+        externalLogger.info("=".repeat(category.length + 1))
 
         // Measure the longest function name for padding
         let longestFnName = 0

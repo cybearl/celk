@@ -1,3 +1,5 @@
+export type AdditionalData = { [key: string]: any } | string | string[] | number | number[] | null
+
 /**
  * The type definition for an error code.
  */
@@ -6,6 +8,31 @@ export type ErrorCode = {
     code: string
     message: string
     data: any
+}
+
+/**
+ * Formats an error and stringifies it for it to be supported by the `Error` class.
+ * @param error The error code object to format.
+ * @param message Replaces the standard error message with a custom one (optional).
+ * @param additionalData Additional data to include in the error (optional).
+ * @returns The formatted error string.
+ */
+export function formatError(error: ErrorCode, message?: string, additionalData?: AdditionalData): string {
+    if (message) error.message = message
+
+    let err: ErrorCode
+    if (additionalData) err = { ...error, data: additionalData }
+    else err = error
+
+    // Allow special keys in the JSON stringification
+    const allowSpecialKeys = (_: string, value: unknown) => {
+        if (typeof value === "function") return value.toString()
+        if (typeof value === "bigint") return value.toString()
+
+        return value
+    }
+
+    return JSON.stringify(err, allowSpecialKeys, 4)
 }
 
 /**
@@ -149,6 +176,22 @@ const errorCodes = {
         status: 501,
         code: "NOT_IMPLEMENTED",
         message: "This feature is not implemented yet.",
+        data: null,
+    },
+
+    //=======
+    //  999
+    //=======
+    BECH32_INVALID_HRP_SLOT_SIZE: {
+        status: 999,
+        code: "BECH32_INVALID_HRP_SLOT_SIZE",
+        message: "The HRP slot size is invalid.",
+        data: null,
+    },
+    BECH32_INVALID_CHECKSUM_SLOT_SIZE: {
+        status: 999,
+        code: "BECH32_INVALID_CHECKSUM_SLOT_SIZE",
+        message: "The checksum slot size is invalid.",
         data: null,
     },
 }

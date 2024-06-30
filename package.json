@@ -17,7 +17,7 @@
         "build": "node ace build",
         "dev": "node ace serve -w",
         "test": "node ace test",
-        "test:benchmark": "node --no-warnings=ExperimentalWarning --loader ts-node/esm ./tests/benchmark.ts",
+        "test:bench": "node --no-warnings=ExperimentalWarning --loader ts-node/esm ./tests/bench.ts",
         "test:unit": "node ace test unit",
         "test:functional": "node ace test functional",
         "sandbox": "node --no-warnings=ExperimentalWarning --loader ts-node/esm ./tests/sandbox.ts",

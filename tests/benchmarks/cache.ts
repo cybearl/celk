@@ -44,6 +44,10 @@ export default function executeCacheBenchmark(cacheBenchmarkInputSize: number, b
     const cache = Cache.alloc(cacheBenchmarkInputSize)
     const cacheX8 = Cache.alloc(cacheBenchmarkInputSize * 8)
     const emptyCache = Cache.alloc(1)
+    const firstEqualCache = Cache.alloc(cacheBenchmarkInputSize)
+    const secondEqualCache = Cache.alloc(cacheBenchmarkInputSize)
+    const firstUnequalCache = Cache.fromHexString(randomHex)
+    const secondUnequalCache = Cache.fromHexString(randomHex.split("").reverse().join(""))
 
     const bench = new Bench(benchmarkDuration)
 
@@ -103,12 +107,8 @@ export default function executeCacheBenchmark(cacheBenchmarkInputSize: number, b
     bench.benchmark(() => cache.toUint32Array(), "toUint32Array")
     bench.print("convert")
 
-    const firstCache = Cache.alloc(cacheBenchmarkInputSize)
-    const secondCache = Cache.alloc(cacheBenchmarkInputSize)
-    bench.benchmark(() => firstCache.equals(secondCache), "equals(true)")
-    firstCache.writeHexString(randomHex)
-    secondCache.writeHexString(randomHex.split("").reverse().join(""))
-    bench.benchmark(() => firstCache.equals(secondCache), "equals(false)")
+    bench.benchmark(() => firstEqualCache.equals(secondEqualCache), "equals(true)")
+    bench.benchmark(() => firstUnequalCache.equals(secondUnequalCache), "equals(false)")
     bench.benchmark(() => cache.isEmpty(), `isEmpty(${cacheBenchmarkInputSize})`)
     bench.benchmark(() => emptyCache.isEmpty(), `isEmpty(1)`)
     bench.print("check")
