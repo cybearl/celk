@@ -45,7 +45,7 @@ export async function fetchEthereumAddressData(address: Address) {
  */
 const addressDataWorker = new Worker(
     addressDataQueue.name,
-    async () => {
+    async (job) => {
         const fetchTime = DateTime.now().minus({ hours: addressDataConfig.fetchEvery }).toSQL()
 
         // Recover the first address that needs to be fetched,
@@ -79,6 +79,8 @@ const addressDataWorker = new Worker(
         await address.save()
 
         logger.info(`fetched data for address '${address.hash}'`)
+
+        job.updateData({ address })
     },
     workersConfig
 )
@@ -87,7 +89,10 @@ const addressDataWorker = new Worker(
  * Event listener for the 'failed' event of the worker.
  */
 addressDataWorker.on("failed", (job, error) => {
-    if (!job) {
+    if (!job || !job.data.address) {
+        // Auto-aborted jobs are not considered failures
+        if (error.message === "aborted") return
+
         logger.error(`failed to fetch data for an address: ${error}`)
         return
     }

@@ -17,6 +17,8 @@ export default class WorkersProvider {
      * The options for the address data cron job.
      */
     private addressDataCronOptions = {
+        removeOnComplete: true,
+        removeOnFail: true,
         delay: addressDataConfig.initialDelay,
         repeat: {
             every: addressDataConfig.repeatEvery,
@@ -30,7 +32,7 @@ export default class WorkersProvider {
      * More info: https://docs.adonisjs.com/guides/concepts/service-providers#ready
      */
     async ready() {
-        if (process.env.CC === "true") {
+        if (process.env.NO_LIFECYCLE === "true") {
             // Ensures that the address data cron job is not running
             await addressDataQueue.removeRepeatable("cron:address:data", this.addressDataCronOptions.repeat)
             return
@@ -64,7 +66,7 @@ export default class WorkersProvider {
      * More info: https://docs.adonisjs.com/guides/concepts/service-providers#shutdown
      */
     async shutdown() {
-        if (process.env.CC === "true") return
+        if (process.env.NO_LIFECYCLE === "true") return
 
         if (Object.keys(workers).length === 0) {
             logger.debug("no workers to stop, skipping...")

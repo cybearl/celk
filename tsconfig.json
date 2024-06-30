@@ -33,6 +33,7 @@
         "paths": {                                           /* Specify a set of entries that re-map imports to additional lookup locations. */
             "#config/*": ["./config/*"],
             "#database/*": ["./database/*"],
+            "#kernel/*": ["./kernel/*"],
             "#lib/*": ["./lib/*"],
             "#start/*": ["./start/*"],
             "#tests/*": ["./tests/*"],
