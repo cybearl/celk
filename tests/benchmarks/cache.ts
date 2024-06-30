@@ -43,7 +43,7 @@ export default function executeCacheBenchmark(cacheBenchmarkInputSize: number, b
     // Test cache instance
     const cache = Cache.alloc(cacheBenchmarkInputSize)
     const cacheX8 = Cache.alloc(cacheBenchmarkInputSize * 8)
-    const emptyCache = Cache.alloc(cacheBenchmarkInputSize)
+    const emptyCache = Cache.alloc(1)
 
     const bench = new Bench(benchmarkDuration)
 
@@ -109,8 +109,8 @@ export default function executeCacheBenchmark(cacheBenchmarkInputSize: number, b
     firstCache.writeHexString(randomHex)
     secondCache.writeHexString(randomHex.split("").reverse().join(""))
     bench.benchmark(() => firstCache.equals(secondCache), "equals(false)")
-    bench.benchmark(() => cache.isEmpty(), "isEmpty(0)")
-    bench.benchmark(() => emptyCache.isEmpty(), `isEmpty(${cacheBenchmarkInputSize})`)
+    bench.benchmark(() => cache.isEmpty(), `isEmpty(${cacheBenchmarkInputSize})`)
+    bench.benchmark(() => emptyCache.isEmpty(), `isEmpty(1)`)
     bench.print("check")
 
     bench.benchmark(() => cache.randomFill(), `randomFill(${cacheBenchmarkInputSize})`)
