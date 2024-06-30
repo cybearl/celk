@@ -66,7 +66,7 @@ export const base58MemoryTable = {
 }
 
 /**
- * The SegWit memory table indexes the data stored in a single Cache instance (= Uint8Array)
+ * The Bech32 memory table indexes the data stored in a single Cache instance (= Uint8Array)
  * for the SegWit address generation (Bech32 encoding).
  *
  * This table is only compatible with:
@@ -77,7 +77,7 @@ export const base58MemoryTable = {
  *
  * More info [here](https://en.bitcoin.it/wiki/Bech32).
  */
-export const segWitMemoryTable = {
+export const bech32MemoryTable = {
     ...baseMemoryTable,
 
     // The witness version is stored at index 150
