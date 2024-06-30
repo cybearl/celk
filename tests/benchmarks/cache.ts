@@ -1,6 +1,6 @@
 import Cache from "#kernel/cache"
 import Bench from "#lib/utils/benchmark"
-import logger from "@adonisjs/core/services/logger"
+import externalLogger from "#lib/utils/external_logger"
 
 /**
  * The benchmark for the Cache class.
@@ -32,13 +32,13 @@ export default function executeCacheBenchmark(cacheBenchmarkInputSize: number, b
     const oneBigInt = BigInt(0x1)
     const randomBigInt = BigInt(`0x${randomHex}`)
 
-    logger.info("Starting benchmarking for the cache library...")
-    logger.info(`>> Benchmark duration: ${benchmarkDuration} millisecond(s)`)
-    logger.info(`>> Cache benchmark input size: ${cacheBenchmarkInputSize.toLocaleString("en-US")}`)
+    externalLogger.info("Starting benchmarking for the cache library...")
+    externalLogger.info(`>> Benchmark duration: ${benchmarkDuration} millisecond(s)`)
+    externalLogger.info(`>> Cache benchmark input size: ${cacheBenchmarkInputSize.toLocaleString("en-US")}`)
 
     console.log("")
-    logger.warn("This might take a while depending on the benchmark duration and the input size you chose.")
-    logger.warn("Please be patient and wait for the results to be displayed.")
+    externalLogger.warn("This might take a while depending on the benchmark duration and the input size you chose.")
+    externalLogger.warn("Please be patient and wait for the results to be displayed.")
 
     // Test cache instance
     const cache = Cache.alloc(cacheBenchmarkInputSize)

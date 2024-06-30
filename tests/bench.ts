@@ -1,5 +1,12 @@
+import externalLogger from "#lib/utils/external_logger"
 import executeCacheBenchmark from "#tests/benchmarks/cache"
+import dedent from "dedent-js"
 import minimist from "minimist"
+
+/**
+ * The help message.
+ */
+const helpMessage = dedent``
 
 /**
  * The type definition for a benchmark function.
@@ -18,28 +25,43 @@ const benchmarks: { [key: string]: BenchmarkFunction } = {
  * @param args Arguments from the command line.
  */
 function main(args: string[]) {
+    externalLogger.info("Starting benchmarks, running outside of AdonisJS context.")
+
     const argv = minimist(args.slice(2))
 
-    if (argv.benchmark || argv.b) {
-        const benchmarkName = argv.benchmark || argv.b
+    const argBenchmarkName = argv.benchmark || argv.b
+    let argCacheBenchmarkInputSize = argv.cacheBenchmarkInputSize || argv.c
+    let argBenchmarkDuration = argv.benchmarkDuration || argv.d
 
-        if (!benchmarkName) {
-            logger.error(M_BENCHMARK_NAME_NOT_PROVIDED)
-            process.exit(1)
+    if (!argCacheBenchmarkInputSize) {
+        externalLogger.info(">> No cache benchmark input size provided, using default value of 128 bytes.")
+        argCacheBenchmarkInputSize = 128
+    }
+
+    if (!argBenchmarkDuration) {
+        externalLogger.info(">> No benchmark duration provided, using default value of 256 milliseconds.")
+        argBenchmarkDuration = 256
+    }
+
+    if (!argBenchmarkName) {
+        externalLogger.info(">> No benchmark name provided, running all benchmarks..")
+
+        for (const benchmarkName in benchmarks) {
+            console.log("")
+            benchmarks[benchmarkName](argCacheBenchmarkInputSize, argBenchmarkDuration)
         }
-
-        const benchmark: BenchmarkFunction | undefined = benchmarks[benchmarkName]
-
-        if (benchmark) {
-            benchmark()
+    } else {
+        if (benchmarks[argBenchmarkName]) {
+            console.log("")
+            benchmarks[argBenchmarkName](argCacheBenchmarkInputSize, argBenchmarkDuration)
         } else {
-            logger.error(M_BENCHMARK_NOT_FOUND)
+            externalLogger.error(`Benchmark ${argBenchmarkName} not found.`)
             process.exit(1)
         }
     }
 
     if (argv.help || argv.h) {
-        logger.info(M_HELP)
+        externalLogger.info(helpMessage)
         process.exit(0)
     }
 }

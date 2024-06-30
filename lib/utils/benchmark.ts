@@ -1,5 +1,5 @@
+import externalLogger from "#lib/utils/external_logger"
 import { formatHRTime, formatPercentage, formatUnit } from "#lib/utils/formats"
-import logger from "@adonisjs/core/services/logger"
 
 /**
  * The type of the benchmark function result.
@@ -97,7 +97,7 @@ export default class Bench {
      */
     print = (category: string, clear = true) => {
         console.log("")
-        logger.info(`${category.toUpperCase()}:`)
+        externalLogger.info(`${category.toUpperCase()}:`)
 
         // Measure the longest function name for padding
         let longestFnName = 0
@@ -124,11 +124,11 @@ export default class Bench {
             const log = `${formattedFnName}═> ${formattedAvgExecutionTime} | ${formattedOperationsPerSecond} | ${formattedPercentage}`
 
             const indicatorPadding = 10
-            if (percentage >= 90) logger.debug(log + "(fastest)".padStart(indicatorPadding, " "))
-            else if (percentage >= 60) logger.info(log + "(fast)".padStart(indicatorPadding, " "))
-            else if (percentage >= 30) logger.warn(log + "(medium)".padStart(indicatorPadding, " "))
-            else if (percentage >= 10) logger.error(log + "(slow)".padStart(indicatorPadding, " "))
-            else logger.fatal(log + "(slowest)".padStart(indicatorPadding, " "))
+            if (percentage >= 90) externalLogger.debug(log + "(fastest)".padStart(indicatorPadding, " "))
+            else if (percentage >= 60) externalLogger.silly(log + "(fast)".padStart(indicatorPadding, " "))
+            else if (percentage >= 30) externalLogger.info(log + "(medium)".padStart(indicatorPadding, " "))
+            else if (percentage >= 10) externalLogger.warn(log + "(slow)".padStart(indicatorPadding, " "))
+            else externalLogger.error(log + "(slowest)".padStart(indicatorPadding, " "))
         }
 
         // Clear the results object for the next benchmark
