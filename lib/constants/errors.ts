@@ -182,18 +182,6 @@ const errorCodes = {
     //=======
     //  999
     //=======
-    BECH32_INVALID_HRP_SLOT_SIZE: {
-        status: 999,
-        code: "BECH32_INVALID_HRP_SLOT_SIZE",
-        message: "The HRP slot size is invalid.",
-        data: null,
-    },
-    BECH32_INVALID_CHECKSUM_SLOT_SIZE: {
-        status: 999,
-        code: "BECH32_INVALID_CHECKSUM_SLOT_SIZE",
-        message: "The checksum slot size is invalid.",
-        data: null,
-    },
 }
 
 export default errorCodes
