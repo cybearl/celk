@@ -1,5 +1,5 @@
 import BaseController from "#controllers/templates/base_controller"
-import errorCodes from "#lib/constants/errors"
+import { AppErrors } from "#lib/constants/errors"
 import User from "#models/user"
 import { credentialsValidator } from "#validators/auth_validator"
 import { HttpContext } from "@adonisjs/core/http"
@@ -21,7 +21,7 @@ export default class AuthController extends BaseController {
             user = await User.verifyCredentials(username as string, password)
         } else {
             return this.errorResponse(
-                errorCodes.UNAUTHORIZED,
+                AppErrors.UNAUTHORIZED,
                 null,
                 "You must provide either an email or a username to login."
             )
@@ -29,7 +29,7 @@ export default class AuthController extends BaseController {
 
         if (user.isLocked) {
             logger.warn(`user ${user.id} (${user.email}) tried to log in but their account is locked`)
-            return this.errorResponse(errorCodes.LOCKED)
+            return this.errorResponse(AppErrors.LOCKED)
         }
 
         const token = await User.accessTokens.create(user, undefined, {

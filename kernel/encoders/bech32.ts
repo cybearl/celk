@@ -1,6 +1,6 @@
 import Cache from "#kernel/cache"
 import { MemorySlot } from "#kernel/table"
-import errorCodes, { formatError } from "#lib/constants/errors"
+import { KernelErrors, fe } from "#lib/constants/errors"
 
 /**
  * The Bech32 encoding type.
@@ -65,8 +65,8 @@ export default class Bech32Encoder {
             const highNibble = checksum >> 25
             checksum = ((checksum & 0x1ffffff) << 5) ^ datum
 
-            for (let j = 1; j < 5; j++) {
-                if ((highNibble >> j) & 1) checksum ^= this._GENERATOR[j]
+            for (let i = 0; i < 5; i++) {
+                if ((highNibble >> i) & 1) checksum ^= this._GENERATOR[i]
             }
         }
 
@@ -97,24 +97,23 @@ export default class Bech32Encoder {
      * @param data The data to use, as an `Uint8Array` instance.
      */
     private _createChecksum(hrp: string, data: Uint8Array): Uint8Array {
-        const checksumLength = hrp.length * 2 + 1 + data.length + 6
-        const checksum = new Uint8Array(checksumLength)
+        const checksumData = new Uint8Array(hrp.length * 2 + 1 + data.length + 6)
+        const expandedHrp = this._expandHrp(hrp)
 
         // Write the HRP (Human Readable Part) to the checksum array
-        const expandedHrp = this._expandHrp(hrp)
-        for (const [i, datum] of expandedHrp.entries()) checksum[i] = datum
+        checksumData.set(expandedHrp, 0)
 
         // Write the data to the checksum cache
-        for (const [i, datum] of data.entries()) checksum[expandedHrp.length + i] = datum
+        checksumData.set(data, expandedHrp.length)
 
         // Compute the checksum (polymod)
-        const polymod = this._polymod(checksum) ^ this.bech32m
+        const polymod = this._polymod(checksumData) ^ this.bech32m
 
         // Write the checksum into a new Uint8Array instance
-        const result = new Uint8Array(6)
-        for (let i = 0; i < 6; i++) result[i] = (polymod >> (5 * (5 - i))) & 31
+        const checksum = new Uint8Array(6)
+        for (let i = 0; i < 6; i++) checksum[i] = (polymod >> (5 * (5 - i))) & 31
 
-        return result
+        return checksum
     }
 
     /**
@@ -123,20 +122,17 @@ export default class Bech32Encoder {
      * @param data The data to use, as an `Uint8Array` instance.
      */
     private verifyChecksum(hrp: string, data: Uint8Array): boolean {
-        const checksumLength = hrp.length * 2 + 1 + data.length
-        const checksum = new Uint8Array(checksumLength)
-
-        // Write the HRP to the checksum array
+        const checksumData = new Uint8Array(hrp.length * 2 + 1 + data.length)
         const expandedHrp = this._expandHrp(hrp)
-        for (const [i, datum] of expandedHrp.entries()) checksum[i] = datum
+
+        // Write the HRP (Human Readable Part) to the checksum array
+        checksumData.set(expandedHrp, 0)
 
         // Write the data to the checksum cache
-        for (const [i, datum] of data.entries()) checksum[expandedHrp.length + i] = datum
+        checksumData.set(data, expandedHrp.length)
 
         // Compute the checksum (polymod)
-        const polymod = this._polymod(checksum)
-
-        console.log(hrp, polymod, this.bech32m)
+        const polymod = this._polymod(checksumData)
 
         // Verify the checksum
         return polymod === this.bech32m
@@ -194,12 +190,24 @@ export default class Bech32Encoder {
      * @throws An error if the Bech32 string is invalid.
      */
     private _decode(bech32String: string, cache?: Cache, slot?: MemorySlot): Uint8Array | void {
+        if (bech32String.length < 8) {
+            throw new Error(
+                fe(KernelErrors.INVALID_BECH32_LENGTH, "The Bech32 string is too short (less than 8 characters).")
+            )
+        }
+
+        if (bech32String.length > 90) {
+            throw new Error(
+                fe(KernelErrors.INVALID_BECH32_LENGTH, "The Bech32 string is too long (more than 90 characters).")
+            )
+        }
+
         let hasLowercase = false
         let hasUppercase = false
 
         for (const char of bech32String) {
             if (char.charCodeAt(0) < 33 || char.charCodeAt(0) > 126) {
-                throw new Error(formatError(errorCodes.INVALID_BECH32_CHARACTER))
+                throw new Error(fe(KernelErrors.INVALID_BECH32_CHARACTER))
             }
 
             if (char >= "a" && char <= "z") hasLowercase = true
@@ -207,35 +215,35 @@ export default class Bech32Encoder {
         }
 
         if (hasLowercase && hasUppercase) {
-            throw new Error(formatError(errorCodes.INVALID_BECH32_CASE))
+            throw new Error(fe(KernelErrors.INVALID_BECH32_CASE))
         }
 
         const bech32 = bech32String.toLowerCase()
         const separatorPosition = bech32.lastIndexOf("1")
 
         if (separatorPosition === -1) {
-            throw new Error(formatError(errorCodes.BECH32_SEPARATOR_NOT_FOUND))
+            throw new Error(fe(KernelErrors.BECH32_SEPARATOR_NOT_FOUND))
         }
 
-        if (separatorPosition + 7 > bech32.length || bech32.length > 90) {
-            throw new Error(formatError(errorCodes.INVALID_BECH32_LENGTH))
+        if (separatorPosition === 0) {
+            throw new Error(fe(KernelErrors.INVALID_BECH32_HRP))
         }
 
-        const hrp = bech32.slice(0, separatorPosition)
         const data = new Uint8Array(bech32.length - separatorPosition - 6)
 
         for (let i = separatorPosition + 1; i < bech32.length; i++) {
             const index = this._CHARSET.indexOf(bech32[i])
 
             if (index === -1) {
-                throw new Error(formatError(errorCodes.INVALID_BECH32_CHARACTER))
+                throw new Error(fe(KernelErrors.INVALID_BECH32_CHARACTER))
             }
 
             data[i] = index
         }
 
+        const hrp = bech32.slice(0, separatorPosition)
         if (!this.verifyChecksum(hrp, data)) {
-            throw new Error(formatError(errorCodes.INVALID_BECH32_CHECKSUM))
+            throw new Error(fe(KernelErrors.INVALID_BECH32_CHECKSUM))
         }
 
         if (!cache || !slot) return data

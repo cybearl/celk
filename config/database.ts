@@ -24,7 +24,6 @@ const dbConfig = defineConfig({
             seeders: {
                 paths: ["database/seeders/main"],
             },
-            healthCheck: true,
         },
     },
 })

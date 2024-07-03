@@ -1,4 +1,4 @@
-import errorCodes from "#lib/constants/errors"
+import { AppErrors } from "#lib/constants/errors"
 import Chain from "#models/chain"
 import { HttpContext } from "@adonisjs/core/http"
 import BaseController from "#controllers/templates/base_controller"
@@ -18,11 +18,7 @@ export default class ChainsController extends BaseController {
     async show({ params }: HttpContext) {
         const chain = await Chain.find(params.chain_id)
         if (!chain) {
-            return this.errorResponse(
-                errorCodes.CHAIN_NOT_FOUND,
-                null,
-                "This chain does not exist or is not supported."
-            )
+            return this.errorResponse(AppErrors.CHAIN_NOT_FOUND, null, "This chain does not exist or is not supported.")
         }
 
         return this.successResponse(chain)

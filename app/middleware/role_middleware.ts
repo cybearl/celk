@@ -1,4 +1,4 @@
-import errorCodes from "#lib/constants/errors"
+import { AppErrors } from "#lib/constants/errors"
 import Role, { RoleNames } from "#models/role"
 import User from "#models/user"
 import type { HttpContext } from "@adonisjs/core/http"
@@ -24,7 +24,7 @@ export default class RoleMiddleware {
             return ctx.response.forbidden({
                 success: false,
                 message: "You must be authenticated to access this route.",
-                error: errorCodes.UNAUTHORIZED,
+                error: AppErrors.UNAUTHORIZED,
             })
         }
 
@@ -35,8 +35,8 @@ export default class RoleMiddleware {
 
             return ctx.response.forbidden({
                 success: false,
-                message: errorCodes.LOCKED.message,
-                error: errorCodes.LOCKED,
+                message: AppErrors.LOCKED.message,
+                error: AppErrors.LOCKED,
             })
         }
 
@@ -48,7 +48,7 @@ export default class RoleMiddleware {
             return ctx.response.forbidden({
                 success: false,
                 message: "You do not have the required role to access this route.",
-                error: errorCodes.UNAUTHORIZED,
+                error: AppErrors.UNAUTHORIZED,
             })
         }
 

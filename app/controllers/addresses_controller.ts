@@ -1,5 +1,5 @@
 import BaseController from "#controllers/templates/base_controller"
-import errorCodes from "#lib/constants/errors"
+import { AppErrors } from "#lib/constants/errors"
 import { getAddressType } from "#lib/utils/addresses"
 import { getUserRoles } from "#lib/utils/roles"
 import Address from "#models/address"
@@ -34,15 +34,11 @@ export default class AddressesController extends BaseController {
         const { hash, chainId } = await request.validateUsing(addressCreationValidator)
 
         const type = getAddressType(hash)
-        if (!type) return this.errorResponse(errorCodes.INVALID_ADDRESS_TYPE)
+        if (!type) return this.errorResponse(AppErrors.INVALID_ADDRESS_TYPE)
 
         const chain = await Chain.find(chainId)
         if (!chain) {
-            return this.errorResponse(
-                errorCodes.CHAIN_NOT_FOUND,
-                null,
-                "This chain does not exist or is not supported."
-            )
+            return this.errorResponse(AppErrors.CHAIN_NOT_FOUND, null, "This chain does not exist or is not supported.")
         }
 
         const address = await Address.create({
@@ -63,13 +59,13 @@ export default class AddressesController extends BaseController {
 
         if (roles.includes(RoleNames.AdminRole)) {
             const address = await Address.find(params.address_id)
-            if (!address) return this.errorResponse(errorCodes.ADDRESS_NOT_FOUND)
+            if (!address) return this.errorResponse(AppErrors.ADDRESS_NOT_FOUND)
 
             return this.successResponse(address)
         }
 
         const address = await Address.query().where("userId", auth.user!.id).andWhere("id", params.address_id).first()
-        if (!address) return this.errorResponse(errorCodes.ADDRESS_NOT_FOUND)
+        if (!address) return this.errorResponse(AppErrors.ADDRESS_NOT_FOUND)
 
         return this.successResponse(address)
     }
@@ -84,7 +80,7 @@ export default class AddressesController extends BaseController {
         if (roles.includes(RoleNames.AdminRole)) address = await Address.find(params.address_id)
         else address = await Address.query().where("userId", auth.user!.id).andWhere("id", params.address_id).first()
 
-        if (!address) return this.errorResponse(errorCodes.ADDRESS_NOT_FOUND)
+        if (!address) return this.errorResponse(AppErrors.ADDRESS_NOT_FOUND)
 
         if (address.fetchedAt) {
             // Verify that the fetchedAt field is not < 10 seconds ago
@@ -92,7 +88,7 @@ export default class AddressesController extends BaseController {
 
             if (diff < 10) {
                 logger.debug(`Address data for ${address.hash} was fetched too soon (${diff} seconds < 10 seconds)`)
-                return this.errorResponse(errorCodes.ADDRESS_DATA_FETCHED_TOO_SOON)
+                return this.errorResponse(AppErrors.ADDRESS_DATA_FETCHED_TOO_SOON)
             }
         }
 
@@ -125,7 +121,7 @@ export default class AddressesController extends BaseController {
         if (roles.includes(RoleNames.AdminRole)) address = await Address.find(params.address_id)
         else address = await Address.query().where("userId", auth.user!.id).andWhere("id", params.address_id).first()
 
-        if (!address) return this.errorResponse(errorCodes.ADDRESS_NOT_FOUND)
+        if (!address) return this.errorResponse(AppErrors.ADDRESS_NOT_FOUND)
 
         await address.delete()
         return this.successResponse()
@@ -141,7 +137,7 @@ export default class AddressesController extends BaseController {
         if (roles.includes(RoleNames.AdminRole)) address = await Address.find(params.address_id)
         else address = await Address.query().where("userId", auth.user!.id).andWhere("id", params.address_id).first()
 
-        if (!address) return this.errorResponse(errorCodes.ADDRESS_NOT_FOUND)
+        if (!address) return this.errorResponse(AppErrors.ADDRESS_NOT_FOUND)
 
         address.isLocked = true
         await address.save()
@@ -160,7 +156,7 @@ export default class AddressesController extends BaseController {
         if (roles.includes(RoleNames.AdminRole)) address = await Address.find(params.address_id)
         else address = await Address.query().where("userId", auth.user!.id).andWhere("id", params.address_id).first()
 
-        if (!address) return this.errorResponse(errorCodes.ADDRESS_NOT_FOUND)
+        if (!address) return this.errorResponse(AppErrors.ADDRESS_NOT_FOUND)
 
         address.isLocked = false
         await address.save()

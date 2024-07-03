@@ -1,7 +1,7 @@
 import type { HttpContext } from "@adonisjs/core/http"
 import type { NextFn } from "@adonisjs/core/types/http"
 import type { Authenticators } from "@adonisjs/auth/types"
-import errorCodes from "#lib/constants/errors"
+import { AppErrors } from "#lib/constants/errors"
 import { REDIRECT_TO } from "#lib/constants/db"
 import logger from "@adonisjs/core/services/logger"
 
@@ -24,7 +24,7 @@ export default class AuthMiddleware {
             return ctx.response.unauthorized({
                 success: false,
                 message: "The authentication credentials are invalid.",
-                error: errorCodes.UNAUTHORIZED,
+                error: AppErrors.UNAUTHORIZED,
             })
         }
 
@@ -32,7 +32,7 @@ export default class AuthMiddleware {
             return ctx.response.unauthorized({
                 success: false,
                 message: "Invalid connection attempt for unknown reason.",
-                error: errorCodes.UNAUTHORIZED,
+                error: AppErrors.UNAUTHORIZED,
             })
         }
 
@@ -43,8 +43,8 @@ export default class AuthMiddleware {
 
             return ctx.response.forbidden({
                 success: false,
-                message: errorCodes.LOCKED.message,
-                error: errorCodes.LOCKED,
+                message: AppErrors.LOCKED.message,
+                error: AppErrors.LOCKED,
             })
         }
 

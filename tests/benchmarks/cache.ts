@@ -3,8 +3,8 @@ import Bench from "#lib/utils/benchmark"
 import externalLogger from "#lib/utils/external_logger"
 
 /**
- * The benchmark for the Cache class.
- * @param cacheBenchmarkInputSize The size of the input for the cache benchmark.
+ * The benchmark for the `Cache` class.
+ * @param cacheBenchmarkInputSize The size of the input for the `Cache` benchmark.
  * @param benchmarkDuration The duration of the benchmark.
  */
 export default function executeCacheBenchmark(cacheBenchmarkInputSize: number, benchmarkDuration: number) {

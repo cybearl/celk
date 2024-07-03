@@ -4,7 +4,7 @@ import { getBitcoinAddressData, getEthereumAddressData } from "#lib/apis/web3"
 import Address from "#models/address"
 import { addressDataQueue } from "#queues/index"
 import logger from "@adonisjs/core/services/logger"
-import { Worker } from "bullmq"
+import { UnrecoverableError, Worker } from "bullmq"
 import { DateTime } from "luxon"
 
 /**
@@ -55,13 +55,13 @@ const addressDataWorker = new Worker(
 
         await address.load("chain")
 
-        let res = false
+        let fetched = false
         switch (address.chain.name) {
             case "bitcoin":
-                res = await fetchBitcoinAddressData(address)
+                fetched = await fetchBitcoinAddressData(address)
                 break
             case "ethereum":
-                res = await fetchEthereumAddressData(address)
+                fetched = await fetchEthereumAddressData(address)
                 break
         }
 
@@ -70,9 +70,8 @@ const addressDataWorker = new Worker(
         address.fetchedAt = DateTime.now()
         await address.save()
 
-        if (!res) {
-            logger.debug(`failed to fetch data for address '${address.hash}', skipping..`)
-            return
+        if (!fetched) {
+            throw new UnrecoverableError(`failed to fetch data for address '${address.hash}'`)
         }
 
         address.isReady = true
