@@ -27,14 +27,14 @@ export default class Bech32Encoder {
      * - In the case of Bech32, the constant is set to `1`.
      * - In the case of Bech32m, the constant is set to `0x2bc830a3`.
      */
-    private bech32m: number
+    private modifier: number
 
     /**
      * Creates a new Bech32 encoder instance.
-     * @param bech32m Whether to use Bech32m encoding.
+     * @param encoding The encoding to use (optional, defaults to "bech32").
      */
-    constructor(bech32m = false) {
-        this.bech32m = bech32m ? 0x2bc830a3 : 1
+    constructor(encoding: Bech32Encoding = "bech32") {
+        this.modifier = encoding === "bech32m" ? 0x2bc830a3 : 1
     }
 
     /**
@@ -42,7 +42,7 @@ export default class Bech32Encoder {
      * @returns The current encoding as a string.
      */
     get encoding(): Bech32Encoding {
-        return this.bech32m === 1 ? "bech32" : "bech32m"
+        return this.modifier === 1 ? "bech32" : "bech32m"
     }
 
     /**
@@ -50,7 +50,7 @@ export default class Bech32Encoder {
      * @param encoding The encoding to set.
      */
     set encoding(encoding: Bech32Encoding) {
-        this.bech32m = encoding === "bech32m" ? 0x2bc830a3 : 1
+        this.modifier = encoding === "bech32m" ? 0x2bc830a3 : 1
     }
 
     /**
@@ -107,7 +107,7 @@ export default class Bech32Encoder {
         checksumData.set(data, expandedHrp.length)
 
         // Compute the checksum (polymod)
-        const polymod = this._polymod(checksumData) ^ this.bech32m
+        const polymod = this._polymod(checksumData) ^ this.modifier
 
         // Write the checksum into a new Uint8Array instance
         const checksum = new Uint8Array(6)
@@ -135,7 +135,7 @@ export default class Bech32Encoder {
         const polymod = this._polymod(checksumData)
 
         // Verify the checksum
-        return polymod === this.bech32m
+        return polymod === this.modifier
     }
 
     /**
@@ -218,8 +218,9 @@ export default class Bech32Encoder {
             throw new Error(fe(KernelErrors.INVALID_BECH32_CASE))
         }
 
-        const bech32 = bech32String.toLowerCase()
-        const separatorPosition = bech32.lastIndexOf("1")
+        const bech32DataString = bech32String.toLowerCase()
+        const separatorPosition = bech32DataString.lastIndexOf("1")
+        const dataLength = bech32DataString.length - separatorPosition - 1
 
         if (separatorPosition === -1) {
             throw new Error(fe(KernelErrors.BECH32_SEPARATOR_NOT_FOUND))
@@ -229,25 +230,25 @@ export default class Bech32Encoder {
             throw new Error(fe(KernelErrors.INVALID_BECH32_HRP))
         }
 
-        const data = new Uint8Array(bech32.length - separatorPosition - 6)
+        const hrp = bech32DataString.slice(0, separatorPosition)
+        const data = new Uint8Array(dataLength)
 
-        for (let i = separatorPosition + 1; i < bech32.length; i++) {
-            const index = this._CHARSET.indexOf(bech32[i])
+        for (let i = 0; i < dataLength; i++) {
+            const char = bech32DataString[separatorPosition + 1 + i]
+            const index = this._CHARSET.indexOf(char)
 
-            if (index === -1) {
-                throw new Error(fe(KernelErrors.INVALID_BECH32_CHARACTER))
-            }
+            if (index === -1) throw new Error(fe(KernelErrors.INVALID_BECH32_CHARACTER))
 
             data[i] = index
         }
 
-        const hrp = bech32.slice(0, separatorPosition)
         if (!this.verifyChecksum(hrp, data)) {
             throw new Error(fe(KernelErrors.INVALID_BECH32_CHECKSUM))
         }
 
-        if (!cache || !slot) return data
-        for (const [i, datum] of data.entries()) cache.writeUint8(slot.start + i, datum)
+        const payload = data.slice(0, data.length - 6)
+        if (!cache || !slot) return payload
+        for (const [i, datum] of payload.entries()) cache.writeUint8(slot.start + i, datum)
     }
 
     /**

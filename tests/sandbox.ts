@@ -1,12 +1,11 @@
+import Cache from "#kernel/cache"
 import Bech32Encoder from "#kernel/encoders/bech32"
 
-const encoder = new Bech32Encoder(true)
+const encoder = new Bech32Encoder()
 
-// const test1 = "bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4"
-const test2 = "bc1qrp33g0q5c5txsp9arysrx4k6zdkfs4nce4xj0gdcccefvpysxf3qccfmv3"
+const input = "bc1qrp33g0q5c5txsp9arysrx4k6zdkfs4nce4xj0gdcccefvpysxf3qccfmv3"
+const data = encoder.decodeToBytes(input)
+const test = Cache.fromUint8Array(data)
 
-// const data1 = encoder.decodeToBytes(test1)
-const data2 = encoder.decodeToBytes(test2)
-
-// console.log(data1)
-console.log(data2)
+console.log(test.toHexString())
+console.log("0c318a1e0a628b34025e8c919ab6d09b64c2b3c66a693ddc63194b024819310")
