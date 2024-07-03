@@ -4,7 +4,7 @@ A brute-forcing tool to work with Bitcoin and Ethereum addresses entirely writte
 Note that, the goal of this project is not about providing the fastest generator. It is more like
 an experiment to see how far I can optimize a Typescript/Node.js project for heavy computations.
 So, yeah, this project is entirely written in Typescript with no external dependencies for
-the core functionalities. The only dependencies are for the tests, the logger etc..
+the kernel itself.
 
 The goal that I have, is to build a dual (Xeon | Epyc)-based home server, and to run this project on it for years
 (or decades lol) to see if I can brute-force some addresses, of course, it's almost impossible
