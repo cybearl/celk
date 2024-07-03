@@ -66,6 +66,30 @@ const errorCodes = {
         message: "The address type is invalid.",
         data: null,
     },
+    INVALID_BECH32_CHARACTER: {
+        status: 400,
+        code: "INVALID_BECH32_CHARACTER",
+        message: "The Bech32 string contains an invalid character.",
+        data: null,
+    },
+    INVALID_BECH32_CASE: {
+        status: 400,
+        code: "INVALID_BECH32_CASE",
+        message: "The Bech32 string contains both upper and lower case characters.",
+        data: null,
+    },
+    INVALID_BECH32_LENGTH: {
+        status: 400,
+        code: "INVALID_BECH32_LENGTH",
+        message: "The Bech32 string has an invalid length.",
+        data: null,
+    },
+    INVALID_BECH32_CHECKSUM: {
+        status: 400,
+        code: "INVALID_BECH32_CHECKSUM",
+        message: "The Bech32 string has an invalid checksum.",
+        data: null,
+    },
 
     //=======
     //  401
@@ -136,6 +160,12 @@ const errorCodes = {
         status: 404,
         code: "USER_NOT_FOUND",
         message: "The requested user was not found.",
+        data: null,
+    },
+    BECH32_SEPARATOR_NOT_FOUND: {
+        status: 404,
+        code: "INVALID_BECH32_SEPARATOR",
+        message: "The Bech32 string does not contain a separator.",
         data: null,
     },
 

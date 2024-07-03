@@ -19,8 +19,8 @@ export type Bech32Encoding = "bech32" | "bech32m"
  * - [Reference implementation](https://github.com/sipa/bech32/tree/master/ref/javascript).
  */
 export default class Bech32Encoder {
-    private readonly CHARSET = "qpzry9x8gf2tvdw0s3jn54khce6mua7l"
-    private readonly GENERATOR = [0x3b6a57b2, 0x26508e6d, 0x1ea119fa, 0x3d4233dd, 0x2a1462b3]
+    private readonly _CHARSET = "qpzry9x8gf2tvdw0s3jn54khce6mua7l"
+    private readonly _GENERATOR = [0x3b6a57b2, 0x26508e6d, 0x1ea119fa, 0x3d4233dd, 0x2a1462b3]
 
     /**
      * Stores the current encoding constant (either for Bech32 or Bech32m).
@@ -50,7 +50,7 @@ export default class Bech32Encoder {
      * @param data The `Uint8Array` instance to compute the checksum from.
      * @returns The computed checksum.
      */
-    private polymod(data: Uint8Array): number {
+    private _polymod(data: Uint8Array): number {
         let checksum = 1
 
         for (const datum of data) {
@@ -58,7 +58,7 @@ export default class Bech32Encoder {
             checksum = ((checksum & 0x1ffffff) << 5) ^ datum
 
             for (let j = 1; j < 5; j++) {
-                if ((highNibble >> j) & 1) checksum ^= this.GENERATOR[j]
+                if ((highNibble >> j) & 1) checksum ^= this._GENERATOR[j]
             }
         }
 
@@ -67,10 +67,10 @@ export default class Bech32Encoder {
 
     /**
      * Expands the HRP (Human Readable Part) into its bytecode.
-     * @param hrp The HRP to expand.
+     * @param hrp The HRP to expand (Human Readable Part).
      * @returns The expanded HRP as an `Uint8Array` instance.
      */
-    private expandHrp(hrp: string): Uint8Array {
+    private _expandHrp(hrp: string): Uint8Array {
         const expandedHrp = new Uint8Array(hrp.length * 2 + 1)
 
         for (let i = 0; i < hrp.length; i++) {
@@ -84,23 +84,23 @@ export default class Bech32Encoder {
     }
 
     /**
-     * Creates a Bech32 checksum from the HRP and data based on the current encoding.
-     * @param hrp The HRP to use.
+     * Creates a Bech32 checksum from the HRP (Human Readable Part). and data based on the current encoding.
+     * @param hrp The HRP to use (Human Readable Part).
      * @param data The data to use, as an `Uint8Array` instance.
      */
-    private createChecksum(hrp: string, data: Uint8Array): Uint8Array {
+    private _createChecksum(hrp: string, data: Uint8Array): Uint8Array {
         const checksumLength = hrp.length * 2 + 1 + data.length + 6
         const checksum = new Uint8Array(checksumLength)
 
-        // Write the HRP to the checksum array
-        const expandedHrp = this.expandHrp(hrp)
+        // Write the HRP (Human Readable Part) to the checksum array
+        const expandedHrp = this._expandHrp(hrp)
         for (const [i, datum] of expandedHrp.entries()) checksum[i] = datum
 
         // Write the data to the checksum cache
         for (const [i, datum] of data.entries()) checksum[expandedHrp.length + i] = datum
 
         // Compute the checksum (polymod)
-        const polymod = this.polymod(checksum) ^ this.bech32m
+        const polymod = this._polymod(checksum) ^ this.bech32m
 
         // Write the checksum into a new Uint8Array instance
         const result = new Uint8Array(6)
@@ -111,7 +111,7 @@ export default class Bech32Encoder {
 
     /**
      * Verifies the checksum of a Bech32 bytecode.
-     * @param hrp The HRP to use.
+     * @param hrp The HRP to use (Human Readable Part).
      * @param data The data to use, as an `Uint8Array` instance.
      */
     private verifyChecksum(hrp: string, data: Uint8Array): boolean {
@@ -119,14 +119,14 @@ export default class Bech32Encoder {
         const checksum = new Uint8Array(checksumLength)
 
         // Write the HRP to the checksum array
-        const expandedHrp = this.expandHrp(hrp)
+        const expandedHrp = this._expandHrp(hrp)
         for (const [i, datum] of expandedHrp.entries()) checksum[i] = datum
 
         // Write the data to the checksum cache
         for (const [i, datum] of data.entries()) checksum[expandedHrp.length + i] = datum
 
         // Compute the checksum (polymod)
-        const polymod = this.polymod(checksum)
+        const polymod = this._polymod(checksum)
 
         // Verify the checksum
         return polymod === this.bech32m
@@ -134,12 +134,101 @@ export default class Bech32Encoder {
 
     /**
      * Encodes a Bech32 string from the bytecode stored in a `Cache` instance.
+     * @param hrp The HRP to use (Human Readable Part).
      * @param cache The `Cache` instance to read the data from.
      * @param slot The position of the data in the cache.
      */
-    encode()
+    encode(hrp: string, cache: Cache, slot: MemorySlot): string {
+        const data = new Uint8Array(slot.length)
+        for (let i = 0; i < slot.length; i++) data[i] = cache.readUint8(slot.start + i)
+
+        const checksum = this._createChecksum(hrp, data)
+
+        let bech32 = `${hrp}1`
+        for (const datum of data) bech32 += this._CHARSET[datum]
+        for (const datum of checksum) bech32 += this._CHARSET[datum]
+
+        return bech32
+    }
+
+    /**
+     * Decodes a Bech32 string back to its bytecode and writes it in a `Cache` instance or
+     * returns a `Uint8Array` instance.
+     *
+     * **Note:** Both `cache` and `slot` are optional. If they are not provided,
+     * the method will return the bytecode as an `Uint8Array` instance.
+     * @param bech32String The Bech32 string to decode.
+     * @param cache The `Cache` instance to write the data to.
+     * @param slot The position of the data in the cache.
+     * @throws An error if the Bech32 string is invalid.
+     */
+    private _decode(bech32String: string, cache?: Cache, slot?: MemorySlot): Uint8Array | void {
+        let hasLowercase = false
+        let hasUppercase = false
+
+        for (const char of bech32String) {
+            if (char.charCodeAt(0) < 33 || char.charCodeAt(0) > 126) {
+                throw new Error(formatError(errorCodes.INVALID_BECH32_CHARACTER))
+            }
+
+            if (char >= "a" && char <= "z") hasLowercase = true
+            if (char >= "A" && char <= "Z") hasUppercase = true
+        }
+
+        if (hasLowercase && hasUppercase) {
+            throw new Error(formatError(errorCodes.INVALID_BECH32_CASE))
+        }
+
+        const bech32 = bech32String.toLowerCase()
+        const separatorPosition = bech32.lastIndexOf("1")
+
+        if (separatorPosition === -1) {
+            throw new Error(formatError(errorCodes.BECH32_SEPARATOR_NOT_FOUND))
+        }
+
+        if (separatorPosition + 7 > bech32.length || bech32.length > 90) {
+            throw new Error(formatError(errorCodes.INVALID_BECH32_LENGTH))
+        }
+
+        const hrp = bech32.slice(0, separatorPosition)
+        const data = new Uint8Array(bech32.length - separatorPosition - 6)
+
+        for (let i = separatorPosition + 1; i < bech32.length; i++) {
+            const index = this._CHARSET.indexOf(bech32[i])
+
+            if (index === -1) {
+                throw new Error(formatError(errorCodes.INVALID_BECH32_CHARACTER))
+            }
+
+            data[i] = index
+        }
+
+        if (!this.verifyChecksum(hrp, data)) {
+            throw new Error(formatError(errorCodes.INVALID_BECH32_CHECKSUM))
+        }
+
+        if (!cache || !slot) return data
+        for (const [i, datum] of data.entries()) cache.writeUint8(slot.start + i, datum)
+    }
 
     /**
      * Decodes a Bech32 string back to its bytecode and writes it in a `Cache` instance.
+     * @param bech32String The Bech32 string to decode.
+     * @param cache The `Cache` instance to write the data to.
+     * @param slot The position of the data in the cache.
+     * @throws An error if the Bech32 string is invalid.
      */
+    decode(bech32String: string, cache: Cache, slot: MemorySlot): void {
+        this._decode(bech32String, cache, slot)
+    }
+
+    /**
+     * Decodes a Bech32 string back to its bytecode and returns it as an `Uint8Array` instance.
+     * @param bech32String The Bech32 string to decode.
+     * @returns The decoded bytecode as an `Uint8Array` instance.
+     * @throws An error if the Bech32 string is invalid.
+     */
+    decodeToBytes(bech32String: string): Uint8Array {
+        return this._decode(bech32String) as Uint8Array
+    }
 }
