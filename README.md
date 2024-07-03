@@ -17,11 +17,13 @@ Benchmark environment:
 - GPU: NVIDIA GeForce RTX 3070.
 - RAM: 32 GB DDR4 @ 3200 MHz.
 - OS: Windows 11 64 bits.
-- Node.js: v20.11.1.
+- Node.js: v20.15.0.
 
 ### Benchmarking of the generator
 | Version     | Addresses per second (K/s) | Upgrade description                                          |
 |-------------|----------------------------|--------------------------------------------------------------|
+| `v1.1.0`    | N/D                        | **Switching to AdonisJS**                                    |
+| `v1.0.9`    | N/D                        | **A new architecture**                                       |
 | `v1.0.8b`   | N/D                        | **File report system**                                       |
 | `v1.0.8`    | 19.97 kK/s                 | **Reverted back to an Uint8Array**                           |
 | `v1.0.7`    | 19.24 kK/s                 | **Using WASM / JS shared memory space with JS only**         |
@@ -38,51 +40,19 @@ Benchmark environment:
 
 Updates
 -------
-### v1.0.9: A new architecture.
-- I decided to throw away the whole benchmarking-everywhere stuff, as it became totally impossible to maintain,
-did that when I wasn't that good at Typescript xD.
-- I implemented [Jest](https://jestjs.io/fr/), with no need for JS compilation, just a good old `yarn test` that runs all the tests.
-- I threw away the old benchmarking function which was a pain in the ass to use, and replaced it by a single-line
-benchmarking function that doesn't print anything by itself but returns results instead, it makes the code so much cleaner.
-- I also added the `printBenchmarkResults` function, which takes an object containing key-value pairs for each benchmark
-(name - results) and prints them all properly, it looks like that now:
-```typescript
-// Randomness methods
-results = {};
-results.randomFill = benchmark(() => cache.randomFill());
-results.safeRandomFill = benchmark(() => cache.safeRandomFill());
-printBenchmarkResults("randomness", results);
-```
-Which gives:
-![printBenchmarkResults example](https://github.com/yoratoni/celk/blob/main/assets/printBenchmarkResult.png?raw=true)
-
-#### About the cache
-I started by redoing the most important module of them all, the `Cache`, which is an utility class designed
-to write and read data from what I call the memory table
-
-> Since the **v1.0.4**, I started using a single buffer for all operations, and I created a class to manage it,
-> but I used too many different types, no benchmarks, and of course, not a single test.
-
-So, I'm redoing it all while benchmarking each single method of the class,
-and I will base the other modules on the fastest methods available. Note that this class supports
-both little and big endian writing/reading, bounds checking, and is based on the `Uint8Array` class
-to use their optimized methods.
-
-**Note:** I do not plan to add workers for the cache itself as writing and reading stuff is already really fast
-(+- 25 million operations per second for some methods), and will certainly *never* be the bottleneck of the project.
-
-The algorithm that I'm worried about the most is the `secp256k1` one, it is **really** slow, I previously
-tried to implement it in JS, got something like 1,000 keys per second, I decided to use the `secp256k1` module
-instead and got 20,000 keys per second, but I'm not satisfied with that at all, I want to try implementing it
-in WASM and use shared memory space with workers to see if I can get better results than that.
-
-I'm also implementing `addressToFind`, `publicKeyToFind` and `reverseAddressIntoPublicKey`:
-- If `addressToFind` is set, the generator will stop when it finds the address.
-- If `publicKeyToFind` is set, the generator will stop when it finds the public key.
-- If `addressToFind` and `reverseAddressIntoPublicKey` are both set, the generator will stop when it finds the public key
-  corresponding to the address.
+### v1.1.0 Switching to AdonisJS
+- Switching from raw `ts-node` to [AdonisJS](https://adonisjs.com/) with the goal of making it a backend API.
+- Implemented [Lucid ORM](https://lucid.adonisjs.com/docs/introduction) for the database (PostgreSQL).
+- Implemented [Japa](https://japa.dev/docs/introduction) for the tests.
+- Implemented the `v1.0.9` benchmarking system with slight improvements.
+- Added `ts-node` to be able to run arbitrary scripts for development/debugging purposes.
+- Implemented and improved the original `v1.0.9` cache system.
 
 ### Previous updates
+- **v1.0.9**: Started working on a new architecture, with Jest, and a new Cache class.
+  - Cancelled in favor of switching to AdonisJS because I wanted to make it a backend API,
+    and also because the code started to be a real mess, really hard to maintain and even more
+    to improve.
 - **v1.0.8b**: Added a file report system, to not loose the results if you close the terminal lol..
 - **v1.0.8**: Reverted back to an Uint8Array.
 - **v1.0.7**: Using WASM / JS shared memory space with JS only.
