@@ -87,7 +87,8 @@ const errorCodes = {
     INVALID_BECH32_CHECKSUM: {
         status: 400,
         code: "INVALID_BECH32_CHECKSUM",
-        message: "The Bech32 string has an invalid checksum.",
+        message:
+            "The Bech32 string has an invalid checksum, either because of a typo, or because it is the wrong encoding.",
         data: null,
     },
 

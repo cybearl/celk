@@ -46,6 +46,14 @@ export default class Bech32Encoder {
     }
 
     /**
+     * Set the encoding to either Bech32 or Bech32m.
+     * @param encoding The encoding to set.
+     */
+    set encoding(encoding: Bech32Encoding) {
+        this.bech32m = encoding === "bech32m" ? 0x2bc830a3 : 1
+    }
+
+    /**
      * Computes the Bech32 checksum for the data stored inside an `Uint8Array` instance.
      * @param data The `Uint8Array` instance to compute the checksum from.
      * @returns The computed checksum.
@@ -128,8 +136,27 @@ export default class Bech32Encoder {
         // Compute the checksum (polymod)
         const polymod = this._polymod(checksum)
 
+        console.log(hrp, polymod, this.bech32m)
+
         // Verify the checksum
         return polymod === this.bech32m
+    }
+
+    /**
+     * Encodes a Bech32 string from the bytecode stored in an `Uint8Array` instance
+     * and returns it as a string.
+     * @param hrp The HRP to use (Human Readable Part).
+     * @param data The data to use, as an `Uint8Array` instance.
+     * @returns The encoded Bech32 string as an `Uint8Array` instance.
+     */
+    private _encode(hrp: string, data: Uint8Array): string {
+        const checksum = this._createChecksum(hrp, data)
+
+        let bech32 = `${hrp}1`
+        for (const datum of data) bech32 += this._CHARSET[datum]
+        for (const datum of checksum) bech32 += this._CHARSET[datum]
+
+        return bech32
     }
 
     /**
@@ -142,13 +169,17 @@ export default class Bech32Encoder {
         const data = new Uint8Array(slot.length)
         for (let i = 0; i < slot.length; i++) data[i] = cache.readUint8(slot.start + i)
 
-        const checksum = this._createChecksum(hrp, data)
+        return this._encode(hrp, data)
+    }
 
-        let bech32 = `${hrp}1`
-        for (const datum of data) bech32 += this._CHARSET[datum]
-        for (const datum of checksum) bech32 += this._CHARSET[datum]
-
-        return bech32
+    /**
+     * Encodes a Bech32 string from the bytecode stored in an `Uint8Array` instance.
+     * @param hrp The HRP to use (Human Readable Part).
+     * @param data The data to use, as an `Uint8Array` instance.
+     * @returns The encoded Bech32 string as an `Uint8Array` instance.
+     */
+    encodeFromBytes(hrp: string, data: Uint8Array): string {
+        return this._encode(hrp, data)
     }
 
     /**
