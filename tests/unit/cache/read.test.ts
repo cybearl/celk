@@ -41,6 +41,27 @@ test.group("cache / read / readUtf8String", (group) => {
     })
 })
 
+test.group("cache / read / readBit", (group) => {
+    let cache: Cache
+
+    const bits = [1, 0, 1, 0, 1, 0, 1, 0]
+
+    group.each.setup(() => {
+        cache = Cache.alloc(1)
+        for (let i = 0; i < cache.length; i++) {
+            cache.writeUint8(bits[i], i)
+        }
+    })
+
+    test("It should read a bit from the cache", ({ expect }) => {
+        expect(cache.readBit()).toBe(bits[0])
+    })
+
+    test("It should read a bit from the cache at the specified offset", ({ expect }) => {
+        expect(cache.readBit(1)).toBe(bits[1])
+    })
+})
+
 test.group("cache / read / readUint8", (group) => {
     let cache: Cache
 

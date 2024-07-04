@@ -225,6 +225,12 @@ export const KernelErrors = {
         message: "The Bech32 string has an empty or invalid prefix.",
         data: null,
     },
+    INVALID_BECH32_DATA: {
+        status: 400,
+        name: "INVALID_BECH32_DATA",
+        message: "The Bech32 string contains invalid data.",
+        data: null,
+    },
 
     //=======
     //  404

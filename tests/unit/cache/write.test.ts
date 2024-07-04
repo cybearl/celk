@@ -69,6 +69,38 @@ test.group("cache / write / writeUtf8String", (group) => {
     })
 })
 
+test.group("cache / write / writeBit", (group) => {
+    let cache: Cache
+
+    group.each.setup(() => {
+        cache = new Cache(2)
+    })
+
+    const bit = 1
+    const bitByteValues = [0x80, 0x00]
+
+    test("It should write a bit to the cache", ({ expect }) => {
+        cache.writeBit(bit)
+
+        for (let i = 0; i < cache.length; i++) {
+            expect(cache.readUint8(i)).toBe(bitByteValues[i])
+        }
+    })
+
+    test("It should write a bit to the cache at the specified offset", ({ expect }) => {
+        cache.writeBit(0, 1)
+        expect(cache.readUint8(0)).toBe(0x00)
+        expect(cache.readUint8(1)).toBe(0x00)
+    })
+
+    test("It should throw if the value is not a valid bit", ({ expect }) => {
+        // @ts-ignore
+        expect(() => cache.writeBit(-1)).toThrow()
+        // @ts-ignore
+        expect(() => cache.writeBit(2)).toThrow()
+    })
+})
+
 test.group("cache / write / writeUint8", (group) => {
     let cache: Cache
 
@@ -76,26 +108,28 @@ test.group("cache / write / writeUint8", (group) => {
         cache = new Cache(2)
     })
 
-    const uint8 = 0xff
-    const uint8ByteValues = [0xff, 0x00]
+    const bits = [0, 1]
 
-    test("It should write a uint8 to the cache", ({ expect }) => {
-        cache.writeUint8(uint8)
+    test("It should write a bit to the cache", ({ expect }) => {
+        cache.writeBit(0)
+        cache.writeBit(1)
 
         for (let i = 0; i < cache.length; i++) {
-            expect(cache.readUint8(i)).toBe(uint8ByteValues[i])
+            expect(cache.readBit(i)).toBe(bits[i])
         }
     })
 
-    test("It should write a uint8 to the cache at the specified offset", ({ expect }) => {
-        cache.writeUint8(0xff, 1)
-        expect(cache.readUint8(0)).toBe(0x00)
-        expect(cache.readUint8(1)).toBe(0xff)
+    test("It should write a bit to the cache at the specified offset", ({ expect }) => {
+        cache.writeBit(1, 1)
+        expect(cache.readBit(0)).toBe(0)
+        expect(cache.readBit(1)).toBe(1)
     })
 
-    test("It should throw if the value is not a valid uint8", ({ expect }) => {
-        expect(() => cache.writeUint8(-1)).toThrow()
-        expect(() => cache.writeUint8(0x100)).toThrow()
+    test("It should throw if the value is not a valid bit", ({ expect }) => {
+        // @ts-ignore
+        expect(() => cache.writeBit(-1)).toThrow()
+        // @ts-ignore
+        expect(() => cache.writeBit(0x100)).toThrow()
     })
 })
 
