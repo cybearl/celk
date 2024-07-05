@@ -56,18 +56,6 @@ export default class Sha256Algorithm {
     private _gamma1 = (x: number): number => this._rotr(x, 17) ^ this._rotr(x, 19) ^ (x >>> 10)
 
     /**
-     * Safe addition operation, needed for the hash computation.
-     * @param x The first number to add.
-     * @param y The second number to add.
-     * @returns The sum of the two numbers.
-     */
-    private _safeAdd = (x: number, y: number): number => {
-        const lsw = (x & 0xffff) + (y & 0xffff)
-        const msw = (x >> 16) + (y >> 16) + (lsw >> 16)
-        return (msw << 16) | (lsw & 0xffff)
-    }
-
-    /**
      * SHA-256 internal hash computation.
      * @param cache The cache to write to.
      * @param input The input cache to use.
@@ -92,41 +80,31 @@ export default class Sha256Algorithm {
                 if (j < 16) {
                     this._W[j] = this._inputArray[j + i]
                 } else {
-                    this._W[j] = this._safeAdd(
-                        this._safeAdd(
-                            this._safeAdd(this._gamma1(this._W[j - 2]), this._W[j - 7]),
-                            this._gamma0(this._W[j - 15])
-                        ),
-                        this._W[j - 16]
-                    )
+                    this._W[j] =
+                        this._gamma1(this._W[j - 2]) + this._W[j - 7] + this._gamma0(this._W[j - 15]) + this._W[j - 16]
                 }
 
-                t1 = this._safeAdd(
-                    this._safeAdd(
-                        this._safeAdd(
-                            this._safeAdd(store[7], this._sigma1(store[4])),
-                            this._choose(store[4], store[5], store[6])
-                        ),
-                        this._K[j]
-                    ),
+                t1 =
+                    store[7] +
+                    this._sigma1(store[4]) +
+                    this._choose(store[4], store[5], store[6]) +
+                    this._K[j] +
                     this._W[j]
-                )
-
-                t2 = this._safeAdd(this._sigma0(store[0]), this._majority(store[0], store[1], store[2]))
+                t2 = this._sigma0(store[0]) + this._majority(store[0], store[1], store[2])
 
                 // Update working variables
                 store[7] = store[6]
                 store[6] = store[5]
                 store[5] = store[4]
-                store[4] = this._safeAdd(store[3], t1)
+                store[4] = store[3] + t1
                 store[3] = store[2]
                 store[2] = store[1]
                 store[1] = store[0]
-                store[0] = this._safeAdd(t1, t2)
+                store[0] = t1 + t2
             }
 
             for (let k = 0; k < 8; k++) {
-                hash[k] = this._safeAdd(store[k], hash[k])
+                hash[k] = store[k] + hash[k]
             }
         }
 
