@@ -92,10 +92,12 @@ export default class Bench {
 
     /**
      * Formats and prints multiple benchmark results.
-     * @param category The category of the benchmark results.
+     * @param category The category of the benchmark results (optional, defaults to `RESULTS`).
      * @param clear Whether to clear the results object for the next benchmark (optional, defaults to true).
      */
-    print = (category: string, clear = true) => {
+    print = (category?: string, clear = true) => {
+        if (!category) category = "RESULTS"
+
         console.log("")
         externalLogger.info(`${category.toUpperCase()}:`)
         externalLogger.info("=".repeat(category.length + 1))
