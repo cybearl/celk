@@ -1,11 +1,6 @@
 # celk
 A brute-forcing tool to work with Bitcoin and Ethereum addresses entirely written in Typescript.
 
-Note that, the goal of this project is not about providing the fastest generator. It is more like
-an experiment to see how far I can optimize a Typescript/Node.js project for heavy computations.
-So, yeah, this project is entirely written in Typescript with no external dependencies for
-the kernel itself.
-
 The goal that I have, is to build a dual (Xeon | Epyc)-based home server, and to run this project on it for years
 (or decades lol) to see if I can brute-force some addresses, of course, it's almost impossible
 but who knows, maybe I'll be lucky.
@@ -51,6 +46,7 @@ Updates
 - Implemented and improved the original `v1.0.9` cache system.
 - Started working on a Ethereum address generator.
 - Implemented Bech32 encoding/decoding for Bitcoin addresses.
+- Removed self-implementation of the different algorithms in favor of using external libraries.
 
 ### Previous updates
 - **v1.0.9**: Started working on a new architecture, with Jest, and a new Cache class.
