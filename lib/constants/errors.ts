@@ -219,10 +219,10 @@ export const KernelErrors = {
             "The Bech32 string has an invalid checksum, either because of a typo, or because it is the wrong encoding.",
         data: null,
     },
-    INVALID_BECH32_HRP: {
+    EMPTY_BECH32_HRP: {
         status: 400,
         name: "INVALID_BECH32_PREFIX",
-        message: "The Bech32 string has an empty or invalid prefix.",
+        message: "The Bech32 string has no prefix.",
         data: null,
     },
     INVALID_BECH32_DATA: {

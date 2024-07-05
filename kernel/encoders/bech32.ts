@@ -54,34 +54,23 @@ export default class Bech32Encoder {
     }
 
     /**
-     * Converts data stored in a `Cache` instance to a Base32 number array.
+     * Converts data stored as Uint8s in a `Cache` instance to a 5-bit number array.
      * @param cache The `Cache` instance to read the data from.
      * @param slot The position of the data in the cache (optional, defaults to 0 => length).
-     * @returns The converted data as a Base32 number array.
+     * @returns The converted data as a 5-bit number array.
      */
     private _convertTo5BitArray(cache: Cache, slot?: MemorySlot): number[] {
-        const data = cache.subarray(slot?.start, slot?.length)
-        const convertedData = new Array(data.length * 8)
+        // Start by reading the data as a bit array
+        const data = cache.subarray(slot?.start, slot?.length).toBits()
 
-        for (const [i, datum] of data.entries()) {
-            for (let j = 0; j < 8; j++) {
-                convertedData[i * 8 + j] = (datum >> (7 - j)) & 1
-            }
-        }
+        // Convert the bit array to a 5-bit number array
+        const result = new Array(Math.ceil(data.length / 5))
 
-        console.log(convertedData.toString())
-        console.log(data.toBits().toString())
-
-        const dataLength5Bit = Math.ceil((data.length * 8) / 5)
-
-        const result = new Array(dataLength5Bit)
-
-        for (let i = 0; i < dataLength5Bit; i++) {
+        for (let i = 0; i < result.length; i++) {
             let value = 0
 
             for (let j = 0; j < 5; j++) {
-                const index = i * 5 + j
-                value = value * 2 + (convertedData[index] || 0)
+                value = value * 2 + (data[i * 5 + j] || 0)
             }
 
             result[i] = value
@@ -91,7 +80,25 @@ export default class Bech32Encoder {
     }
 
     /**
-     * Computes the Bech32 checksum for the data stored inside an a 5-bit regular number array.
+     * Converts data stored as a 5-bit number array to Uint8s in a `Cache` instance.
+     * @param data The data to convert.
+     * @returns The converted data as a `Cache` instance.
+     */
+    private _convertFrom5BitArray(data: number[]): Cache {
+        // Convert the 5-bit number array to a bit array
+        const bits = new Array(data.length * 5)
+
+        for (const [i, datum] of data.entries()) {
+            for (let j = 0; j < 5; j++) {
+                bits[i * 5 + j] = (datum >> (4 - j)) & 1
+            }
+        }
+
+        return Cache.fromBits(bits)
+    }
+
+    /**
+     * Computes the Bech32 checksum for the data stored inside an a 5-bit number array.
      * @param data The data to compute the checksum for.
      * @returns The computed checksum.
      */
@@ -111,13 +118,14 @@ export default class Bech32Encoder {
     }
 
     /**
-     * Expands the HRP (Human Readable Part) into its bytecode (5-bit regular number array).
+     * Expands the HRP (Human Readable Part) into its bytecode (5-bit number array).
      * @param hrp The HRP to expand (Human Readable Part).
-     * @returns The expanded HRP as a 5-bit regular number array.
+     * @returns The expanded HRP as a 5-bit number array.
      */
     private _expandHrp(hrp: string): number[] {
         const expandedHrp = new Array(hrp.length * 2 + 1)
 
+        // Expand both parts of the HRP (Human Readable Part) into one go
         for (const [i, char] of hrp.split("").entries()) {
             expandedHrp[i] = char.charCodeAt(0) >> 5
             expandedHrp[i + hrp.length + 1] = char.charCodeAt(0) & 31
@@ -131,22 +139,23 @@ export default class Bech32Encoder {
     /**
      * Creates a Bech32 checksum from the HRP (Human Readable Part). and data based on the current encoding.
      * @param hrp The HRP to use (Human Readable Part).
-     * @param data The data to use, as a 5-bit regular number array.
+     * @param data The data to use, as a 5-bit number array.
      * @returns The computed checksum.
      */
     private _createChecksum(hrp: string, data: number[]): number[] {
         const expandedHrp = this._expandHrp(hrp)
         const checksumData: number[] = new Array(expandedHrp.length + data.length + 6)
 
-        // Write the HRP (Human Readable Part) to the checksum array
-        checksumData.concat(expandedHrp)
+        // Write both the HRP (Human Readable Part) and the data to the checksum array in one go
+        for (let i = 0; i < checksumData.length - 6; i++) {
+            if (i < expandedHrp.length) checksumData[i] = expandedHrp[i]
+            else checksumData[i] = data[i - expandedHrp.length]
+        }
 
-        // Write the data to the checksum cache
-        checksumData.concat(data)
+        // Compute the polymod and XOR it with the modifier
+        const polymod = this._polymod(checksumData) ^ this.modifier
 
-        // Compute the checksum (polymod)
-        const polymod = this._polymod(checksumData.concat([0, 0, 0, 0, 0, 0])) ^ this.modifier
-
+        // Convert the polymod to a 6-digit checksum
         const checksum = new Array(6)
         for (let i = 0; i < 6; i++) {
             checksum[i] = (polymod >> (5 * (5 - i))) & 31
@@ -158,32 +167,32 @@ export default class Bech32Encoder {
     /**
      * Verifies the checksum of a Bech32 bytecode.
      * @param hrp The HRP to use (Human Readable Part).
-     * @param data The data to use, as a 5-bit regular number array.
+     * @param data The data to use, as a 5-bit number array.
      */
     private _verifyChecksum(hrp: string, data: number[]): boolean {
         const expandedHrp = this._expandHrp(hrp)
         const checksumData: number[] = new Array(expandedHrp.length + data.length)
 
-        // Write the HRP (Human Readable Part) to the checksum array
-        checksumData.concat(expandedHrp)
+        // Write both the HRP (Human Readable Part) and the data to the checksum array in one go
+        for (let i = 0; i < checksumData.length; i++) {
+            if (i < expandedHrp.length) checksumData[i] = expandedHrp[i]
+            else checksumData[i] = data[i - expandedHrp.length]
+        }
 
-        // Write the data to the checksum cache
-        checksumData.concat(data)
-
-        // Compute the checksum (polymod)
-        const polymod = this._polymod(checksumData.concat([0, 0, 0, 0, 0, 0])) ^ this.modifier
-
-        return polymod === 1
+        // Compute the checksum (polymod) and compare it to the stored modifier
+        return this._polymod(checksumData) === this.modifier
     }
 
     /**
      * Encodes a Bech32 string from the bytecode stored in a `Cache` instance.
      * @param hrp The HRP to use (Human Readable Part).
+     * @param witnessVersion The witness version to use (0-16), usually 0.
      * @param cache The `Cache` instance to read the data from.
      * @param slot The position of the data in the cache (optional, defaults to 0 => length).
      */
-    encode(hrp: string, cache: Cache, slot?: MemorySlot): string {
-        const data = this._convertTo5BitArray(cache, slot)
+    encode(hrp: string, witnessVersion: number, cache: Cache, slot?: MemorySlot): string {
+        // Start with the witness version and concatenate the data converted to a 5-bit array
+        const data = [witnessVersion].concat(this._convertTo5BitArray(cache, slot))
 
         // Compute the checksum
         const checksum = this._createChecksum(hrp, data)
@@ -201,73 +210,83 @@ export default class Bech32Encoder {
      * Decodes a Bech32 string back to its bytecode and writes it in a `Cache` instance.
      * @param bech32String The Bech32 string to decode.
      * @param cache The `Cache` instance to write the data to.
-     * @param slot The position of the data in the cache (optional, defaults to 0 => length).
+     * @param slot The position of the data in the cache (optional, defaults to 0 => data length).
+     * @returns The decoded data as a `Uint8Array`.
      * @throws An error if the Bech32 string is invalid.
      */
-    // decode(bech32String: string, cache: Cache, slot?: MemorySlot): void {
-    //     if (bech32String.length < 8) {
-    //         throw new Error(
-    //             fe(KernelErrors.INVALID_BECH32_LENGTH, "The Bech32 string is too short (less than 8 characters).")
-    //         )
-    //     }
+    decode(bech32String: string, cache: Cache, slot?: MemorySlot): void {
+        if (bech32String.length < 8) {
+            throw new Error(
+                fe(KernelErrors.INVALID_BECH32_LENGTH, "The Bech32 string is too short (less than 8 characters).")
+            )
+        }
 
-    //     if (bech32String.length > 90) {
-    //         throw new Error(
-    //             fe(KernelErrors.INVALID_BECH32_LENGTH, "The Bech32 string is too long (more than 90 characters).")
-    //         )
-    //     }
+        if (bech32String.length > 90) {
+            throw new Error(
+                fe(KernelErrors.INVALID_BECH32_LENGTH, "The Bech32 string is too long (more than 90 characters).")
+            )
+        }
 
-    //     let hasLowercase = false
-    //     let hasUppercase = false
+        let hasLowercase = false
+        let hasUppercase = false
 
-    //     for (const char of bech32String) {
-    //         if (char.charCodeAt(0) < 33 || char.charCodeAt(0) > 126) {
-    //             throw new Error(fe(KernelErrors.INVALID_BECH32_CHARACTER))
-    //         }
+        for (const char of bech32String) {
+            if (char.charCodeAt(0) < 33 || char.charCodeAt(0) > 126) {
+                throw new Error(fe(KernelErrors.INVALID_BECH32_CHARACTER))
+            }
 
-    //         if (char >= "a" && char <= "z") hasLowercase = true
-    //         if (char >= "A" && char <= "Z") hasUppercase = true
-    //     }
+            if (char >= "a" && char <= "z") hasLowercase = true
+            if (char >= "A" && char <= "Z") hasUppercase = true
+        }
 
-    //     if (hasLowercase && hasUppercase) {
-    //         throw new Error(fe(KernelErrors.INVALID_BECH32_CASE))
-    //     }
+        if (hasLowercase && hasUppercase) {
+            throw new Error(fe(KernelErrors.INVALID_BECH32_CASE))
+        }
 
-    //     const bech32DataString = bech32String.toLowerCase()
-    //     const separatorPosition = bech32DataString.lastIndexOf("1")
-    //     const dataLength = bech32DataString.length - separatorPosition - 1
+        bech32String = bech32String.toLowerCase()
+        const separatorPosition = bech32String.lastIndexOf("1")
+        if (separatorPosition === -1) throw new Error(fe(KernelErrors.BECH32_SEPARATOR_NOT_FOUND))
+        if (separatorPosition === 0) throw new Error(fe(KernelErrors.EMPTY_BECH32_HRP))
 
-    //     if (separatorPosition === -1) {
-    //         throw new Error(fe(KernelErrors.BECH32_SEPARATOR_NOT_FOUND))
-    //     }
+        const hrp = bech32String.substring(0, separatorPosition)
+        const data = new Array(bech32String.length - separatorPosition - 1)
 
-    //     if (separatorPosition === 0) {
-    //         throw new Error(fe(KernelErrors.INVALID_BECH32_HRP))
-    //     }
+        for (let i = separatorPosition + 1; i < bech32String.length; i++) {
+            const charIndex = this._CHARSET.indexOf(bech32String[i])
 
-    //     if (slot && (slot.length < dataLength || slot.end < dataLength)) {
-    //         throw new Error(
-    //             fe(KernelErrors.INVALID_BECH32_LENGTH, "The Bech32 string data is too long for the given slot.")
-    //         )
-    //     }
+            if (charIndex === -1) {
+                throw new Error(fe(KernelErrors.INVALID_BECH32_CHARACTER))
+            }
 
-    //     const hrp = bech32DataString.slice(0, separatorPosition)
-    //     const data = new Uint8Array(dataLength)
+            data[i - separatorPosition - 1] = charIndex
+        }
 
-    //     for (let i = 0; i < dataLength; i++) {
-    //         const char = bech32DataString[separatorPosition + 1 + i]
-    //         const index = this._CHARSET.indexOf(char)
+        if (!this._verifyChecksum(hrp, data)) {
+            throw new Error(fe(KernelErrors.INVALID_BECH32_CHECKSUM))
+        }
 
-    //         if (index === -1) throw new Error(fe(KernelErrors.INVALID_BECH32_CHARACTER))
+        const decodedCache = this._convertFrom5BitArray(data.slice(1, data.length - 6))
 
-    //         data[i] = index
-    //     }
+        if (cache.length < decodedCache.length) {
+            throw new Error(
+                fe(KernelErrors.INVALID_BECH32_LENGTH, "The Bech32 string data is too long for the given cache.", {
+                    cacheLength: cache.length,
+                    dataLength: decodedCache.length,
+                })
+            )
+        }
 
-    //     if (!this.verifyChecksum(hrp, data)) {
-    //         throw new Error(fe(KernelErrors.INVALID_BECH32_CHECKSUM))
-    //     }
+        if (slot && (slot.length < decodedCache.length || slot.end < decodedCache.length)) {
+            throw new Error(
+                fe(KernelErrors.INVALID_BECH32_LENGTH, "The Bech32 string data is too long for the given slot.", {
+                    slotStart: slot.start,
+                    slotLength: slot.length,
+                    slotEnd: slot.end,
+                    dataLength: decodedCache.length,
+                })
+            )
+        }
 
-    //     const payload = data.slice(0, data.length - 6)
-    //     for (const [i, datum] of payload.entries()) cache.writeUint8((slot?.start || 0) + i, datum)
-    // }
+        cache.writeUint8Array(decodedCache, slot?.start || 0)
+    }
 }

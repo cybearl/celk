@@ -255,6 +255,18 @@ export default class Cache extends Uint8Array {
     }
 
     /**
+     * Creates a new Cache object from an array of bits.
+     * @param array The array of bits to create the cache from.
+     * @param msbFirst Whether to write the bits from the most significant bit (optional, defaults to true).
+     * @returns A new Cache object.
+     */
+    static fromBits = (array: Bit[], msbFirst = true): Cache => {
+        const cache = new Cache(Math.ceil(array.length / 8))
+        cache.writeBits(array, 0, array.length, msbFirst)
+        return cache
+    }
+
+    /**
      * Creates a new Cache object from a Uint8Array.
      * @param array The Uint8Array to create the cache from.
      * @returns A new Cache object.

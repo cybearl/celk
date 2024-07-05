@@ -1,4 +1,4 @@
-import Cache from "#kernel/cache"
+import Cache, { Bit } from "#kernel/cache"
 import { test } from "@japa/runner"
 
 test.group("cache / static / alloc", (group) => {
@@ -70,6 +70,31 @@ test.group("cache / static / fromUtf8String", () => {
 
         for (let i = 0; i < cache.length; i++) {
             expect(cache.readUint8(i)).toBe(utf8StringByteValues[i])
+        }
+    })
+})
+
+test.group("cache / static / fromBits", (group) => {
+    let cache: Cache
+
+    const bits: Bit[] = [0, 1, 0, 1, 1, 0, 1, 0]
+    const bitsByteValues = [0b01011010]
+
+    group.each.setup(() => {
+        cache = Cache.fromBits(bits)
+    })
+
+    test("It should create a cache from an array of bits", ({ expect }) => {
+        expect(cache).toBeInstanceOf(Cache)
+    })
+
+    test("It should create a cache with the correct length", ({ expect }) => {
+        expect(cache.length).toBe(Math.ceil(bits.length / 8))
+    })
+
+    test("It should create a cache with the correct values", ({ expect }) => {
+        for (let i = 0; i < cache.length; i++) {
+            expect(cache.readUint8(i)).toBe(bitsByteValues[i])
         }
     })
 })
