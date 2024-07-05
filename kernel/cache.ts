@@ -2,6 +2,11 @@ import { randomFillSync } from "node:crypto"
 import os from "node:os"
 
 /**
+ * A type for a single bit (`0` or `1`).
+ */
+export type Bit = 0 | 1
+
+/**
  * Cache is a helper class that extends the Uint8Array class with additional methods
  * similar to the Buffer class in Node.js, while also providing multiple utility methods
  * linked to advanced cryptography and binary data manipulation.
@@ -343,16 +348,21 @@ export default class Cache extends Uint8Array {
 
     /**
      * Writes a single bit to the cache.
-     * @param value The value to write (0 or 1).
-     * @param offset The offset to write to (optional, defaults to 0).
+     *
+     * **Note:** The offset is in bits, not bytes in contrast to the other methods.
+     * @param value The value to write (`0` or `1`).
+     * @param offset The offset to read from **as a number of bits** (optional, defaults to 0).
      * @returns The cache instance.
      */
-    writeBit = (value: 0 | 1, offset = 0): this => {
+    writeBit = (value: Bit, offset = 0): this => {
         if (value < 0 || value > 1) throw new RangeError(`[Cache - writeBit] Value is out of bounds: '${value}'.`)
-        this.check(offset, 1)
 
-        if (value === 1) this[offset] |= 1 << offset
-        else this[offset] &= ~(1 << offset)
+        const byteOffset = Math.floor(offset / 8)
+        this.check(byteOffset, 1)
+
+        const bitOffset = offset % 8
+        if (value === 1) this[byteOffset] |= 1 << bitOffset
+        else this[byteOffset] &= ~(1 << bitOffset)
 
         return this
     }
@@ -505,6 +515,30 @@ export default class Cache extends Uint8Array {
     writeUint32 = (value: number, byteOffset = 0, endianness = this.platformEndianness): this => {
         if (this.normalizeEndianness(endianness) === "LE") this.writeUint32LE(value, byteOffset)
         else this.writeUint32BE(value, byteOffset)
+
+        return this
+    }
+
+    /**
+     * Writes an array of bits to the cache.
+     *
+     * **Note:** The offset is in bits, not bytes in contrast to the other methods,
+     * same thing for the length.
+     * @param array The array of bits to write to the cache.
+     * @param offset The offset to start writing at **as a number of bits** (optional, defaults to 0).
+     * @param length The length to write **as a number of bits** (optional, defaults to the array length).
+     * @returns The cache instance.
+     */
+    writeBits = (array: Bit[], offset = 0, length = array.length): this => {
+        if (!array || !Array.isArray(array)) {
+            throw new TypeError(`[Cache - writeBits] Invalid array of bits: '${array}'.`)
+        }
+
+        const byteOffset = Math.floor(offset / 8)
+        const byteLength = Math.ceil(length / 8)
+        this.check(byteOffset, byteLength)
+
+        for (let i = 0; i < length; i++) this.writeBit(array[i], offset + i)
 
         return this
     }
@@ -696,16 +730,11 @@ export default class Cache extends Uint8Array {
      * @returns The bit as 0 or 1.
      * @throws If the offset is invalid.
      */
-    readBit = (offset = 0): 0 | 1 => {
-        if (offset < 0 || offset >= this.length * 8) {
-            throw new RangeError(
-                `[Cache - readBit] Invalid bit offset: '${offset}', it must be >= 0 & < ${this.length * 8}.`
-            )
-        }
-
+    readBit = (offset = 0): Bit => {
         const byteOffset = Math.floor(offset / 8)
-        const bitOffset = offset % 8
+        this.check(byteOffset, 1)
 
+        const bitOffset = offset % 8
         return (this[byteOffset] & (1 << bitOffset)) !== 0 ? 1 : 0
     }
 
@@ -901,6 +930,17 @@ export default class Cache extends Uint8Array {
     toString = (encoding: "utf8" | "hex" = "hex", hexPrefix = false): string => {
         if (encoding === "utf8") return this.toUtf8String()
         return this.toHexString(hexPrefix)
+    }
+
+    /**
+     * Converts the cache into a bit array.
+     *
+     * **Warning:** This method is not efficient for large caches, use the `toUint8Array` method instead.
+     */
+    toBits = (): Bit[] => {
+        const bits: Bit[] = new Array(this.length * 8)
+        for (let i = 0; i < this.length * 8; i++) bits[i] = this.readBit(i)
+        return bits
     }
 
     /**

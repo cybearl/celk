@@ -58,6 +58,22 @@ test.group("cache / convert / toString", (group) => {
     })
 })
 
+test.group("cache / convert / toBits", (group) => {
+    let cache: Cache
+
+    const hexString = "FF00"
+
+    group.each.setup(() => {
+        cache = Cache.fromHexString(hexString)
+    })
+
+    const bits = [1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0]
+
+    test("It should convert the cache to an array of bits", ({ expect }) => {
+        expect(cache.toBits()).toEqual(bits)
+    })
+})
+
 test.group("cache / convert / toUint8Array", (group) => {
     let cache: Cache
 

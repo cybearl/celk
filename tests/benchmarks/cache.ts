@@ -1,4 +1,4 @@
-import Cache from "#kernel/cache"
+import Cache, { Bit } from "#kernel/cache"
 import Bench from "#lib/utils/benchmark"
 import externalLogger from "#lib/utils/external_logger"
 
@@ -8,6 +8,9 @@ import externalLogger from "#lib/utils/external_logger"
  * @param benchmarkDuration The duration of the benchmark.
  */
 export default function executeCacheBenchmark(cacheBenchmarkInputSize: number, benchmarkDuration: number) {
+    const randomBitArray: Bit[] = new Array(cacheBenchmarkInputSize).fill(0)
+    for (let i = 0; i < cacheBenchmarkInputSize; i++) randomBitArray[i] = Math.floor(Math.random() * 2) as Bit
+
     const oneUint8Array = new Uint8Array(1)
     oneUint8Array[0] = 0xff
     const randomUint8Array = new Uint8Array(cacheBenchmarkInputSize)
@@ -69,6 +72,7 @@ export default function executeCacheBenchmark(cacheBenchmarkInputSize: number, b
 
     bench.benchmark(() => cache.writeHexString(oneHex), `writeHexString(1)`)
     bench.benchmark(() => cache.writeUtf8String(oneUtf8), `writeUtf8String(1)`)
+    bench.benchmark(() => cache.writeBit(1), `writeBit(1)`)
     bench.benchmark(() => cache.writeUint8(0xff), `writeUint8(1)`)
     bench.benchmark(() => cache.writeUint16(0xffff), `writeUint16(1)`)
     bench.benchmark(() => cache.writeUint32(0xffffffff), `writeUint32(1)`)
@@ -80,6 +84,7 @@ export default function executeCacheBenchmark(cacheBenchmarkInputSize: number, b
 
     bench.benchmark(() => cache.writeHexString(randomHex), `writeHexString(${randomHex.length})`)
     bench.benchmark(() => cache.writeUtf8String(randomUtf8), `writeUtf8String(${randomUtf8.length})`)
+    bench.benchmark(() => cache.writeBits(randomBitArray), `writeBits(${randomBitArray.length})`)
     bench.benchmark(() => cache.writeUint8Array(randomUint8Array), `writeUint8Array(${randomUint8Array.length})`)
     bench.benchmark(() => cache.writeUint16Array(randomUint16Array), `writeUint16Array(${randomUint16Array.length})`)
     bench.benchmark(() => cache.writeUint32Array(randomUint32Array), `writeUint32Array(${randomUint32Array.length})`)
@@ -88,6 +93,7 @@ export default function executeCacheBenchmark(cacheBenchmarkInputSize: number, b
 
     bench.benchmark(() => cache.readHexString(0, 1), "readHexString(1)")
     bench.benchmark(() => cache.readUtf8String(0, 1), "readUtf8String(1)")
+    bench.benchmark(() => cache.readBit(0), "readBit")
     bench.benchmark(() => cache.readUint8(0), "readUint8")
     bench.benchmark(() => cache.readUint16(0), "readUint16")
     bench.benchmark(() => cache.readUint32(0), "readUint32")
@@ -99,12 +105,12 @@ export default function executeCacheBenchmark(cacheBenchmarkInputSize: number, b
     bench.benchmark(() => cache.readBigInt(0, cacheBenchmarkInputSize), `readBigInt(${randomBigInt.toString().length})`)
     bench.print("read (multiple)")
 
-    bench.benchmark(() => cache.toHexString(), "toHexString")
-    bench.benchmark(() => cache.toUtf8String(), "toUtf8String")
-    bench.benchmark(() => cache.toString("hex"), "toString(hex)")
-    bench.benchmark(() => cache.toUint8Array(), "toUint8Array")
-    bench.benchmark(() => cache.toUint16Array(), "toUint16Array")
-    bench.benchmark(() => cache.toUint32Array(), "toUint32Array")
+    bench.benchmark(() => cache.toHexString(), `toHexString(${randomHex.length})`)
+    bench.benchmark(() => cache.toUtf8String(), `toUtf8String(${randomHex.length})`)
+    bench.benchmark(() => cache.toBits(), `toBits(${randomHex.length})`)
+    bench.benchmark(() => cache.toUint8Array(), `toUint8Array(${randomHex.length})`)
+    bench.benchmark(() => cache.toUint16Array(), `toUint16Array(${randomHex.length})`)
+    bench.benchmark(() => cache.toUint32Array(), `toUint32Array(${randomHex.length})`)
     bench.print("convert")
 
     bench.benchmark(() => firstEqualCache.equals(secondEqualCache), "equals(true)")

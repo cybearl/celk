@@ -1,4 +1,4 @@
-import Cache from "#kernel/cache"
+import Cache, { Bit } from "#kernel/cache"
 import { test } from "@japa/runner"
 
 test.group("cache / write / writeHexString", (group) => {
@@ -73,24 +73,25 @@ test.group("cache / write / writeBit", (group) => {
     let cache: Cache
 
     group.each.setup(() => {
-        cache = new Cache(2)
+        cache = new Cache(1)
     })
 
-    const bit = 1
-    const bitByteValues = [0x80, 0x00]
+    const bits: Bit[] = [0, 1, 0, 1, 0, 0, 1, 0]
 
     test("It should write a bit to the cache", ({ expect }) => {
-        cache.writeBit(bit)
+        for (const [i, bit] of bits.entries()) {
+            cache.writeBit(bit, i)
+        }
 
-        for (let i = 0; i < cache.length; i++) {
-            expect(cache.readUint8(i)).toBe(bitByteValues[i])
+        for (let i = 0; i < cache.length * 8; i++) {
+            expect(cache.readBit(i)).toBe(bits[i])
         }
     })
 
     test("It should write a bit to the cache at the specified offset", ({ expect }) => {
-        cache.writeBit(0, 1)
-        expect(cache.readUint8(0)).toBe(0x00)
-        expect(cache.readUint8(1)).toBe(0x00)
+        cache.writeBit(1, 1)
+        expect(cache.readBit(0)).toBe(0)
+        expect(cache.readBit(1)).toBe(1)
     })
 
     test("It should throw if the value is not a valid bit", ({ expect }) => {
@@ -108,28 +109,26 @@ test.group("cache / write / writeUint8", (group) => {
         cache = new Cache(2)
     })
 
-    const bits = [0, 1]
+    const uint8 = 0xff
+    const uint8ByteValues = [0xff, 0x00]
 
-    test("It should write a bit to the cache", ({ expect }) => {
-        cache.writeBit(0)
-        cache.writeBit(1)
+    test("It should write a uint8 to the cache", ({ expect }) => {
+        cache.writeUint8(uint8)
 
         for (let i = 0; i < cache.length; i++) {
-            expect(cache.readBit(i)).toBe(bits[i])
+            expect(cache.readUint8(i)).toBe(uint8ByteValues[i])
         }
     })
 
-    test("It should write a bit to the cache at the specified offset", ({ expect }) => {
-        cache.writeBit(1, 1)
-        expect(cache.readBit(0)).toBe(0)
-        expect(cache.readBit(1)).toBe(1)
+    test("It should write a uint8 to the cache at the specified offset", ({ expect }) => {
+        cache.writeUint8(0xff, 1)
+        expect(cache.readUint8(0)).toBe(0x00)
+        expect(cache.readUint8(1)).toBe(0xff)
     })
 
-    test("It should throw if the value is not a valid bit", ({ expect }) => {
-        // @ts-ignore
-        expect(() => cache.writeBit(-1)).toThrow()
-        // @ts-ignore
-        expect(() => cache.writeBit(0x100)).toThrow()
+    test("It should throw if the value is not a valid uint8", ({ expect }) => {
+        expect(() => cache.writeUint8(-1)).toThrow()
+        expect(() => cache.writeUint8(0x100)).toThrow()
     })
 })
 
@@ -244,6 +243,39 @@ test.group("cache / write / writeUint32", (group) => {
 
     test("It should throw if the byte offset is not aligned to 4 bytes", ({ expect }) => {
         expect(() => cache.writeUint32(0xff00ff00, 2)).toThrow()
+    })
+})
+
+test.group("cache / write / writeBits", (group) => {
+    let cache: Cache
+
+    group.each.setup(() => {
+        cache = new Cache(1)
+    })
+
+    const bits: Bit[] = [0, 1, 0, 1, 0, 0, 1, 0]
+
+    test("It should write bits to the cache", ({ expect }) => {
+        cache.writeBits(bits)
+
+        for (let i = 0; i < cache.length * 8; i++) {
+            expect(cache.readBit(i)).toBe(bits[i])
+        }
+    })
+
+    test("It should write bits to the cache at the specified offset", ({ expect }) => {
+        cache.writeBits([1, 0, 1, 0], 2)
+        expect(cache.readBit(0)).toBe(0)
+        expect(cache.readBit(1)).toBe(0)
+        expect(cache.readBit(2)).toBe(1)
+        expect(cache.readBit(3)).toBe(0)
+    })
+
+    test("It should throw if the value is not a valid bit", ({ expect }) => {
+        // @ts-ignore
+        expect(() => cache.writeBits([0, -1])).toThrow()
+        // @ts-ignore
+        expect(() => cache.writeBits([0, 2])).toThrow()
     })
 })
 
