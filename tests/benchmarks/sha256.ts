@@ -14,10 +14,6 @@ export default function executeSha256AlgorithmBenchmark(benchmarkInputSize: numb
     externalLogger.info(`>> Benchmark duration: ${benchmarkDuration} millisecond(s)`)
     externalLogger.info(`>> Benchmark input size: ${benchmarkInputSize.toLocaleString("en-US")}`)
 
-    console.log("")
-    externalLogger.warn("This might take a while depending on the benchmark duration you chose.")
-    externalLogger.warn("Please be patient and wait for the results to appear.")
-
     // Test values
     const hexInput = "dd6d953fb934989bdbe64be4ba4fe4ed4e8275ce399ab72ded842316edb012ec"
     const inputSlot: MemorySlot = { start: 0, length: 32, end: 32 }

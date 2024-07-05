@@ -47,6 +47,11 @@ function main(args: string[]) {
         argBenchmarkDuration = 256
     }
 
+    console.log("")
+    externalLogger.warn("This might take a while depending on the benchmark duration you chose.")
+    externalLogger.warn("Please be patient and wait for the results to appear.")
+    console.log("")
+
     if (!argBenchmarkName) {
         externalLogger.info(">> No benchmark name provided, running all benchmarks..")
 

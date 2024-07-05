@@ -13,10 +13,6 @@ export default function executeBech32EncoderBenchmark(_: any, benchmarkDuration:
     externalLogger.info(`>> Benchmark duration: ${benchmarkDuration} millisecond(s)`)
     externalLogger.info(">> Benchmark input size: unused (Bech32Encoder is not input-size dependent)")
 
-    console.log("")
-    externalLogger.warn("This might take a while depending on the benchmark duration you chose.")
-    externalLogger.warn("Please be patient and wait for the results to appear.")
-
     // Test values
     const bech32InputHex = "128739950dcdd98e5c01a056a19a3b2a9c77b9b7"
     const bech32Output = "bc1qz2rnn9gdehvcuhqp5pt2rx3m92w80wdhzp9xlg"

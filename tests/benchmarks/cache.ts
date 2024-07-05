@@ -12,10 +12,6 @@ export default function executeCacheBenchmark(benchmarkInputSize: number, benchm
     externalLogger.info(`>> Benchmark duration: ${benchmarkDuration} millisecond(s)`)
     externalLogger.info(`>> Benchmark input size: ${benchmarkInputSize.toLocaleString("en-US")}`)
 
-    console.log("")
-    externalLogger.warn("This might take a while depending on the benchmark duration and the input size you chose.")
-    externalLogger.warn("Please be patient and wait for the results to appear.")
-
     // Test values
     const randomBitArray: Bit[] = new Array(benchmarkInputSize).fill(0)
     for (let i = 0; i < benchmarkInputSize; i++) randomBitArray[i] = Math.floor(Math.random() * 2) as Bit
