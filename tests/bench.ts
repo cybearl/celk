@@ -1,4 +1,5 @@
 import externalLogger from "#lib/utils/external_logger"
+import executeBech32EncoderBenchmark from "#tests/benchmarks/bech32"
 import executeCacheBenchmark from "#tests/benchmarks/cache"
 import dedent from "dedent-js"
 import minimist from "minimist"
@@ -18,6 +19,7 @@ type BenchmarkFunction = (cacheBenchmarkInputSize: number, benchmarkDuration: nu
  */
 const benchmarks: { [key: string]: BenchmarkFunction } = {
     cache: executeCacheBenchmark,
+    bech32: executeBech32EncoderBenchmark,
 }
 
 /**

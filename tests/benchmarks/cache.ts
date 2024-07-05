@@ -4,54 +4,56 @@ import externalLogger from "#lib/utils/external_logger"
 
 /**
  * The benchmark for the `Cache` class.
- * @param cacheBenchmarkInputSize The size of the input for the `Cache` benchmark.
+ * @param benchmarkInputSize The size of the input for the benchmark.
  * @param benchmarkDuration The duration of the benchmark.
  */
-export default function executeCacheBenchmark(cacheBenchmarkInputSize: number, benchmarkDuration: number) {
-    const randomBitArray: Bit[] = new Array(cacheBenchmarkInputSize).fill(0)
-    for (let i = 0; i < cacheBenchmarkInputSize; i++) randomBitArray[i] = Math.floor(Math.random() * 2) as Bit
+export default function executeCacheBenchmark(benchmarkInputSize: number, benchmarkDuration: number) {
+    externalLogger.info("Starting benchmarking of the cache...")
+    externalLogger.info(`>> Benchmark duration: ${benchmarkDuration} millisecond(s)`)
+    externalLogger.info(`>> Benchmark input size: ${benchmarkInputSize.toLocaleString("en-US")}`)
+
+    console.log("")
+    externalLogger.warn("This might take a while depending on the benchmark duration and the input size you chose.")
+    externalLogger.warn("Please be patient and wait for the results to appear.")
+
+    // Test values
+    const randomBitArray: Bit[] = new Array(benchmarkInputSize).fill(0)
+    for (let i = 0; i < benchmarkInputSize; i++) randomBitArray[i] = Math.floor(Math.random() * 2) as Bit
 
     const oneUint8Array = new Uint8Array(1)
     oneUint8Array[0] = 0xff
-    const randomUint8Array = new Uint8Array(cacheBenchmarkInputSize)
-    for (let i = 0; i < cacheBenchmarkInputSize; i++) randomUint8Array[i] = Math.floor(Math.random() * 0xff)
+    const randomUint8Array = new Uint8Array(benchmarkInputSize)
+    for (let i = 0; i < benchmarkInputSize; i++) randomUint8Array[i] = Math.floor(Math.random() * 0xff)
 
     const oneUint16Array = new Uint16Array(1)
     oneUint16Array[0] = 0xffff
-    const randomUint16Array: Uint16Array = new Uint16Array(cacheBenchmarkInputSize / 2)
-    for (let i = 0; i < cacheBenchmarkInputSize / 2; i++) randomUint16Array[i] = Math.floor(Math.random() * 0xffff)
+    const randomUint16Array: Uint16Array = new Uint16Array(benchmarkInputSize / 2)
+    for (let i = 0; i < benchmarkInputSize / 2; i++) randomUint16Array[i] = Math.floor(Math.random() * 0xffff)
 
     const oneUint32Array = new Uint32Array(1)
     oneUint32Array[0] = 0xffffffff
-    const randomUint32Array: Uint32Array = new Uint32Array(cacheBenchmarkInputSize / 4)
-    for (let i = 0; i < cacheBenchmarkInputSize / 4; i++) randomUint32Array[i] = Math.floor(Math.random() * 0xffffffff)
+    const randomUint32Array: Uint32Array = new Uint32Array(benchmarkInputSize / 4)
+    for (let i = 0; i < benchmarkInputSize / 4; i++) randomUint32Array[i] = Math.floor(Math.random() * 0xffffffff)
 
     const oneHex = "A".repeat(2)
-    const randomHex = "A".repeat(cacheBenchmarkInputSize * 2)
+    const randomHex = "A".repeat(benchmarkInputSize * 2)
 
     const oneUtf8 = "A"
-    const randomUtf8 = "A".repeat(cacheBenchmarkInputSize)
+    const randomUtf8 = "A".repeat(benchmarkInputSize)
 
     const oneBigInt = BigInt(0x1)
     const randomBigInt = BigInt(`0x${randomHex}`)
 
-    externalLogger.info("Starting benchmarking for the cache library...")
-    externalLogger.info(`>> Benchmark duration: ${benchmarkDuration} millisecond(s)`)
-    externalLogger.info(`>> Cache benchmark input size: ${cacheBenchmarkInputSize.toLocaleString("en-US")}`)
-
-    console.log("")
-    externalLogger.warn("This might take a while depending on the benchmark duration and the input size you chose.")
-    externalLogger.warn("Please be patient and wait for the results to be displayed.")
-
-    // Test cache instance
-    const cache = Cache.alloc(cacheBenchmarkInputSize)
-    const cacheX8 = Cache.alloc(cacheBenchmarkInputSize * 8)
+    // Test cache instances
+    const cache = Cache.alloc(benchmarkInputSize)
+    const cacheX8 = Cache.alloc(benchmarkInputSize * 8)
     const emptyCache = Cache.alloc(1)
-    const firstEqualCache = Cache.alloc(cacheBenchmarkInputSize)
-    const secondEqualCache = Cache.alloc(cacheBenchmarkInputSize)
+    const firstEqualCache = Cache.alloc(benchmarkInputSize)
+    const secondEqualCache = Cache.alloc(benchmarkInputSize)
     const firstUnequalCache = Cache.fromHexString(randomHex)
     const secondUnequalCache = Cache.fromHexString(randomHex.split("").reverse().join(""))
 
+    // Benchmark
     const bench = new Bench(benchmarkDuration)
 
     bench.benchmark(() => cache.check(0, 1), "check")
@@ -100,9 +102,9 @@ export default function executeCacheBenchmark(cacheBenchmarkInputSize: number, b
     bench.benchmark(() => cache.readBigInt(0, 1), "readBigInt(1)")
     bench.print("read")
 
-    bench.benchmark(() => cache.readHexString(0, cacheBenchmarkInputSize), `readHexString(${randomHex.length})`)
-    bench.benchmark(() => cache.readUtf8String(0, cacheBenchmarkInputSize), `readUtf8String(${randomUtf8.length})`)
-    bench.benchmark(() => cache.readBigInt(0, cacheBenchmarkInputSize), `readBigInt(${randomBigInt.toString().length})`)
+    bench.benchmark(() => cache.readHexString(0, benchmarkInputSize), `readHexString(${randomHex.length})`)
+    bench.benchmark(() => cache.readUtf8String(0, benchmarkInputSize), `readUtf8String(${randomUtf8.length})`)
+    bench.benchmark(() => cache.readBigInt(0, benchmarkInputSize), `readBigInt(${randomBigInt.toString().length})`)
     bench.print("read (multiple)")
 
     bench.benchmark(() => cache.toHexString(), `toHexString(${randomHex.length})`)
@@ -115,20 +117,20 @@ export default function executeCacheBenchmark(cacheBenchmarkInputSize: number, b
 
     bench.benchmark(() => firstEqualCache.equals(secondEqualCache), "equals(true)")
     bench.benchmark(() => firstUnequalCache.equals(secondUnequalCache), "equals(false)")
-    bench.benchmark(() => cache.isEmpty(), `isEmpty(${cacheBenchmarkInputSize})`)
+    bench.benchmark(() => cache.isEmpty(), `isEmpty(${benchmarkInputSize})`)
     bench.benchmark(() => emptyCache.isEmpty(), `isEmpty(1)`)
     bench.print("check")
 
-    bench.benchmark(() => cache.randomFill(), `randomFill(${cacheBenchmarkInputSize})`)
-    bench.benchmark(() => cacheX8.randomFill(), `randomFill(${cacheBenchmarkInputSize * 8})`)
-    bench.benchmark(() => cache.safeRandomFill(), `safeRandomFill(${cacheBenchmarkInputSize})`)
-    bench.benchmark(() => cacheX8.safeRandomFill(), `safeRandomFill(${cacheBenchmarkInputSize * 8})`)
+    bench.benchmark(() => cache.randomFill(), `randomFill(${benchmarkInputSize})`)
+    bench.benchmark(() => cacheX8.randomFill(), `randomFill(${benchmarkInputSize * 8})`)
+    bench.benchmark(() => cache.safeRandomFill(), `safeRandomFill(${benchmarkInputSize})`)
+    bench.benchmark(() => cacheX8.safeRandomFill(), `safeRandomFill(${benchmarkInputSize * 8})`)
     bench.print("random")
 
-    bench.benchmark(() => cache.copy(0, cacheBenchmarkInputSize), "copy")
-    bench.benchmark(() => cache.subarray(0, cacheBenchmarkInputSize), "subarray")
-    bench.benchmark(() => cache.swap(0, cacheBenchmarkInputSize), "swap")
-    bench.benchmark(() => cache.partialReverse(0, cacheBenchmarkInputSize / 2), "partialReverse")
+    bench.benchmark(() => cache.copy(0, benchmarkInputSize), "copy")
+    bench.benchmark(() => cache.subarray(0, benchmarkInputSize), "subarray")
+    bench.benchmark(() => cache.swap(0, benchmarkInputSize), "swap")
+    bench.benchmark(() => cache.partialReverse(0, benchmarkInputSize / 2), "partialReverse")
     bench.benchmark(() => cache.reverse(), "reverse")
     bench.benchmark(() => cache.rotateLeft(), "rotateLeft")
     bench.benchmark(() => cache.rotateRight(), "rotateRight")
