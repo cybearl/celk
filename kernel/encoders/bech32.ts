@@ -16,41 +16,26 @@ export type Bech32Encoding = "bech32" | "bech32m"
  *
  * More info about Bech32 encoding can be found at:
  * - [BIP-0173](https://github.com/bitcoin/bips/blob/master/bip-0173.mediawiki).
+ * - [BIP-0350](https://en.bitcoin.it/wiki/BIP_0350).
  * - [Reference implementation](https://github.com/sipa/bech32/tree/master/ref/javascript).
+ * - [Calculator](https://secretscan.org/Bech32).
  */
 export default class Bech32Encoder {
     private readonly _CHARSET = "qpzry9x8gf2tvdw0s3jn54khce6mua7l"
     private readonly _GENERATOR = [0x3b6a57b2, 0x26508e6d, 0x1ea119fa, 0x3d4233dd, 0x2a1462b3]
 
     /**
-     * Stores the current encoding constant (either for Bech32 or Bech32m).
-     * - In the case of Bech32, the constant is set to `1`.
-     * - In the case of Bech32m, the constant is set to `0x2bc830a3`.
-     */
-    private modifier: number
-
-    /**
      * Creates a new Bech32 encoder instance.
-     * @param encoding The encoding to use (optional, defaults to "bech32").
      */
-    constructor(encoding: Bech32Encoding = "bech32") {
-        this.modifier = encoding === "bech32m" ? 0x2bc830a3 : 1
-    }
+    constructor() {}
 
     /**
-     * Get the current encoding as a string.
-     * @returns The current encoding as a string.
+     * Gets the encoding modifier based on the witness version.
+     * @param version The witness version to use (0-16).
+     * @returns The encoding modifier.
      */
-    get encoding(): Bech32Encoding {
-        return this.modifier === 1 ? "bech32" : "bech32m"
-    }
-
-    /**
-     * Set the encoding to either Bech32 or Bech32m.
-     * @param encoding The encoding to set.
-     */
-    set encoding(encoding: Bech32Encoding) {
-        this.modifier = encoding === "bech32m" ? 0x2bc830a3 : 1
+    private _getModifier(version: number): number {
+        return version === 0 ? 1 : 0x2bc830a3
     }
 
     /**
@@ -137,12 +122,14 @@ export default class Bech32Encoder {
     }
 
     /**
-     * Creates a Bech32 checksum from the HRP (Human Readable Part). and data based on the current encoding.
+     * Creates a Bech32 checksum from the HRP (Human Readable Part) and the data,
+     * based on the witness version.
      * @param hrp The HRP to use (Human Readable Part).
+     * @param version The witness version to use (0-16).
      * @param data The data to use, as a 5-bit number array.
      * @returns The computed checksum.
      */
-    private _createChecksum(hrp: string, data: number[]): number[] {
+    private _createChecksum(hrp: string, version: number, data: number[]): number[] {
         const expandedHrp = this._expandHrp(hrp)
         const checksumData: number[] = new Array(expandedHrp.length + data.length + 6)
 
@@ -153,7 +140,7 @@ export default class Bech32Encoder {
         }
 
         // Compute the polymod and XOR it with the modifier
-        const polymod = this._polymod(checksumData) ^ this.modifier
+        const polymod = this._polymod(checksumData) ^ this._getModifier(version)
 
         // Convert the polymod to a 6-digit checksum
         const checksum = new Array(6)
@@ -165,7 +152,7 @@ export default class Bech32Encoder {
     }
 
     /**
-     * Verifies the checksum of a Bech32 bytecode.
+     * Verifies the checksum of a Bech32 bytecode for both Bech32 and Bech32m encodings.
      * @param hrp The HRP to use (Human Readable Part).
      * @param data The data to use, as a 5-bit number array.
      */
@@ -179,23 +166,26 @@ export default class Bech32Encoder {
             else checksumData[i] = data[i - expandedHrp.length]
         }
 
-        // Compute the checksum (polymod) and compare it to the stored modifier
-        return this._polymod(checksumData) === this.modifier
+        // Compute the checksum (polymod)
+        const polymod = this._polymod(checksumData)
+
+        // Supports both Bech32 and Bech32m encodings
+        return polymod === 1 || polymod === 0x2bc830a3
     }
 
     /**
-     * Encodes a Bech32 string from the bytecode stored in a `Cache` instance.
+     * Encodes a Bech32 string from the bytecode stored in a `Cache` instance and the current encoding.
+     * @param version The witness version to use (0-16).
      * @param hrp The HRP to use (Human Readable Part).
-     * @param witnessVersion The witness version to use (0-16), usually 0.
      * @param cache The `Cache` instance to read the data from.
      * @param slot The position of the data in the cache (optional, defaults to 0 => length).
      */
-    encode(hrp: string, witnessVersion: number, cache: Cache, slot?: MemorySlot): string {
+    encode(version: number, hrp: string, cache: Cache, slot?: MemorySlot): string {
         // Start with the witness version and concatenate the data converted to a 5-bit array
-        const data = [witnessVersion].concat(this._convertTo5BitArray(cache, slot))
+        const data = [version].concat(this._convertTo5BitArray(cache, slot))
 
         // Compute the checksum
-        const checksum = this._createChecksum(hrp, data)
+        const checksum = this._createChecksum(hrp, data[0], data)
 
         // Add the checksum to the data
         const bech32Data = data.concat(checksum)
@@ -208,6 +198,9 @@ export default class Bech32Encoder {
 
     /**
      * Decodes a Bech32 string back to its bytecode and writes it in a `Cache` instance.
+     *
+     * **Note:** Supports both Bech32 and Bech32m encodings (automatically detects the encoding
+     * based on the witness version).
      * @param bech32String The Bech32 string to decode.
      * @param cache The `Cache` instance to write the data to.
      * @param slot The position of the data in the cache (optional, defaults to 0 => data length).
