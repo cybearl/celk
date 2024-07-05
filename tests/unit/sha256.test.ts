@@ -16,10 +16,11 @@ test.group("sha256 / execute", (group) => {
         sha256Algorithm = new Sha256Algorithm()
     })
 
-    test("It should execute the SHA-256 algorithm", ({ expect }) => {
+    test("It should execute the SHA-256 algorithm (twice to ensure no data persistence)", ({ expect }) => {
         const inputSlot = { start: 0, length: 32, end: 32 }
         const outputSlot = { start: 32, length: 32, end: 64 }
 
+        sha256Algorithm.execute(cache, inputSlot, outputSlot)
         sha256Algorithm.execute(cache, inputSlot, outputSlot)
 
         const result = cache.copy(outputSlot.start, 32).toHexString()

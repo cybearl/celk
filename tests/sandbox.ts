@@ -1,24 +1,22 @@
-import Sha256Algorithm from "#kernel/algorithms/sha256"
+import Ripemd160Algorithm from "#kernel/algorithms/ripemd160"
 import Cache from "#kernel/cache"
 import { MemorySlot } from "#kernel/table"
 
-const testInput = "dd6d953fb934989bdbe64be4ba4fe4ed4e8275ce399ab72ded842316edb012ec"
+const testInput = "cc32441a8b9ade1b88ad5ec47787906bd6975636"
 
-const testCache = new Cache(64)
+const testCache = new Cache(40)
 
 testCache.writeHexString(testInput)
 
-const inputSlot: MemorySlot = { start: 0, length: 32, end: 32 }
-const outputSlot: MemorySlot = { start: 32, length: 32, end: 64 }
+const inputSlot: MemorySlot = { start: 0, length: 20, end: 20 }
+const outputSlot: MemorySlot = { start: 20, length: 20, end: 40 }
 
-const sha256 = new Sha256Algorithm()
+const ripemd160 = new Ripemd160Algorithm()
 
-sha256.execute(testCache, inputSlot, outputSlot)
+ripemd160.execute(testCache, inputSlot, outputSlot)
 
-const res = testCache.copy(outputSlot.start, 32).toHexString()
+const res = testCache.copy(outputSlot.start, 20).toHexString()
 
-console.log(
-    res === "1488eebf20c21b639e7d6e6468fa3f263cb8b7bcc11e167687c8120331bdf59b".toUpperCase()
-        ? "Test passed"
-        : "Test failed"
-)
+console.log(res)
+
+console.log(res === "87b4840d5999d40c8b2267b4f7800dc1644dbf73".toUpperCase() ? "Test passed" : "Test failed")

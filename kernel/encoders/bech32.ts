@@ -14,7 +14,7 @@ export type Bech32Encoding = "bech32" | "bech32m"
  * It also provides methods to decode Bech32 strings back to
  * their bytecode.
  *
- * More info about Bech32 encoding can be found at:
+ * More info about the Bech32 encoding can be found at:
  * - [BIP-0173](https://github.com/bitcoin/bips/blob/master/bip-0173.mediawiki).
  * - [BIP-0350](https://en.bitcoin.it/wiki/BIP_0350).
  * - [Reference implementation](https://github.com/sipa/bech32/tree/master/ref/javascript).

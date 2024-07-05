@@ -4,7 +4,7 @@ import { MemorySlot } from "#kernel/table"
 /**
  * A TypeScript implementation of the Secure Hash Algorithm, SHA-256, as defined in FIPS 180-4.
  *
- * More info about SHA-256 algorithm can be found at:
+ * More info about the SHA-256 algorithm can be found at:
  * - [Explanation by Quadibloc](http://www.quadibloc.com/crypto/mi060501.htm).
  * - [JS implementation by Bryan Chow](https://gist.github.com/bryanchow/1649353).
  */
@@ -56,16 +56,29 @@ export default class Sha256Algorithm {
     private _gamma1 = (x: number): number => this._rotr(x, 17) ^ this._rotr(x, 19) ^ (x >>> 10)
 
     /**
+     * Safe addition operation, needed for the hash computation.
+     * @param x The first number to add.
+     * @param y The second number to add.
+     * @returns The sum of the two numbers.
+     */
+    private _safeAdd = (x: number, y: number): number => {
+        const lsw = (x & 0xffff) + (y & 0xffff)
+        const msw = (x >> 16) + (y >> 16) + (lsw >> 16)
+
+        return (msw << 16) | (lsw & 0xffff)
+    }
+
+    /**
      * SHA-256 internal hash computation.
      * @param cache The cache to write to.
-     * @param input The input cache to use.
+     * @param length The input data length.
      * @param offset The offset to write to.
      */
-    private _sha256 = (cache: Cache, input: Cache, offset: number): void => {
-        const store = new Uint32Array(8)
-        const hash = this._H
+    private _sha256 = (cache: Cache, length: number, offset: number): void => {
+        const space = new Uint32Array(8)
+        const hash = this._H.slice()
 
-        const l = input.length * 8
+        const l = length * 8
         let t1
         let t2
 
@@ -74,37 +87,44 @@ export default class Sha256Algorithm {
         this._inputArray[(((l + 64) >>> 9) << 4) + 15] = l
 
         for (let i = 0; i < this._inputArray.length; i += 16) {
-            store.set(hash)
+            space.set(hash)
 
             for (let j = 0; j < 64; j++) {
                 if (j < 16) {
                     this._W[j] = this._inputArray[j + i]
                 } else {
-                    this._W[j] =
-                        this._gamma1(this._W[j - 2]) + this._W[j - 7] + this._gamma0(this._W[j - 15]) + this._W[j - 16]
+                    this._W[j] = this._safeAdd(
+                        this._safeAdd(this._gamma1(this._W[j - 2]), this._W[j - 7]),
+                        this._safeAdd(this._gamma0(this._W[j - 15]), this._W[j - 16])
+                    )
                 }
 
-                t1 =
-                    store[7] +
-                    this._sigma1(store[4]) +
-                    this._choose(store[4], store[5], store[6]) +
-                    this._K[j] +
+                t1 = this._safeAdd(
+                    this._safeAdd(
+                        this._safeAdd(
+                            this._safeAdd(space[7], this._sigma1(space[4])),
+                            this._choose(space[4], space[5], space[6])
+                        ),
+                        this._K[j]
+                    ),
                     this._W[j]
-                t2 = this._sigma0(store[0]) + this._majority(store[0], store[1], store[2])
+                )
+
+                t2 = this._safeAdd(this._sigma0(space[0]), this._majority(space[0], space[1], space[2]))
 
                 // Update working variables
-                store[7] = store[6]
-                store[6] = store[5]
-                store[5] = store[4]
-                store[4] = store[3] + t1
-                store[3] = store[2]
-                store[2] = store[1]
-                store[1] = store[0]
-                store[0] = t1 + t2
+                space[7] = space[6]
+                space[6] = space[5]
+                space[5] = space[4]
+                space[4] = this._safeAdd(space[3], t1)
+                space[3] = space[2]
+                space[2] = space[1]
+                space[1] = space[0]
+                space[0] = this._safeAdd(t1, t2)
             }
 
             for (let k = 0; k < 8; k++) {
-                hash[k] = store[k] + hash[k]
+                hash[k] = this._safeAdd(hash[k], space[k])
             }
         }
 
@@ -136,6 +156,6 @@ export default class Sha256Algorithm {
 
         const input = cache.subarray(inputSlot.start, inputSlot.end)
         this.cacheToBigEndianWords(input)
-        this._sha256(cache, input, outputSlot.start)
+        this._sha256(cache, input.length, outputSlot.start)
     }
 }

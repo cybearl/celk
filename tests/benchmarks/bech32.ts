@@ -9,7 +9,7 @@ import externalLogger from "#lib/utils/external_logger"
  * @param benchmarkDuration The duration of the benchmark.
  */
 export default function executeBech32EncoderBenchmark(_: any, benchmarkDuration: number) {
-    externalLogger.info("Starting benchmarking of the Bech32Encoder...")
+    externalLogger.info("Starting benchmarking of the Bech32 encoder...")
     externalLogger.info(`>> Benchmark duration: ${benchmarkDuration} millisecond(s)`)
     externalLogger.info(">> Benchmark input size: unused (Bech32Encoder is not input-size dependent)")
 
