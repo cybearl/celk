@@ -1,7 +1,7 @@
 import Cache from "#kernel/cache"
 import Bech32Encoder from "#kernel/encoders/bech32"
 
-const inputHex = "90d4b011f894842c5866bad60883f9c457d80815"
+const inputHex = "8b69b8dfaf948c46ed63b3790bd93b58ffc553cb"
 const inputHexCache = Cache.fromHexString(inputHex)
 
 const bech32Encoder = new Bech32Encoder()

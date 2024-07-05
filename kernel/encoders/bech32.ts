@@ -69,6 +69,9 @@ export default class Bech32Encoder {
             }
         }
 
+        console.log(convertedData.toString())
+        console.log(data.toBits().toString())
+
         const dataLength5Bit = Math.ceil((data.length * 8) / 5)
 
         const result = new Array(dataLength5Bit)

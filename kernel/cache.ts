@@ -352,15 +352,16 @@ export default class Cache extends Uint8Array {
      * **Note:** The offset is in bits, not bytes in contrast to the other methods.
      * @param value The value to write (`0` or `1`).
      * @param offset The offset to read from **as a number of bits** (optional, defaults to 0).
+     * @param msbFirst Whether to write the bit to the most significant bit (optional, defaults to true).
      * @returns The cache instance.
      */
-    writeBit = (value: Bit, offset = 0): this => {
+    writeBit = (value: Bit, offset = 0, msbFirst = true): this => {
         if (value < 0 || value > 1) throw new RangeError(`[Cache - writeBit] Value is out of bounds: '${value}'.`)
 
         const byteOffset = Math.floor(offset / 8)
         this.check(byteOffset, 1)
 
-        const bitOffset = offset % 8
+        const bitOffset = msbFirst ? 7 - (offset % 8) : offset % 8
         if (value === 1) this[byteOffset] |= 1 << bitOffset
         else this[byteOffset] &= ~(1 << bitOffset)
 
@@ -527,9 +528,10 @@ export default class Cache extends Uint8Array {
      * @param array The array of bits to write to the cache.
      * @param offset The offset to start writing at **as a number of bits** (optional, defaults to 0).
      * @param length The length to write **as a number of bits** (optional, defaults to the array length).
+     * @param msbFirst Whether to write the bits from the most significant bit (optional, defaults to true).
      * @returns The cache instance.
      */
-    writeBits = (array: Bit[], offset = 0, length = array.length): this => {
+    writeBits = (array: Bit[], offset = 0, length = array.length, msbFirst = true): this => {
         if (!array || !Array.isArray(array)) {
             throw new TypeError(`[Cache - writeBits] Invalid array of bits: '${array}'.`)
         }
@@ -538,7 +540,7 @@ export default class Cache extends Uint8Array {
         const byteLength = Math.ceil(length / 8)
         this.check(byteOffset, byteLength)
 
-        for (let i = 0; i < length; i++) this.writeBit(array[i], offset + i)
+        for (let i = 0; i < length; i++) this.writeBit(array[i], offset + i, msbFirst)
 
         return this
     }
@@ -727,14 +729,15 @@ export default class Cache extends Uint8Array {
      *
      * **Note:** The offset is in bits, not bytes in contrast to the other methods.
      * @param offset The offset to read from **as a number of bits** (optional, defaults to 0).
+     * @param msbFirst Whether to read the bit from the most significant bit (optional, defaults to true).
      * @returns The bit as 0 or 1.
      * @throws If the offset is invalid.
      */
-    readBit = (offset = 0): Bit => {
+    readBit = (offset = 0, msbFirst = true): Bit => {
         const byteOffset = Math.floor(offset / 8)
         this.check(byteOffset, 1)
 
-        const bitOffset = offset % 8
+        const bitOffset = msbFirst ? 7 - (offset % 8) : offset % 8
         return (this[byteOffset] & (1 << bitOffset)) !== 0 ? 1 : 0
     }
 
@@ -936,10 +939,12 @@ export default class Cache extends Uint8Array {
      * Converts the cache into a bit array.
      *
      * **Warning:** This method is not efficient for large caches, use the `toUint8Array` method instead.
+     * @param msbFirst Whether to read the bits from the most significant bit (optional, defaults to true).
+     * @returns The bit array.
      */
-    toBits = (): Bit[] => {
+    toBits = (msbFirst = true): Bit[] => {
         const bits: Bit[] = new Array(this.length * 8)
-        for (let i = 0; i < this.length * 8; i++) bits[i] = this.readBit(i)
+        for (let i = 0; i < this.length * 8; i++) bits[i] = this.readBit(i, msbFirst)
         return bits
     }
 
