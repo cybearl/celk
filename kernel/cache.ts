@@ -715,7 +715,7 @@ export default class Cache extends Uint8Array {
      */
 
     /**
-     * Reads a part of the cache and returns it as an hexadecimal string (always uppercase)
+     * Reads a part of the cache and returns it as an hexadecimal string (always uppercase).
      * @param offset The offset to start reading from (optional, defaults to 0).
      * @param length The length to read (optional, defaults to the cache length - offset).
      * @returns The hexadecimal string.
@@ -915,9 +915,7 @@ export default class Cache extends Uint8Array {
      */
 
     /**
-     * Converts the cache into an hexadecimal string.
-     *
-     * **Note:** Always uppercase.
+     * Converts the cache into an hexadecimal string (always uppercase).
      * @param prefix Whether to prefix the hexadecimal string with `0x` (optional, defaults to false).
      * @param littleEndian Whether to read the value in Little Endian (optional, defaults to false).
      * @returns The hexadecimal string.
@@ -935,9 +933,7 @@ export default class Cache extends Uint8Array {
     toUtf8String = (): string => Buffer.from(this.buffer).toString("utf8")
 
     /**
-     * Converts the cache into a string representation.
-     *
-     * **Note:** Hex values are always uppercase.
+     * Converts the cache into a string representation (hex string is always uppercase).
      * @param encoding The encoding to use (optional, defaults to "hex").
      * @param hexPrefix Whether to prefix the hexadecimal string with `0x` (optional, defaults to false).
      * @returns The string representation of the cache.

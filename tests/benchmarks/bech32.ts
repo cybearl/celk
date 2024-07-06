@@ -32,11 +32,14 @@ export default function executeBech32EncoderBenchmark(_: any, benchmarkDuration:
     // Benchmark
     const bench = new Bench(benchmarkDuration)
 
-    bench.benchmark(() => bech32Encoder.encode(0, "bc", bech32InputCache), "encode")
-    bench.benchmark(() => bech32Encoder.decode(bech32Output, bech32OutputCache), "decode")
+    bench.benchmark(() => bech32Encoder.encode(0, "bc", bech32InputCache), `encode(${bech32InputCache.length})`)
+    bench.benchmark(() => bech32Encoder.decode(bech32Output, bech32OutputCache), `decode(${bech32OutputCache.length})`)
     bench.print("bech32")
 
-    bench.benchmark(() => bech32Encoder.encode(8, "bc", bech32mInputCache), "encode")
-    bench.benchmark(() => bech32Encoder.decode(bech32mOutput, bech32mOutputCache), "decode")
+    bench.benchmark(() => bech32Encoder.encode(8, "bc", bech32mInputCache), `encode(${bech32mInputCache.length})`)
+    bench.benchmark(
+        () => bech32Encoder.decode(bech32mOutput, bech32mOutputCache),
+        `decode(${bech32mOutputCache.length})`
+    )
     bench.print("bech32m")
 }

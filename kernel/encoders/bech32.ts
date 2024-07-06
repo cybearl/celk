@@ -1,5 +1,5 @@
 import Cache from "#kernel/cache"
-import { MemorySlot } from "#kernel/table"
+import { MemorySlot } from "#kernel/memory"
 import { KernelErrors, fe } from "#lib/constants/errors"
 
 /**
@@ -8,11 +8,12 @@ import { KernelErrors, fe } from "#lib/constants/errors"
 export type Bech32Encoding = "bech32" | "bech32m"
 
 /**
- * The Bech32 encoder class is used to encode Bech32 strings
- * from their bytecode stored in a `Cache` instance.
+ * The `Bech32Encoder` class is used to encode data coming from a
+ * `Cache` instance to a Bech32 string based on the current encoding.
  *
  * It also provides methods to decode Bech32 strings back to
- * their bytecode.
+ * their bytecode and write them directly in a `Cache` instance
+ * at a certain position given by a `MemorySlot` object.
  *
  * More info about the Bech32 encoding can be found at:
  * - [BIP-0173](https://github.com/bitcoin/bips/blob/master/bip-0173.mediawiki).
@@ -25,7 +26,7 @@ export default class Bech32Encoder {
     private readonly _GENERATOR = [0x3b6a57b2, 0x26508e6d, 0x1ea119fa, 0x3d4233dd, 0x2a1462b3]
 
     /**
-     * Creates a new Bech32 encoder instance.
+     * Creates a new `Bech32Encoder` instance.
      */
     constructor() {}
 

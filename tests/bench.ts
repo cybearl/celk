@@ -1,6 +1,8 @@
 import externalLogger from "#lib/utils/external_logger"
 import executeBech32EncoderBenchmark from "#tests/benchmarks/bech32"
 import executeCacheBenchmark from "#tests/benchmarks/cache"
+import executeKeccak256AlgorithmBenchmark from "#tests/benchmarks/keccak256"
+import executeSha256AlgorithmBenchmark from "#tests/benchmarks/sha256"
 import dedent from "dedent-js"
 import minimist from "minimist"
 
@@ -20,6 +22,8 @@ type BenchmarkFunction = (cacheBenchmarkInputSize: number, benchmarkDuration: nu
 const benchmarks: { [key: string]: BenchmarkFunction } = {
     bech32: executeBech32EncoderBenchmark,
     cache: executeCacheBenchmark,
+    keccak256: executeKeccak256AlgorithmBenchmark,
+    sha256: executeSha256AlgorithmBenchmark,
 }
 
 /**
@@ -48,7 +52,6 @@ function main(args: string[]) {
     console.log("")
     externalLogger.warn("This might take a while depending on the benchmark duration you chose.")
     externalLogger.warn("Please be patient and wait for the results to appear.")
-    console.log("")
 
     if (!argBenchmarkName) {
         externalLogger.info(">> No benchmark name provided, running all benchmarks..")
