@@ -21,6 +21,16 @@ export default function executeSha256AlgorithmBenchmark(benchmarkInputSize: numb
     for (let i = 0; i < benchmarkInputSize; i++) randomUint8Array[i] = Math.floor(Math.random() * 0xff)
 
     // Test cache instances
+    const cache4Bytes = new Cache(4 + 32)
+    const inputSlot4Bytes: MemorySlot = { start: 0, length: 4, end: 4 }
+    const outputSlot4Bytes: MemorySlot = { start: 4, length: 32, end: 36 }
+    cache4Bytes.writeUint8Array(randomUint8Array.slice(0, 4), inputSlot4Bytes.start)
+
+    const cache32Bytes = new Cache(32 + 32)
+    const inputSlot32Bytes: MemorySlot = { start: 0, length: 32, end: 32 }
+    const outputSlot32Bytes: MemorySlot = { start: 32, length: 32, end: 64 }
+    cache32Bytes.writeUint8Array(randomUint8Array.slice(0, 32), inputSlot32Bytes.start)
+
     const cache = new Cache(benchmarkInputSize + 32)
     const inputSlot: MemorySlot = { start: 0, length: benchmarkInputSize, end: benchmarkInputSize }
     const outputSlot: MemorySlot = { start: benchmarkInputSize, length: 32, end: benchmarkInputSize + 32 }
@@ -29,6 +39,8 @@ export default function executeSha256AlgorithmBenchmark(benchmarkInputSize: numb
     // Benchmark
     const bench = new Bench(benchmarkDuration)
 
+    bench.benchmark(() => sha256.hash(cache4Bytes, inputSlot4Bytes, outputSlot4Bytes), `execute(4)`)
+    bench.benchmark(() => sha256.hash(cache32Bytes, inputSlot32Bytes, outputSlot32Bytes), `execute(32)`)
     bench.benchmark(() => sha256.hash(cache, inputSlot, outputSlot), `execute(${benchmarkInputSize})`)
     bench.print()
 }

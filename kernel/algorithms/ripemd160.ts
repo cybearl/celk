@@ -50,32 +50,32 @@ export default class Ripemd256Algorithm {
      */
     private readonly _H = new Uint32Array([0x67452301, 0xefcdab89, 0x98badcfe, 0x10325476, 0xc3d2e1f0])
 
-    /** Reusable input array. */
-    private _inputArray: number[] = []
+    /** Stores the last input padded data length. */
+    private _lastLength = 0
 
-    /**
-     * Perform the "circular shift left" (CSL) operation, needed for the hash computation.
-     * @param x The number to shift.
-     * @param n The number of bits to shift.
-     * @returns The shifted number.
-     */
-    private _csl = (x: number, n: number): number => (x << n) | (x >>> (32 - n))
+    /** Reusable input array that stores the input data. */
+    private _inputArray: Uint32Array = new Uint32Array(0)
+
+    /** Temporary array to store the hash values. */
+    private _hash = new Uint32Array(8)
+
+    /** Perform the (circular) rotate left operation. */
+    private _rotl = (x: number, n: number): number => (x << n) | (x >>> (32 - n))
 
     /**
      * Specific algorithm method: "f", required for RIPEMD-160 computation.
      */
     private _f = (j: number, x: number, y: number, z: number): number => {
-        // prettier-ignore
-        const res = (0 <= j && j <= 15) ? (x ^ y ^ z) :
-        (16 <= j && j <= 31) ? (x & y) | (~x & z) :
-            (32 <= j && j <= 47) ? (x | ~y) ^ z :
-                (48 <= j && j <= 63) ? (x & z) | (y & ~z) :
-                    (64 <= j && j <= 79) ? x ^ (y | ~z) :
-                        "ERROR";
-
-        if (res === "ERROR") {
-            throw new Error("[Ripemd160Algorithm] _F(): j is out of range")
-        }
+        const res =
+            0 <= j && j <= 15
+                ? x ^ y ^ z
+                : 16 <= j && j <= 31
+                  ? (x & y) | (~x & z)
+                  : 32 <= j && j <= 47
+                    ? (x | ~y) ^ z
+                    : 48 <= j && j <= 63
+                      ? (x & z) | (y & ~z)
+                      : x ^ (y | ~z) // 64 <= j && j <= 79
 
         return res
     }
@@ -84,17 +84,16 @@ export default class Ripemd256Algorithm {
      * Specific algorithm method: "k1", required for RIPEMD-160 computation.
      */
     private _k1 = (j: number): number => {
-        // prettier-ignore
-        const res = (0 <= j && j <= 15) ? 0x00000000 :
-            (16 <= j && j <= 31) ? 0x5a827999 :
-                (32 <= j && j <= 47) ? 0x6ed9eba1 :
-                    (48 <= j && j <= 63) ? 0x8f1bbcdc :
-                        (64 <= j && j <= 79) ? 0xa953fd4e :
-                            "ERROR";
-
-        if (res === "ERROR") {
-            throw new Error("[Ripemd160Algorithm] K1: j is out of range")
-        }
+        const res =
+            0 <= j && j <= 15
+                ? 0x00000000
+                : 16 <= j && j <= 31
+                  ? 0x5a827999
+                  : 32 <= j && j <= 47
+                    ? 0x6ed9eba1
+                    : 48 <= j && j <= 63
+                      ? 0x8f1bbcdc
+                      : 0xa953fd4e // 64 <= j && j <= 79
 
         return res
     }
@@ -103,17 +102,16 @@ export default class Ripemd256Algorithm {
      * Specific algorithm method: "k2", required for RIPEMD-160 computation.
      */
     private _k2 = (j: number): number => {
-        // prettier-ignore
-        const res = (0 <= j && j <= 15) ? 0x50a28be6 :
-            (16 <= j && j <= 31) ? 0x5c4dd124 :
-                (32 <= j && j <= 47) ? 0x6d703ef3 :
-                    (48 <= j && j <= 63) ? 0x7a6d76e9 :
-                        (64 <= j && j <= 79) ? 0x00000000 :
-                            "ERROR";
-
-        if (res === "ERROR") {
-            throw new Error("[Ripemd160Algorithm] K2: j is out of range")
-        }
+        const res =
+            0 <= j && j <= 15
+                ? 0x50a28be6
+                : 16 <= j && j <= 31
+                  ? 0x5c4dd124
+                  : 32 <= j && j <= 47
+                    ? 0x6d703ef3
+                    : 48 <= j && j <= 63
+                      ? 0x7a6d76e9
+                      : 0x00000000 // 64 <= j && j <= 79
 
         return res
     }
@@ -134,83 +132,105 @@ export default class Ripemd256Algorithm {
     /**
      * RIPEMD-160 internal hash computation.
      * @param cache The cache to write to.
-     * @param length The input data length.
      * @param offset The offset to write to.
      */
-    private _ripemd160 = (cache: Cache, length: number, offset: number): void => {
-        const hash = this._H.slice()
+    private _ripemd160 = (cache: Cache, offset: number): void => {
+        // Set the initial hash values
+        this._hash = this._H.slice()
 
-        const l = length * 8
-        let a1
-        let b1
-        let c1
-        let d1
-        let e1
-        let a2
-        let b2
-        let c2
-        let d2
-        let e2
+        let al
+        let bl
+        let cl
+        let dl
+        let el
+        let ar
+        let br
+        let cr
+        let dr
+        let er
+        let tl
+        let tr
         let t
 
-        // Append padding (Little Endian)
-        this._inputArray[l >> 5] |= 0x80 << l % 32
-        this._inputArray[(((l + 64) >>> 9) << 4) + 14] = l
-
         for (let i = 0; i < this._inputArray.length; i += 16) {
-            a1 = a2 = hash[0]
-            b1 = b2 = hash[1]
-            c1 = c2 = hash[2]
-            d1 = d2 = hash[3]
-            e1 = e2 = hash[4]
+            al = ar = this._hash[0]
+            bl = br = this._hash[1]
+            cl = cr = this._hash[2]
+            dl = dr = this._hash[3]
+            el = er = this._hash[4]
 
             for (let j = 0; j < 80; j++) {
-                t = this._safeAdd(a1, this._f(j, b1, c1, d1))
-                t = this._safeAdd(t, this._inputArray[i + this._R1[j]])
-                t = this._safeAdd(t, this._k1(j))
-                t = this._safeAdd(this._csl(t, this._S1[j]), e1)
+                tl = (al + this._f(j, bl, cl, dl)) | 0
+                tl = this._safeAdd(tl, this._inputArray[i + this._R1[j]])
+                tl = (tl + this._k1(j)) | 0
+                tl = this._safeAdd(this._rotl(tl, this._S1[j]), el)
 
-                a1 = e1
-                e1 = d1
-                d1 = this._csl(c1, 10)
-                c1 = b1
-                b1 = t
+                al = el
+                el = dl
+                dl = this._rotl(cl, 10)
+                cl = bl
+                bl = tl
 
-                t = this._safeAdd(a2, this._f(79 - j, b2, c2, d2))
-                t = this._safeAdd(t, this._inputArray[i + this._R2[j]])
-                t = this._safeAdd(t, this._k2(j))
-                t = this._safeAdd(this._csl(t, this._S2[j]), e2)
+                tr = (ar + this._f(79 - j, br, cr, dr)) | 0
+                tr = this._safeAdd(tr, this._inputArray[i + this._R2[j]])
+                tr = (tr + this._k2(j)) | 0
+                tr = this._safeAdd(this._rotl(tr, this._S2[j]), er)
 
-                a2 = e2
-                e2 = d2
-                d2 = this._csl(c2, 10)
-                c2 = b2
-                b2 = t
+                ar = er
+                er = dr
+                dr = this._rotl(cr, 10)
+                cr = br
+                br = tr
             }
 
-            // Replace all the safeAdd calls with bit operations
-            t = this._safeAdd(hash[1], this._safeAdd(c1, d2))
-            hash[1] = this._safeAdd(hash[2], this._safeAdd(d1, e2))
-            hash[2] = this._safeAdd(hash[3], this._safeAdd(e1, a2))
-            hash[3] = this._safeAdd(hash[4], this._safeAdd(a1, b2))
-            hash[4] = this._safeAdd(hash[0], this._safeAdd(b1, c2))
-            hash[0] = t
+            // Update hash state
+            t = (this._hash[1] + cl + dr) | 0
+            this._hash[2] = (this._hash[3] + el + ar) | 0
+            this._hash[3] = (this._hash[4] + al + br) | 0
+            this._hash[1] = (this._hash[2] + dl + er) | 0
+            this._hash[4] = (this._hash[0] + bl + cr) | 0
+            this._hash[0] = t
         }
 
         // Write to cache at offset
-        cache.writeUint32Array(hash, offset, undefined, "LE")
+        cache.writeUint32Array(this._hash, offset, undefined, "LE")
     }
 
     /**
-     * Converts an input cache to an array of little-endian words
-     * using the predefined input array as an output
-     * @param cache The input cache.
+     * Either create a new `Uint32Array` or reuse the existing one by filling it with zeros,
+     * then copy the input data to the input array, append padding bits, and append the length.
+     *
+     * The optimization strategy here, is to reuse the same array if the input data length is the same,
+     * so, no need to allocate a new array every time so the algorithm becomes faster for same length inputs.
+     * @param cache The cache to read the data from.
+     * @param inputSlot The position of the data to read in the cache (optional, defaults to 0 => length).
      */
-    private cacheToLittleEndianWords = (cache: Cache): void => {
-        for (let i = 0; i < cache.length * 8; i += 8) {
-            // Write the byte to the word
-            this._inputArray[i >> 5] |= (cache[i / 8] & 0xff) << i % 32
+    private _manageBlocks = (cache: Cache, inputSlot?: MemorySlot): void => {
+        const length = inputSlot?.length || cache.length
+        const bitLength = length * 8
+
+        // Allocate a new array ONLY if the input data length is different
+        if (this._lastLength !== length) {
+            // Calculate the total length of the input data + 1 byte (0x80) + 8 bytes (length in bits)
+            // and align it to 64 bytes with zeros
+            const totalLength = length + 1 + 8 + (64 - ((length + 9) % 64))
+            this._inputArray = new Uint32Array(totalLength >> 2)
         }
+
+        // Note: no need to erase the data, if the length is the same, the data will be overwritten
+        // and in the case of different lengths, the previous array will be garbage collected.
+
+        // Copy the input data to the input array
+        for (let i = 0; i < length; i += 4) {
+            this._inputArray[i >> 2] = cache.readUint32LE((inputSlot?.start || 0) + i)
+        }
+
+        // Append padding bits and length
+        this._inputArray[bitLength >> 5] |= 0x80 << bitLength % 32
+        this._inputArray[(((bitLength + 64) >>> 9) << 4) + 14] = bitLength
+
+        // Update the last length
+        this._lastLength = length
     }
 
     /**
@@ -220,12 +240,8 @@ export default class Ripemd256Algorithm {
      * @param outputSlot The memory slot to write to.
      */
     exec = (cache: Cache, inputSlot: MemorySlot, outputSlot: MemorySlot): void => {
-        // Empty the input array by keeping the reference
-        this._inputArray.length = 0
-
-        const input = cache.subarray(inputSlot.start, inputSlot.end)
-        this.cacheToLittleEndianWords(input)
-        this._ripemd160(cache, input.length, outputSlot.start)
+        this._manageBlocks(cache, inputSlot)
+        this._ripemd160(cache, outputSlot?.start || 0)
     }
 
     /**

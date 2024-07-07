@@ -861,7 +861,7 @@ export default class Cache extends Uint8Array {
     }
 
     /**
-     * **[LITTLE ENDIAN]** Reads a single 32-bit word from the cache.
+     * Reads a single 32-bit word from the cache.
      *
      * **Should be aligned to 4 bytes.**
      * @param byteOffset The byte offset to read from (optional, defaults to 0).

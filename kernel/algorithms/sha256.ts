@@ -31,13 +31,19 @@ export default class Sha256Algorithm {
         0x510e527f, 0x9b05688c, 0x1f83d9ab, 0x5be0cd19,
     ])
 
-    /** Reusable input array. */
-    private _inputArray: number[] = []
+    /** Stores the last input padded data length. */
+    private _lastLength = 0
+
+    /** Reusable input array that stores the input data. */
+    private _inputArray: Uint32Array = new Uint32Array(0)
+
+    /** Temporary array to store the hash values. */
+    private _hash = new Uint32Array(8)
 
     /** Reusable W array. */
     private _W = new Uint32Array(64)
 
-    /** Perform the rotate right operation. */
+    /** Perform the (circular) rotate right operation. */
     private _rotr = (x: number, n: number): number => (x >>> n) | (x << (32 - n))
 
     /** Perform the `_choose` operation. */
@@ -61,11 +67,11 @@ export default class Sha256Algorithm {
     /**
      * SHA-256 internal hash computation.
      * @param cache The cache to write to.
-     * @param length The input data length.
      * @param offset The offset to write to.
      */
-    private _sha256 = (cache: Cache, length: number, offset: number): void => {
-        const hash = this._H.slice()
+    private _sha256 = (cache: Cache, offset: number): void => {
+        // Set the initial hash values
+        this._hash = this._H.slice()
 
         // Note from @noble/hashes:
         // We cannot use array here since array allows indexing by variable
@@ -83,21 +89,15 @@ export default class Sha256Algorithm {
         let gamma0
         let gamma1
 
-        const bitLength = length * 8
-
-        // Append padding (Big Endian)
-        this._inputArray[bitLength >> 5] |= 0x80 << (24 - (bitLength % 32))
-        this._inputArray[(((bitLength + 64) >>> 9) << 4) + 15] = bitLength
-
-        for (let i = 0; i < 8; i += 16) {
-            a = hash[0]
-            b = hash[1]
-            c = hash[2]
-            d = hash[3]
-            e = hash[4]
-            f = hash[5]
-            g = hash[6]
-            h = hash[7]
+        for (let i = 0; i < this._inputArray.length; i += 16) {
+            a = this._hash[0]
+            b = this._hash[1]
+            c = this._hash[2]
+            d = this._hash[3]
+            e = this._hash[4]
+            f = this._hash[5]
+            g = this._hash[6]
+            h = this._hash[7]
 
             for (let j = 0; j < 64; j++) {
                 if (j < 16) {
@@ -122,48 +122,69 @@ export default class Sha256Algorithm {
                 a = (t1 + t2) | 0
             }
 
-            // Update hash values
-            hash[0] = (hash[0] + a) | 0
-            hash[1] = (hash[1] + b) | 0
-            hash[2] = (hash[2] + c) | 0
-            hash[3] = (hash[3] + d) | 0
-            hash[4] = (hash[4] + e) | 0
-            hash[5] = (hash[5] + f) | 0
-            hash[6] = (hash[6] + g) | 0
-            hash[7] = (hash[7] + h) | 0
+            // Update hash state
+            this._hash[0] = (this._hash[0] + a) | 0
+            this._hash[1] = (this._hash[1] + b) | 0
+            this._hash[2] = (this._hash[2] + c) | 0
+            this._hash[3] = (this._hash[3] + d) | 0
+            this._hash[4] = (this._hash[4] + e) | 0
+            this._hash[5] = (this._hash[5] + f) | 0
+            this._hash[6] = (this._hash[6] + g) | 0
+            this._hash[7] = (this._hash[7] + h) | 0
         }
 
         // Write to cache at offset
-        cache.writeUint32Array(hash, offset, undefined, "BE")
+        cache.writeUint32Array(this._hash, offset, undefined, "BE")
     }
 
     /**
-     * Converts an input cache to an array of big endian words
-     * using the predefined input array as an output.
-     * @param cache The input cache.
-     */
-    private cacheToBigEndianWords = (cache: Cache): void => {
-        for (let i = 0; i < cache.length * 8; i += 8) {
-            // Write the byte to the word
-            this._inputArray[i >> 5] |= (cache[i / 8] & 0xff) << (24 - (i % 32))
-        }
-    }
-
-    /**
-     * Hashes the data from the `Cache` instance at a certain position,
-     * and writes the hash back to the `Cache` instance at another position.
+     * Either create a new `Uint32Array` or reuse the existing one by filling it with zeros,
+     * then copy the input data to the input array, append padding bits, and append the length.
      *
-     * Output Length: 32 bytes.
+     * The optimization strategy here, is to reuse the same array if the input data length is the same,
+     * so, no need to allocate a new array every time so the algorithm becomes faster for same length inputs.
+     * @param cache The cache to read the data from.
+     * @param inputSlot The position of the data to read in the cache (optional, defaults to 0 => length).
+     */
+    private _manageBlocks = (cache: Cache, inputSlot?: MemorySlot): void => {
+        const length = inputSlot?.length || cache.length
+        const bitLength = length * 8
+
+        // Allocate a new array ONLY if the input data length is different
+        if (this._lastLength !== length) {
+            // Calculate the total length of the input data + 1 byte (0x80) + 8 bytes (length in bits)
+            // and align it to 64 bytes with zeros
+            const totalLength = length + 1 + 8 + (64 - ((length + 9) % 64))
+            this._inputArray = new Uint32Array(totalLength >> 2)
+        }
+
+        // Note: no need to erase the data, if the length is the same, the data will be overwritten
+        // and in the case of different lengths, the previous array will be garbage collected.
+
+        // Copy the input data to the input array
+        for (let i = 0; i < length; i += 4) {
+            this._inputArray[i >> 2] = cache.readUint32BE((inputSlot?.start || 0) + i)
+        }
+
+        // Append padding bits and length
+        this._inputArray[bitLength >> 5] |= 0x80 << (24 - (bitLength % 32))
+        this._inputArray[(((bitLength + 64) >>> 9) << 4) + 15] = bitLength
+
+        // Update the last length
+        this._lastLength = length
+    }
+
+    /**
+     * Hashes the data in the cache using the SHA-256 algorithm,
+     * rewriting the hash back to the cache at the specified offset.
+     * - Output Length: 32 bytes.
+     * - Supports only data with a length that is a multiple of 4 bytes.
      * @param cache The `Cache` instance to read the data from and write the hash to.
      * @param inputSlot The position of the data to read in the cache (optional, defaults to 0 => length).
      * @param outputSlot The position to write the hash to in the cache (optional, defaults to 0 => data length).
      */
     hash = (cache: Cache, inputSlot?: MemorySlot, outputSlot?: MemorySlot): void => {
-        // Empty the input array by keeping the reference
-        this._inputArray.length = 0
-
-        const input = cache.subarray(inputSlot?.start, inputSlot?.length)
-        this.cacheToBigEndianWords(input)
-        this._sha256(cache, input.length, outputSlot?.start || 0)
+        this._manageBlocks(cache, inputSlot)
+        this._sha256(cache, outputSlot?.start || 0)
     }
 }
