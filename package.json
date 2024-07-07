@@ -49,7 +49,6 @@
         "@adonisjs/core": "^6.12.1",
         "@adonisjs/cors": "^2.2.1",
         "@adonisjs/lucid": "^21.1.0",
-        "@noble/curves": "^1.4.2",
         "@noble/hashes": "^1.4.0",
         "@vinejs/vine": "^2.1.0",
         "bullmq": "^5.8.3",

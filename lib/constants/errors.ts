@@ -231,6 +231,18 @@ export const KernelErrors = {
         message: "The Bech32 string contains invalid data.",
         data: null,
     },
+    INVALID_CACHE_LENGTH: {
+        status: 400,
+        name: "INVALID_CACHE_LENGTH",
+        message: "The cache length is invalid.",
+        data: null,
+    },
+    INVALID_PRIVATE_KEY_LENGTH: {
+        status: 400,
+        name: "INVALID_PRIVATE_KEY_LENGTH",
+        message: "The private key has an invalid length (must be 32 bytes).",
+        data: null,
+    },
 
     //=======
     //  404

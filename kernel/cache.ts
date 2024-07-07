@@ -468,13 +468,14 @@ export default class Cache extends Uint8Array {
      * **Should be aligned to 4 bytes.**
      * @param value The value to write.
      * @param byteOffset The byte offset to write to (optional, defaults to 0).
+     * @param disableAlignment Whether to disable the alignment check (optional, defaults to false).
      * @returns The cache instance.
      */
-    writeUint32LE = (value: number, byteOffset = 0): this => {
+    writeUint32LE = (value: number, byteOffset = 0, disableAlignment = false): this => {
         if (value < 0 || value > 0xffffffff) {
             throw new RangeError(`[Cache - writeUint32LE] Value is out of bounds: '${value}'.`)
         }
-        if (byteOffset % 4 !== 0) {
+        if (!disableAlignment && byteOffset % 4 !== 0) {
             throw new RangeError(`[Cache - writeUint32LE] Invalid byte offset alignment: '${byteOffset}' (%4).`)
         }
 
@@ -495,13 +496,14 @@ export default class Cache extends Uint8Array {
      * **Should be aligned to 4 bytes.**
      * @param value The value to write.
      * @param byteOffset The byte offset to write to (optional, defaults to 0).
+     * @param disableAlignment Whether to disable the alignment check (optional, defaults to false).
      * @returns The cache instance.
      */
-    writeUint32BE = (value: number, byteOffset = 0): this => {
+    writeUint32BE = (value: number, byteOffset = 0, disableAlignment = false): this => {
         if (value < 0 || value > 0xffffffff) {
             throw new RangeError(`[Cache - writeUint32BE] Value is out of bounds: '${value}'.`)
         }
-        if (byteOffset % 4 !== 0) {
+        if (!disableAlignment && byteOffset % 4 !== 0) {
             throw new RangeError(`[Cache - writeUint32BE] Invalid byte offset alignment: '${byteOffset}' (%4).`)
         }
 
@@ -618,27 +620,29 @@ export default class Cache extends Uint8Array {
      * @param byteOffset The byte offset to start writing at (optional, defaults to 0).
      * @param byteLength The byte length to write (optional, defaults to the array byte length).
      * @param endianness The endianness to use (optional, defaults to the platform's endianness).
+     * @param disableAlignment Whether to disable the alignment check (optional, defaults to false).
      * @returns The cache instance.
      */
     writeUint32Array = (
         array: Uint32Array,
         byteOffset = 0,
         byteLength = array.byteLength,
-        endianness = this.platformEndianness
+        endianness = this.platformEndianness,
+        disableAlignment = false
     ): this => {
         if (!array || !(array instanceof Uint32Array)) {
             throw new TypeError(`[Cache - writeUint32Array] Invalid Uint32Array: '${array}'.`)
         }
-        if (byteOffset % 4 !== 0) {
+        if (!disableAlignment && byteOffset % 4 !== 0) {
             throw new RangeError(`[Cache - writeUint32Array] Invalid byte offset alignment: '${byteOffset}' (%4).`)
         }
 
         this.check(byteOffset, byteLength)
 
         if (this.normalizeEndianness(endianness) === "LE") {
-            for (let i = 0; i < byteLength; i += 4) this.writeUint32LE(array[i / 4], byteOffset + i)
+            for (let i = 0; i < byteLength; i += 4) this.writeUint32LE(array[i / 4], byteOffset + i, disableAlignment)
         } else {
-            for (let i = 0; i < byteLength; i += 4) this.writeUint32BE(array[i / 4], byteOffset + i)
+            for (let i = 0; i < byteLength; i += 4) this.writeUint32BE(array[i / 4], byteOffset + i, disableAlignment)
         }
 
         return this

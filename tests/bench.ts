@@ -2,6 +2,8 @@ import externalLogger from "#lib/utils/external_logger"
 import executeBech32EncoderBenchmark from "#tests/benchmarks/bech32"
 import executeCacheBenchmark from "#tests/benchmarks/cache"
 import executeKeccak256AlgorithmBenchmark from "#tests/benchmarks/keccak256"
+import executeRipemd160AlgorithmBenchmark from "#tests/benchmarks/ripemd160"
+import executeSecp256k1AlgorithmBenchmark from "#tests/benchmarks/secp256k1"
 import executeSha256AlgorithmBenchmark from "#tests/benchmarks/sha256"
 import dedent from "dedent-js"
 import minimist from "minimist"
@@ -23,6 +25,8 @@ const benchmarks: { [key: string]: BenchmarkFunction } = {
     bech32: executeBech32EncoderBenchmark,
     cache: executeCacheBenchmark,
     keccak256: executeKeccak256AlgorithmBenchmark,
+    ripemd160: executeRipemd160AlgorithmBenchmark,
+    secp256k1: executeSecp256k1AlgorithmBenchmark,
     sha256: executeSha256AlgorithmBenchmark,
 }
 
