@@ -1,4 +1,4 @@
-import { rotl } from "#kernel/bitwise"
+import { rotl, safeAdd } from "#kernel/bitwise"
 import Cache from "#kernel/cache"
 import { MemorySlot } from "#kernel/memory"
 
@@ -114,18 +114,6 @@ export default class Ripemd160Algorithm {
     }
 
     /**
-     * Safe addition operation, needed for the hash computation.
-     * @param x The first number to add.
-     * @param y The second number to add.
-     * @returns The sum of the two numbers.
-     */
-    private _safeAdd = (x: number, y: number): number => {
-        const lsw = (x & 0xffff) + (y & 0xffff)
-        const msw = (x >> 16) + (y >> 16) + (lsw >> 16)
-        return (msw << 16) | (lsw & 0xffff)
-    }
-
-    /**
      * RIPEMD-160 internal hash computation.
      * @param cache The cache to write to.
      * @param offset The offset to write to.
@@ -154,10 +142,10 @@ export default class Ripemd160Algorithm {
             el = er = this._hash[4]
 
             for (let j = 0; j < 80; j++) {
-                t = this._safeAdd(al, this._f(j, bl, cl, dl))
-                t = this._safeAdd(t, this._inputArray[i + this._ZL[j]])
-                t = this._safeAdd(t, this._k1(j))
-                t = this._safeAdd(rotl(t, this._SL[j]), el)
+                t = safeAdd(al, this._f(j, bl, cl, dl))
+                t = safeAdd(t, this._inputArray[i + this._ZL[j]])
+                t = safeAdd(t, this._k1(j))
+                t = safeAdd(rotl(t, this._SL[j]), el)
 
                 al = el
                 el = dl
@@ -165,10 +153,10 @@ export default class Ripemd160Algorithm {
                 cl = bl
                 bl = t
 
-                t = this._safeAdd(ar, this._f(79 - j, br, cr, dr))
-                t = this._safeAdd(t, this._inputArray[i + this._ZR[j]])
-                t = this._safeAdd(t, this._k2(j))
-                t = this._safeAdd(rotl(t, this._SR[j]), er)
+                t = safeAdd(ar, this._f(79 - j, br, cr, dr))
+                t = safeAdd(t, this._inputArray[i + this._ZR[j]])
+                t = safeAdd(t, this._k2(j))
+                t = safeAdd(rotl(t, this._SR[j]), er)
 
                 ar = er
                 er = dr
@@ -178,11 +166,11 @@ export default class Ripemd160Algorithm {
             }
 
             // Update hash state
-            t = this._safeAdd(this._hash[1], this._safeAdd(cl, dr))
-            this._hash[1] = this._safeAdd(this._hash[2], this._safeAdd(dl, er))
-            this._hash[2] = this._safeAdd(this._hash[3], this._safeAdd(el, ar))
-            this._hash[3] = this._safeAdd(this._hash[4], this._safeAdd(al, br))
-            this._hash[4] = this._safeAdd(this._hash[0], this._safeAdd(bl, cr))
+            t = safeAdd(this._hash[1], safeAdd(cl, dr))
+            this._hash[1] = safeAdd(this._hash[2], safeAdd(dl, er))
+            this._hash[2] = safeAdd(this._hash[3], safeAdd(el, ar))
+            this._hash[3] = safeAdd(this._hash[4], safeAdd(al, br))
+            this._hash[4] = safeAdd(this._hash[0], safeAdd(bl, cr))
             this._hash[0] = t
         }
 
