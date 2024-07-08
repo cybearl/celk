@@ -1,3 +1,4 @@
+import { rotl } from "#kernel/bitwise"
 import Cache from "#kernel/cache"
 import { MemorySlot } from "#kernel/memory"
 
@@ -57,9 +58,6 @@ export default class Ripemd160Algorithm {
 
     /** Temporary array to store the hash values. */
     private _hash = new Uint32Array(8)
-
-    /** Perform the (circular) rotate left operation. */
-    private _rotl = (x: number, n: number): number => (x << n) | (x >>> (32 - n))
 
     /**
      * Specific algorithm method: "f", required for RIPEMD-160 computation.
@@ -159,22 +157,22 @@ export default class Ripemd160Algorithm {
                 t = this._safeAdd(al, this._f(j, bl, cl, dl))
                 t = this._safeAdd(t, this._inputArray[i + this._ZL[j]])
                 t = this._safeAdd(t, this._k1(j))
-                t = this._safeAdd(this._rotl(t, this._SL[j]), el)
+                t = this._safeAdd(rotl(t, this._SL[j]), el)
 
                 al = el
                 el = dl
-                dl = this._rotl(cl, 10)
+                dl = rotl(cl, 10)
                 cl = bl
                 bl = t
 
                 t = this._safeAdd(ar, this._f(79 - j, br, cr, dr))
                 t = this._safeAdd(t, this._inputArray[i + this._ZR[j]])
                 t = this._safeAdd(t, this._k2(j))
-                t = this._safeAdd(this._rotl(t, this._SR[j]), er)
+                t = this._safeAdd(rotl(t, this._SR[j]), er)
 
                 ar = er
                 er = dr
-                dr = this._rotl(cr, 10)
+                dr = rotl(cr, 10)
                 cr = br
                 br = t
             }

@@ -1,3 +1,4 @@
+import { rotr } from "#kernel/bitwise"
 import Cache from "#kernel/cache"
 import { MemorySlot } from "#kernel/memory"
 
@@ -43,9 +44,6 @@ export default class Sha256Algorithm {
     /** Reusable W array. */
     private _W = new Uint32Array(64)
 
-    /** Perform the (circular) rotate right operation. */
-    private _rotr = (x: number, n: number): number => (x >>> n) | (x << (32 - n))
-
     /** Perform the `_choose` operation. */
     private _choose = (x: number, y: number, z: number): number => (x & y) ^ (~x & z)
 
@@ -53,16 +51,16 @@ export default class Sha256Algorithm {
     private _majority = (x: number, y: number, z: number): number => (x & y) ^ (x & z) ^ (y & z)
 
     /** Perform the `SIGMA 0` operation. */
-    private _sigma0 = (x: number): number => this._rotr(x, 2) ^ this._rotr(x, 13) ^ this._rotr(x, 22)
+    private _sigma0 = (x: number): number => rotr(x, 2) ^ rotr(x, 13) ^ rotr(x, 22)
 
     /** Perform the `SIGMA 1` operation. */
-    private _sigma1 = (x: number): number => this._rotr(x, 6) ^ this._rotr(x, 11) ^ this._rotr(x, 25)
+    private _sigma1 = (x: number): number => rotr(x, 6) ^ rotr(x, 11) ^ rotr(x, 25)
 
     /** Perform the `GAMMA 0` operation. */
-    private _gamma0 = (x: number): number => this._rotr(x, 7) ^ this._rotr(x, 18) ^ (x >>> 3)
+    private _gamma0 = (x: number): number => rotr(x, 7) ^ rotr(x, 18) ^ (x >>> 3)
 
     /** Perform the `GAMMA 1` operation. */
-    private _gamma1 = (x: number): number => this._rotr(x, 17) ^ this._rotr(x, 19) ^ (x >>> 10)
+    private _gamma1 = (x: number): number => rotr(x, 17) ^ rotr(x, 19) ^ (x >>> 10)
 
     /**
      * SHA-256 internal hash computation.
