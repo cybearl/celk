@@ -39,8 +39,8 @@ export default function executeSha256AlgorithmBenchmark(benchmarkInputSize: numb
     // Benchmark
     const bench = new Bench(benchmarkDuration)
 
-    bench.benchmark(() => sha256.hash(cache4Bytes, inputSlot4Bytes, outputSlot4Bytes), `execute(4)`)
-    bench.benchmark(() => sha256.hash(cache32Bytes, inputSlot32Bytes, outputSlot32Bytes), `execute(32)`)
-    bench.benchmark(() => sha256.hash(cache, inputSlot, outputSlot), `execute(${benchmarkInputSize})`)
+    bench.benchmark(() => sha256.hash(cache4Bytes, inputSlot4Bytes, outputSlot4Bytes), `hash(4)`)
+    bench.benchmark(() => sha256.hash(cache32Bytes, inputSlot32Bytes, outputSlot32Bytes), `hash(32)`)
+    bench.benchmark(() => sha256.hash(cache, inputSlot, outputSlot), `hash(${benchmarkInputSize})`)
     bench.print()
 }

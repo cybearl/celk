@@ -1,16 +1,15 @@
 import Cache from "#kernel/cache"
 import { MemorySlot } from "#kernel/memory"
-import { ripemd160 } from "@noble/hashes/ripemd160"
 
 /**
- * The `Ripemd256Algorithm` class is used to hash data coming from a
+ * The `Ripemd160Algorithm` class is used to hash data coming from a
  * `Cache` instance at a certain position given by an input `MemorySlot`,
  * and rewrite the hash back to the `Cache` instance at another
  * position given by an output `MemorySlot`.
  */
-export default class Ripemd256Algorithm {
+export default class Ripemd160Algorithm {
     // prettier-ignore
-    private readonly _R1 = new Uint8Array([
+    private readonly _ZL = new Uint8Array([
         0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
         7, 4, 13, 1, 10, 6, 15, 3, 12, 0, 9, 5, 2, 14, 11, 8,
         3, 10, 14, 4, 9, 15, 8, 1, 2, 7, 0, 6, 13, 11, 5, 12,
@@ -19,7 +18,7 @@ export default class Ripemd256Algorithm {
     ])
 
     // prettier-ignore
-    private readonly _R2 = new Uint8Array([
+    private readonly _ZR = new Uint8Array([
         5, 14, 7, 0, 9, 2, 11, 4, 13, 6, 15, 8, 1, 10, 3, 12,
         6, 11, 3, 7, 0, 13, 5, 10, 14, 15, 8, 12, 4, 9, 1, 2,
         15, 5, 1, 3, 7, 14, 6, 9, 11, 8, 12, 2, 10, 0, 4, 13,
@@ -28,7 +27,7 @@ export default class Ripemd256Algorithm {
     ])
 
     // prettier-ignore
-    private readonly _S1 = new Uint8Array([
+    private readonly _SL = new Uint8Array([
         11, 14, 15, 12, 5, 8, 7, 9, 11, 13, 14, 15, 6, 7, 9, 8,
         7, 6, 8, 13, 11, 9, 7, 15, 7, 12, 15, 9, 11, 7, 13, 12,
         11, 13, 6, 7, 14, 9, 13, 15, 14, 8, 13, 6, 5, 12, 7, 5,
@@ -37,7 +36,7 @@ export default class Ripemd256Algorithm {
     ])
 
     // prettier-ignore
-    private readonly _S2 = new Uint8Array([
+    private readonly _SR = new Uint8Array([
         8, 9, 9, 11, 13, 15, 15, 5, 7, 7, 8, 11, 14, 14, 12, 6,
         9, 13, 15, 7, 12, 8, 9, 11, 7, 7, 12, 7, 6, 15, 13, 11,
         9, 7, 15, 11, 8, 6, 6, 14, 12, 13, 5, 14, 13, 13, 7, 5,
@@ -125,7 +124,6 @@ export default class Ripemd256Algorithm {
     private _safeAdd = (x: number, y: number): number => {
         const lsw = (x & 0xffff) + (y & 0xffff)
         const msw = (x >> 16) + (y >> 16) + (lsw >> 16)
-
         return (msw << 16) | (lsw & 0xffff)
     }
 
@@ -148,8 +146,6 @@ export default class Ripemd256Algorithm {
         let cr
         let dr
         let er
-        let tl
-        let tr
         let t
 
         for (let i = 0; i < this._inputArray.length; i += 16) {
@@ -160,35 +156,35 @@ export default class Ripemd256Algorithm {
             el = er = this._hash[4]
 
             for (let j = 0; j < 80; j++) {
-                tl = (al + this._f(j, bl, cl, dl)) | 0
-                tl = this._safeAdd(tl, this._inputArray[i + this._R1[j]])
-                tl = (tl + this._k1(j)) | 0
-                tl = this._safeAdd(this._rotl(tl, this._S1[j]), el)
+                t = this._safeAdd(al, this._f(j, bl, cl, dl))
+                t = this._safeAdd(t, this._inputArray[i + this._ZL[j]])
+                t = this._safeAdd(t, this._k1(j))
+                t = this._safeAdd(this._rotl(t, this._SL[j]), el)
 
                 al = el
                 el = dl
                 dl = this._rotl(cl, 10)
                 cl = bl
-                bl = tl
+                bl = t
 
-                tr = (ar + this._f(79 - j, br, cr, dr)) | 0
-                tr = this._safeAdd(tr, this._inputArray[i + this._R2[j]])
-                tr = (tr + this._k2(j)) | 0
-                tr = this._safeAdd(this._rotl(tr, this._S2[j]), er)
+                t = this._safeAdd(ar, this._f(79 - j, br, cr, dr))
+                t = this._safeAdd(t, this._inputArray[i + this._ZR[j]])
+                t = this._safeAdd(t, this._k2(j))
+                t = this._safeAdd(this._rotl(t, this._SR[j]), er)
 
                 ar = er
                 er = dr
                 dr = this._rotl(cr, 10)
                 cr = br
-                br = tr
+                br = t
             }
 
             // Update hash state
-            t = (this._hash[1] + cl + dr) | 0
-            this._hash[2] = (this._hash[3] + el + ar) | 0
-            this._hash[3] = (this._hash[4] + al + br) | 0
-            this._hash[1] = (this._hash[2] + dl + er) | 0
-            this._hash[4] = (this._hash[0] + bl + cr) | 0
+            t = this._safeAdd(this._hash[1], this._safeAdd(cl, dr))
+            this._hash[1] = this._safeAdd(this._hash[2], this._safeAdd(dl, er))
+            this._hash[2] = this._safeAdd(this._hash[3], this._safeAdd(el, ar))
+            this._hash[3] = this._safeAdd(this._hash[4], this._safeAdd(al, br))
+            this._hash[4] = this._safeAdd(this._hash[0], this._safeAdd(bl, cr))
             this._hash[0] = t
         }
 
@@ -234,29 +230,16 @@ export default class Ripemd256Algorithm {
     }
 
     /**
-     * Execute the RIPEMD-160 algorithm.
-     * @param cache The cache to use (input & output).
-     * @param inputSlot The memory slot to read from.
-     * @param outputSlot The memory slot to write to.
-     */
-    exec = (cache: Cache, inputSlot: MemorySlot, outputSlot: MemorySlot): void => {
-        this._manageBlocks(cache, inputSlot)
-        this._ripemd160(cache, outputSlot?.start || 0)
-    }
-
-    /**
-     * Hashes the data from the `Cache` instance at a certain position,
-     * and writes the hash back to the `Cache` instance at another position.
-     *
-     * Output Length: 20 bytes.
+     * Hashes the data in the cache using the RIPEMD-160 algorithm,
+     * rewriting the hash back to the cache at the specified offset.
+     * - Output Length: 20 bytes.
+     * - Supports only data with a length that is a multiple of 4 bytes.
      * @param cache The `Cache` instance to read the data from and write the hash to.
      * @param inputSlot The position of the data to read in the cache (optional, defaults to 0 => length).
      * @param outputSlot The position to write the hash to in the cache (optional, defaults to 0 => data length).
      */
-    static hash(cache: Cache, inputSlot?: MemorySlot, outputSlot?: MemorySlot): void {
-        cache.writeUint8Array(
-            ripemd160.create().update(cache.subarray(inputSlot?.start, inputSlot?.end)).digest(),
-            outputSlot?.start
-        )
+    hash(cache: Cache, inputSlot?: MemorySlot, outputSlot?: MemorySlot): void {
+        this._manageBlocks(cache, inputSlot)
+        this._ripemd160(cache, outputSlot?.start || 0)
     }
 }
