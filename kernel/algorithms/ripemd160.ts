@@ -9,6 +9,7 @@ import { MemorySlot } from "#kernel/memory"
  * position given by an output `MemorySlot`.
  */
 export default class Ripemd160Algorithm {
+    /** Z-Left rotation constants. */
     // prettier-ignore
     private readonly _ZL = new Uint8Array([
         0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15,
@@ -18,6 +19,7 @@ export default class Ripemd160Algorithm {
         4, 0, 5, 9, 7, 12, 2, 10, 14, 1, 3, 8, 11, 6, 15, 13
     ])
 
+    /** Z-Right rotation constants. */
     // prettier-ignore
     private readonly _ZR = new Uint8Array([
         5, 14, 7, 0, 9, 2, 11, 4, 13, 6, 15, 8, 1, 10, 3, 12,
@@ -27,6 +29,7 @@ export default class Ripemd160Algorithm {
         12, 15, 10, 4, 1, 5, 8, 7, 6, 2, 13, 14, 0, 3, 9, 11
     ])
 
+    /** S-Left rotation constants. */
     // prettier-ignore
     private readonly _SL = new Uint8Array([
         11, 14, 15, 12, 5, 8, 7, 9, 11, 13, 14, 15, 6, 7, 9, 8,
@@ -36,6 +39,7 @@ export default class Ripemd160Algorithm {
         9, 15, 5, 11, 6, 8, 13, 12, 5, 12, 13, 14, 11, 8, 5, 6
     ])
 
+    /** S-Right rotation constants. */
     // prettier-ignore
     private readonly _SR = new Uint8Array([
         8, 9, 9, 11, 13, 15, 15, 5, 7, 7, 8, 11, 14, 14, 12, 6,
