@@ -1,4 +1,4 @@
-import { rotl32, safeAdd32, safeAdd32Many } from "#kernel/bitwise"
+import { rotl32, safeAdd32, safeAdd32x3, safeAdd32x4 } from "#kernel/bitwise"
 import Cache from "#kernel/cache"
 import { MemorySlot } from "#kernel/memory"
 
@@ -130,6 +130,9 @@ export default class Ripemd160Algorithm {
         // Set the initial hash values
         this._hash = this._H.slice()
 
+        // Note from @noble/hashes:
+        // We cannot use array here since array allows indexing by variable
+        // which means optimizer/compiler cannot use registers.
         let al
         let bl
         let cl
@@ -140,7 +143,9 @@ export default class Ripemd160Algorithm {
         let cr
         let dr
         let er
-        let t
+
+        // Working variable
+        let T
 
         for (let i = 0; i < this._inputArray.length; i += 16) {
             al = ar = this._hash[0]
@@ -150,42 +155,32 @@ export default class Ripemd160Algorithm {
             el = er = this._hash[4]
 
             for (let j = 0; j < 80; j++) {
-                // t = safeAdd(al, this._f(j, bl, cl, dl))
-                // t = safeAdd(t, this._inputArray[i + this._ZL[j]])
-                // t = safeAdd(t, this._k1(j))
-                // t = safeAdd(rotl(t, this._SL[j]), el)
-
-                t = safeAdd32Many(al, this._f(j, bl, cl, dl), this._inputArray[i + this._ZL[j]], this._k1(j))
-                t = safeAdd32(rotl32(t, this._SL[j]), el)
+                T = safeAdd32x4(al, this._f(j, bl, cl, dl), this._inputArray[i + this._ZL[j]], this._k1(j))
+                T = safeAdd32(rotl32(T, this._SL[j]), el)
 
                 al = el
                 el = dl
                 dl = rotl32(cl, 10)
                 cl = bl
-                bl = t
+                bl = T
 
-                // t = safeAdd(ar, this._f(79 - j, br, cr, dr))
-                // t = safeAdd(t, this._inputArray[i + this._ZR[j]])
-                // t = safeAdd(t, this._k2(j))
-                // t = safeAdd(rotl(t, this._SR[j]), er)
-
-                t = safeAdd32Many(ar, this._f(79 - j, br, cr, dr), this._inputArray[i + this._ZR[j]], this._k2(j))
-                t = safeAdd32(rotl32(t, this._SR[j]), er)
+                T = safeAdd32x4(ar, this._f(79 - j, br, cr, dr), this._inputArray[i + this._ZR[j]], this._k2(j))
+                T = safeAdd32(rotl32(T, this._SR[j]), er)
 
                 ar = er
                 er = dr
                 dr = rotl32(cr, 10)
                 cr = br
-                br = t
+                br = T
             }
 
             // Update hash state
-            t = safeAdd(this._hash[1], safeAdd(cl, dr))
-            this._hash[1] = safeAdd(this._hash[2], safeAdd(dl, er))
-            this._hash[2] = safeAdd(this._hash[3], safeAdd(el, ar))
-            this._hash[3] = safeAdd(this._hash[4], safeAdd(al, br))
-            this._hash[4] = safeAdd(this._hash[0], safeAdd(bl, cr))
-            this._hash[0] = t
+            T = safeAdd32x3(this._hash[1], cl, dr)
+            this._hash[1] = safeAdd32x3(this._hash[2], dl, er)
+            this._hash[2] = safeAdd32x3(this._hash[3], el, ar)
+            this._hash[3] = safeAdd32x3(this._hash[4], al, br)
+            this._hash[4] = safeAdd32x3(this._hash[0], bl, cr)
+            this._hash[0] = T
         }
 
         // Write to cache at offset

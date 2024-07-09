@@ -31,6 +31,11 @@ export default function executeSha256AlgorithmBenchmark(benchmarkInputSize: numb
     const outputSlot32Bytes: MemorySlot = { start: 32, length: 32, end: 64 }
     cache32Bytes.writeUint8Array(randomUint8Array.slice(0, 32), inputSlot32Bytes.start)
 
+    const cache65Bytes = new Cache(65 + 32)
+    const inputSlot65Bytes: MemorySlot = { start: 0, length: 65, end: 65 }
+    const outputSlot65Bytes: MemorySlot = { start: 65, length: 32, end: 97 }
+    cache65Bytes.writeUint8Array(randomUint8Array.slice(0, 65), inputSlot65Bytes.start)
+
     const cache = new Cache(benchmarkInputSize + 32)
     const inputSlot: MemorySlot = { start: 0, length: benchmarkInputSize, end: benchmarkInputSize }
     const outputSlot: MemorySlot = { start: benchmarkInputSize, length: 32, end: benchmarkInputSize + 32 }
@@ -41,6 +46,7 @@ export default function executeSha256AlgorithmBenchmark(benchmarkInputSize: numb
 
     bench.benchmark(() => sha256.hash(cache4Bytes, inputSlot4Bytes, outputSlot4Bytes), `hash(4)`)
     bench.benchmark(() => sha256.hash(cache32Bytes, inputSlot32Bytes, outputSlot32Bytes), `hash(32)`)
+    bench.benchmark(() => sha256.hash(cache65Bytes, inputSlot65Bytes, outputSlot65Bytes), `hash(65)`)
     bench.benchmark(() => sha256.hash(cache, inputSlot, outputSlot), `hash(${benchmarkInputSize})`)
     bench.print()
 }

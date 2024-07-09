@@ -31,6 +31,11 @@ export default function executeRipemd160AlgorithmBenchmark(benchmarkInputSize: n
     const outputSlot20Bytes: MemorySlot = { start: 20, length: 20, end: 40 }
     cache20Bytes.writeUint8Array(randomUint8Array.slice(0, 20), inputSlot20Bytes.start)
 
+    const cache32Bytes = new Cache(32 + 20)
+    const inputSlot32Bytes: MemorySlot = { start: 0, length: 32, end: 32 }
+    const outputSlot32Bytes: MemorySlot = { start: 32, length: 20, end: 52 }
+    cache32Bytes.writeUint8Array(randomUint8Array.slice(0, 32), inputSlot32Bytes.start)
+
     const cache = new Cache(benchmarkInputSize + 20)
     const inputSlot: MemorySlot = { start: 0, length: benchmarkInputSize, end: benchmarkInputSize }
     const outputSlot: MemorySlot = { start: benchmarkInputSize, length: 20, end: benchmarkInputSize + 20 }
@@ -41,6 +46,7 @@ export default function executeRipemd160AlgorithmBenchmark(benchmarkInputSize: n
 
     bench.benchmark(() => ripemd160.hash(cache4Bytes, inputSlot4Bytes, outputSlot4Bytes), `hash(4)`)
     bench.benchmark(() => ripemd160.hash(cache20Bytes, inputSlot20Bytes, outputSlot20Bytes), `hash(20)`)
+    bench.benchmark(() => ripemd160.hash(cache32Bytes, inputSlot32Bytes, outputSlot32Bytes), `hash(32)`)
     bench.benchmark(() => ripemd160.hash(cache, inputSlot, outputSlot), `hash(${benchmarkInputSize})`)
     bench.print()
 }

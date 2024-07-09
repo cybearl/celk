@@ -1,4 +1,4 @@
-import { rotr32, safeAdd32, safeAdd32Many } from "#kernel/bitwise"
+import { rotr32, safeAdd32, safeAdd32x4, safeAdd32x5 } from "#kernel/bitwise"
 import Cache from "#kernel/cache"
 import { MemorySlot } from "#kernel/memory"
 
@@ -91,6 +91,8 @@ export default class Sha256Algorithm {
         let f
         let g
         let h
+
+        // Working variables
         let T1
         let T2
 
@@ -108,7 +110,7 @@ export default class Sha256Algorithm {
                 if (j < 16) {
                     this._W[j] = this._block[j + i]
                 } else {
-                    this._W[j] = safeAdd32Many(
+                    this._W[j] = safeAdd32x4(
                         this._gamma0(this._W[j - 15]),
                         this._W[j - 16],
                         this._gamma1(this._W[j - 2]),
@@ -116,7 +118,7 @@ export default class Sha256Algorithm {
                     )
                 }
 
-                T1 = safeAdd32Many(h, this._sigma1(e), this._choose(e, f, g), this._K[j], this._W[j])
+                T1 = safeAdd32x5(h, this._sigma1(e), this._choose(e, f, g), this._K[j], this._W[j])
                 T2 = safeAdd32(this._sigma0(a), this._majority(a, b, c))
 
                 // Update working variables
@@ -142,7 +144,9 @@ export default class Sha256Algorithm {
         }
 
         // Write to cache at offset
-        cache.writeUint32Array(this._hash, offset, undefined, "BE")
+        for (let i = 0; i < 8; i++) {
+            cache.writeUint32BE(this._hash[i], offset + i * 4, false)
+        }
     }
 
     /**
@@ -193,6 +197,9 @@ export default class Sha256Algorithm {
      */
     hash = (cache: Cache, inputSlot?: MemorySlot, outputSlot?: MemorySlot): void => {
         this._manageBlocks(cache, inputSlot)
+
+        // console.log("SHA256: _block", this._block)
+
         this._sha256(cache, outputSlot?.start || 0)
     }
 }
