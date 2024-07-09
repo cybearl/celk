@@ -1,4 +1,4 @@
-import { rotr } from "#kernel/bitwise"
+import { rotr32, safeAdd32, safeAdd32Many } from "#kernel/bitwise"
 import Cache from "#kernel/cache"
 import { MemorySlot } from "#kernel/memory"
 
@@ -7,9 +7,17 @@ import { MemorySlot } from "#kernel/memory"
  * `Cache` instance at a certain position given by an input `MemorySlot`,
  * and rewrite the hash back to the `Cache` instance at another
  * position given by an output `MemorySlot`.
+ *
+ * Sources:
+ * - [Wikipedia](https://en.wikipedia.org/wiki/SHA-2).
+ * - [Original PDF](https://helix.stormhub.org/papers/SHA-256.pdf).
  */
 export default class Sha256Algorithm {
-    /** Primitive constants. */
+    /**
+     * 64 binary words `K`.
+     * Given by the 32 first bits of the fractional parts
+     * of the cube roots of the first 64 prime numbers.
+     */
     // prettier-ignore
     private readonly _K = new Uint32Array([
         0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5, 0x3956c25b, 0x59f111f1, 0x923f82a4, 0xab1c5ed5,
@@ -24,7 +32,8 @@ export default class Sha256Algorithm {
 
     /**
      * Initial Hash Values (H) for SHA-256.
-     * These are the first 32 bits of the fractional parts of the square roots of the first 8 primes 2..19.
+     * These are the first 32 bits of the fractional part
+     * of the square roots of the first 8 prime numbers.
      */
     // prettier-ignore
     private readonly _H = new Uint32Array([
@@ -35,10 +44,10 @@ export default class Sha256Algorithm {
     /** Stores the last input padded data length. */
     private _lastLength = 0
 
-    /** Reusable input array that stores the input data. */
-    private _inputArray: Uint32Array = new Uint32Array(0)
+    /** Reusable array that stores the input data. */
+    private _block: Uint32Array = new Uint32Array(0)
 
-    /** Temporary array to store the hash values. */
+    /** Reusable array to store the hash values. */
     private _hash = new Uint32Array(8)
 
     /** Reusable W array. */
@@ -51,16 +60,16 @@ export default class Sha256Algorithm {
     private _majority = (x: number, y: number, z: number): number => (x & y) ^ (x & z) ^ (y & z)
 
     /** Perform the `SIGMA 0` operation. */
-    private _sigma0 = (x: number): number => rotr(x, 2) ^ rotr(x, 13) ^ rotr(x, 22)
+    private _sigma0 = (x: number): number => rotr32(x, 2) ^ rotr32(x, 13) ^ rotr32(x, 22)
 
     /** Perform the `SIGMA 1` operation. */
-    private _sigma1 = (x: number): number => rotr(x, 6) ^ rotr(x, 11) ^ rotr(x, 25)
+    private _sigma1 = (x: number): number => rotr32(x, 6) ^ rotr32(x, 11) ^ rotr32(x, 25)
 
     /** Perform the `GAMMA 0` operation. */
-    private _gamma0 = (x: number): number => rotr(x, 7) ^ rotr(x, 18) ^ (x >>> 3)
+    private _gamma0 = (x: number): number => rotr32(x, 7) ^ rotr32(x, 18) ^ (x >>> 3)
 
     /** Perform the `GAMMA 1` operation. */
-    private _gamma1 = (x: number): number => rotr(x, 17) ^ rotr(x, 19) ^ (x >>> 10)
+    private _gamma1 = (x: number): number => rotr32(x, 17) ^ rotr32(x, 19) ^ (x >>> 10)
 
     /**
      * SHA-256 internal hash computation.
@@ -82,12 +91,10 @@ export default class Sha256Algorithm {
         let f
         let g
         let h
-        let t1
-        let t2
-        let gamma0
-        let gamma1
+        let T1
+        let T2
 
-        for (let i = 0; i < this._inputArray.length; i += 16) {
+        for (let i = 0; i < this._block.length; i += 16) {
             a = this._hash[0]
             b = this._hash[1]
             c = this._hash[2]
@@ -99,36 +106,39 @@ export default class Sha256Algorithm {
 
             for (let j = 0; j < 64; j++) {
                 if (j < 16) {
-                    this._W[j] = this._inputArray[j + i]
+                    this._W[j] = this._block[j + i]
                 } else {
-                    gamma0 = (this._gamma0(this._W[j - 15]) + this._W[j - 16]) | 0
-                    gamma1 = (this._gamma1(this._W[j - 2]) + this._W[j - 7]) | 0
-                    this._W[j] = (gamma0 + gamma1) | 0
+                    this._W[j] = safeAdd32Many(
+                        this._gamma0(this._W[j - 15]),
+                        this._W[j - 16],
+                        this._gamma1(this._W[j - 2]),
+                        this._W[j - 7]
+                    )
                 }
 
-                t1 = (h + this._sigma1(e) + this._choose(e, f, g) + this._K[j] + this._W[j]) | 0
-                t2 = (this._sigma0(a) + this._majority(a, b, c)) | 0
+                T1 = safeAdd32Many(h, this._sigma1(e), this._choose(e, f, g), this._K[j], this._W[j])
+                T2 = safeAdd32(this._sigma0(a), this._majority(a, b, c))
 
                 // Update working variables
                 h = g
                 g = f
                 f = e
-                e = (d + t1) | 0
+                e = safeAdd32(d, T1)
                 d = c
                 c = b
                 b = a
-                a = (t1 + t2) | 0
+                a = safeAdd32(T1, T2)
             }
 
             // Update hash state
-            this._hash[0] = (this._hash[0] + a) | 0
-            this._hash[1] = (this._hash[1] + b) | 0
-            this._hash[2] = (this._hash[2] + c) | 0
-            this._hash[3] = (this._hash[3] + d) | 0
-            this._hash[4] = (this._hash[4] + e) | 0
-            this._hash[5] = (this._hash[5] + f) | 0
-            this._hash[6] = (this._hash[6] + g) | 0
-            this._hash[7] = (this._hash[7] + h) | 0
+            this._hash[0] = safeAdd32(a, this._hash[0])
+            this._hash[1] = safeAdd32(b, this._hash[1])
+            this._hash[2] = safeAdd32(c, this._hash[2])
+            this._hash[3] = safeAdd32(d, this._hash[3])
+            this._hash[4] = safeAdd32(e, this._hash[4])
+            this._hash[5] = safeAdd32(f, this._hash[5])
+            this._hash[6] = safeAdd32(g, this._hash[6])
+            this._hash[7] = safeAdd32(h, this._hash[7])
         }
 
         // Write to cache at offset
@@ -153,20 +163,20 @@ export default class Sha256Algorithm {
             // Calculate the total length of the input data + 1 byte (0x80) + 8 bytes (length in bits)
             // and align it to 64 bytes with zeros
             const totalLength = length + 1 + 8 + (64 - ((length + 9) % 64))
-            this._inputArray = new Uint32Array(totalLength >> 2)
+            this._block = new Uint32Array(totalLength >> 2)
         }
 
         // Note: no need to erase the data, if the length is the same, the data will be overwritten
         // and in the case of different lengths, the previous array will be garbage collected.
 
-        // Copy the input data to the input array
+        // Copy the input data to the block
         for (let i = 0; i < length; i += 4) {
-            this._inputArray[i >> 2] = cache.readUint32BE((inputSlot?.start || 0) + i)
+            this._block[i >> 2] = cache.readUint32BE((inputSlot?.start || 0) + i)
         }
 
         // Append padding bits and length
-        this._inputArray[bitLength >> 5] |= 0x80 << (24 - (bitLength % 32))
-        this._inputArray[(((bitLength + 64) >>> 9) << 4) + 15] = bitLength
+        this._block[bitLength >> 5] |= 0x80 << (24 - (bitLength % 32))
+        this._block[(((bitLength + 64) >>> 9) << 4) + 15] = bitLength
 
         // Update the last length
         this._lastLength = length

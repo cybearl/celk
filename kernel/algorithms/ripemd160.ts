@@ -1,4 +1,4 @@
-import { rotl, safeAdd } from "#kernel/bitwise"
+import { rotl32, safeAdd32, safeAdd32Many } from "#kernel/bitwise"
 import Cache from "#kernel/cache"
 import { MemorySlot } from "#kernel/memory"
 
@@ -7,6 +7,10 @@ import { MemorySlot } from "#kernel/memory"
  * `Cache` instance at a certain position given by an input `MemorySlot`,
  * and rewrite the hash back to the `Cache` instance at another
  * position given by an output `MemorySlot`.
+ *
+ * Sources:
+ * - [Wikipedia](https://en.wikipedia.org/wiki/RIPEMD).
+ * - [Original PDF](https://homes.esat.kuleuven.be/~bosselae/ripemd160/pdf/AB-9601/AB-9601.pdf).
  */
 export default class Ripemd160Algorithm {
     /** Z-Left rotation constants. */
@@ -146,25 +150,31 @@ export default class Ripemd160Algorithm {
             el = er = this._hash[4]
 
             for (let j = 0; j < 80; j++) {
-                t = safeAdd(al, this._f(j, bl, cl, dl))
-                t = safeAdd(t, this._inputArray[i + this._ZL[j]])
-                t = safeAdd(t, this._k1(j))
-                t = safeAdd(rotl(t, this._SL[j]), el)
+                // t = safeAdd(al, this._f(j, bl, cl, dl))
+                // t = safeAdd(t, this._inputArray[i + this._ZL[j]])
+                // t = safeAdd(t, this._k1(j))
+                // t = safeAdd(rotl(t, this._SL[j]), el)
+
+                t = safeAdd32Many(al, this._f(j, bl, cl, dl), this._inputArray[i + this._ZL[j]], this._k1(j))
+                t = safeAdd32(rotl32(t, this._SL[j]), el)
 
                 al = el
                 el = dl
-                dl = rotl(cl, 10)
+                dl = rotl32(cl, 10)
                 cl = bl
                 bl = t
 
-                t = safeAdd(ar, this._f(79 - j, br, cr, dr))
-                t = safeAdd(t, this._inputArray[i + this._ZR[j]])
-                t = safeAdd(t, this._k2(j))
-                t = safeAdd(rotl(t, this._SR[j]), er)
+                // t = safeAdd(ar, this._f(79 - j, br, cr, dr))
+                // t = safeAdd(t, this._inputArray[i + this._ZR[j]])
+                // t = safeAdd(t, this._k2(j))
+                // t = safeAdd(rotl(t, this._SR[j]), er)
+
+                t = safeAdd32Many(ar, this._f(79 - j, br, cr, dr), this._inputArray[i + this._ZR[j]], this._k2(j))
+                t = safeAdd32(rotl32(t, this._SR[j]), er)
 
                 ar = er
                 er = dr
-                dr = rotl(cr, 10)
+                dr = rotl32(cr, 10)
                 cr = br
                 br = t
             }
