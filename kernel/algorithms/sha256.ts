@@ -198,7 +198,12 @@ export default class Sha256Algorithm {
     hash = (cache: Cache, inputSlot?: MemorySlot, outputSlot?: MemorySlot): void => {
         this._manageBlocks(cache, inputSlot)
 
-        // console.log("SHA256: _block", this._block)
+        console.log(
+            Buffer.from(this._block.buffer)
+                .toString("hex")
+                .match(/.{1,4}/g)
+                ?.join(" ")
+        )
 
         this._sha256(cache, outputSlot?.start || 0)
     }

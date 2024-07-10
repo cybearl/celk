@@ -12,17 +12,20 @@ const inputSlot: MemorySlot = { start: 0, length: 65, end: 65 }
 const outputSlot: MemorySlot = { start: 65, length: 32, end: 97 }
 
 cache.writeHexString(input, inputSlot.start)
+console.log(input.toUpperCase())
+
+// cache.writeHexString(input, inputSlot.start)
 
 const sha256 = new Sha256Algorithm()
 
 sha256.hash(cache, inputSlot, outputSlot)
-console.log(cache.readHexString(outputSlot.start, outputSlot.length))
+// console.log(cache.readHexString(inputSlot.start, inputSlot.length))
+// console.log(cache.readHexString(outputSlot.start, outputSlot.length))
 
 sha256.hash(cache, inputSlot, outputSlot)
-console.log(cache.readHexString(outputSlot.start, outputSlot.length))
 
-sha256.hash(cache, inputSlot, outputSlot)
-console.log(cache.readHexString(outputSlot.start, outputSlot.length))
+// sha256.hash(cache, inputSlot, outputSlot)
+// console.log(cache.readHexString(outputSlot.start, outputSlot.length))
 
 // const input = "38bbc57e4cbe8b6a1d2c999ef62503e0a6e58109"
 
