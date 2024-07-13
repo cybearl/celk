@@ -12,7 +12,7 @@ const inputSlot: MemorySlot = { start: 0, length: 65, end: 65 }
 const outputSlot: MemorySlot = { start: 65, length: 32, end: 97 }
 
 cache.writeHexString(input, inputSlot.start)
-console.log(input.toUpperCase())
+console.log("INP:", input.toUpperCase())
 
 // cache.writeHexString(input, inputSlot.start)
 

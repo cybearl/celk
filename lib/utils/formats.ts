@@ -1,15 +1,4 @@
 /**
- * Insert a string into another string at a specific index.
- * @param str The string to insert into.
- * @param index The index to insert the string at.
- * @param value The string to insert.
- * @returns The new string.
- */
-export function strInsert(str: string, index: number, value: string): string {
-    return str.substring(0, index) + value + str.substring(index)
-}
-
-/**
  * Format a number with an attached unit + an optional time unit.
  *
  * **Note:** The time unit can be set to null to only display the unit.

@@ -83,26 +83,12 @@ export default class Cache extends Uint8Array {
     /**
      * The initial offset of the cache compared to the buffer's `byteOffset`.
      */
-    get byteOffset(): number {
-        return super.byteOffset
-    }
-
-    /**
-     * The initial offset of the cache compared to the buffer's `byteOffset`.
-     */
     get offset(): number {
         return this._offset
     }
 
     /**
-     * The byte length of the cache.
-     */
-    get byteLength(): number {
-        return super.byteLength
-    }
-
-    /**
-     * The byte length of the cache.
+     * The length of the cache.
      */
     get length(): number {
         return this._length
@@ -307,6 +293,9 @@ export default class Cache extends Uint8Array {
 
     /**
      * Writes an hexadecimal string to the cache (supports `0x` prefix).
+     *
+     * **Note:** There is no `endianness` parameter here as there is no concept of word size,
+     * the order will be the same as the string.
      * @param value The hexadecimal string to write to the cache.
      * @param offset The offset to start writing at (optional, defaults to 0).
      * @param length The length to write (optional, defaults to the value length).
@@ -359,24 +348,51 @@ export default class Cache extends Uint8Array {
     }
 
     /**
-     * Writes a single bit to the cache.
+     * Writes a string to the cache using a specific encoding.
      *
-     * **Note:** The offset is in bits, not bytes in contrast to the other methods.
+     * **Note:** The encoding is limited to the following:
+     * - `utf8`: UTF-8 encoding.
+     * - `hex`: Hexadecimal encoding.
+     *
+     * **Note:** The `hex` encoding supports `0x` prefix but there's no `endianness` parameter here,
+     * it follows the order of the string.
+     * @param value The string to write to the cache.
+     * @param encoding The encoding to use (optional, defaults to "utf8").
+     * @param offset The offset to start writing at (optional, defaults to 0).
+     * @param length The length to write (optional, defaults to the value length).
+     * @returns The cache instance.
+     */
+    writeString = (value: string, encoding: "hex" | "utf8" = "utf8", offset = 0, length = value.length): this => {
+        if (encoding === "utf8") {
+            this.writeUtf8String(value, offset, length)
+            return this
+        }
+
+        if (encoding === "hex") {
+            this.writeHexString(value, offset, length)
+            return this
+        }
+
+        throw new TypeError(`[Cache - writeString] Invalid encoding: '${encoding}'.`)
+    }
+
+    /**
+     * Writes a single bit to the cache.
      * @param value The value to write (`0` or `1`).
-     * @param offset The offset to read from **as a number of bits** (optional, defaults to 0).
+     * @param bitOffset The offset to read from **as a number of bits** (optional, defaults to 0).
      * @param msbFirst Whether to write the bit to the most significant bit (optional, defaults to true).
      * @param check Whether to enable the overall check (optional, defaults to true).
      * @returns The cache instance.
      */
-    writeBit = (value: Bit, offset = 0, msbFirst = true, check = true): this => {
+    writeBit = (value: Bit, bitOffset = 0, msbFirst = true, check = true): this => {
         if (value < 0 || value > 1) throw new RangeError(`[Cache - writeBit] Value is out of bounds: '${value}'.`)
 
-        const byteOffset = Math.floor(offset / 8)
-        if (check) this.check(byteOffset, 1)
+        const offset = Math.floor(bitOffset / 8)
+        if (check) this.check(offset, 1)
 
-        const bitOffset = msbFirst ? 7 - (offset % 8) : offset % 8
-        if (value === 1) this[byteOffset] |= 1 << bitOffset
-        else this[byteOffset] &= ~(1 << bitOffset)
+        const orientedOffset = msbFirst ? 7 - (bitOffset % 8) : bitOffset % 8
+        if (value === 1) this[offset] |= 1 << orientedOffset
+        else this[offset] &= ~(1 << orientedOffset)
 
         return this
     }
@@ -401,24 +417,24 @@ export default class Cache extends Uint8Array {
     /**
      * **[LITTLE ENDIAN]** Writes a single 16-bit value to the cache.
      * @param value The value to write.
-     * @param byteOffset The byte offset to write to (optional, defaults to 0).
-     * @param verifyAlignment Whether to verify that the byte offset is aligned to 2 bytes (optional, defaults to true).
+     * @param offset The offset to write to (optional, defaults to 0).
+     * @param verifyAlignment Whether to verify that the offset is aligned to 2 bytes (optional, defaults to true).
      * @param check Whether to enable the overall check (optional, defaults to true).
      * @returns The cache instance.
      */
-    writeUint16LE = (value: number, byteOffset = 0, verifyAlignment = true, check = true): this => {
+    writeUint16LE = (value: number, offset = 0, verifyAlignment = true, check = true): this => {
         if (value < 0 || value > 0xffff) {
             throw new RangeError(`[Cache - writeUint16LE] Value is out of bounds: '${value}'.`)
         }
-        if (verifyAlignment && byteOffset % 2 !== 0) {
-            throw new RangeError(`[Cache - writeUint16LE] Invalid byte offset alignment: '${byteOffset}' (%2).`)
+        if (verifyAlignment && offset % 2 !== 0) {
+            throw new RangeError(`[Cache - writeUint16LE] Invalid offset alignment: '${offset}' (%2).`)
         }
 
-        if (check) this.check(byteOffset, 2)
+        if (check) this.check(offset, 2)
 
         value >>>= 0
-        this[byteOffset] = value & 0xff
-        this[byteOffset + 1] = (value >> 8) & 0xff
+        this[offset] = value & 0xff
+        this[offset + 1] = (value >> 8) & 0xff
 
         return this
     }
@@ -426,24 +442,24 @@ export default class Cache extends Uint8Array {
     /**
      * **[BIG ENDIAN]** Writes a single 16-bit value to the cache.
      * @param value The value to write.
-     * @param byteOffset The byte offset to write to (optional, defaults to 0).
-     * @param verifyAlignment Whether to verify that the byte offset is aligned to 2 bytes (optional, defaults to true).
+     * @param offset The offset to write to (optional, defaults to 0).
+     * @param verifyAlignment Whether to verify that the offset is aligned to 2 bytes (optional, defaults to true).
      * @param check Whether to enable the overall check (optional, defaults to true).
      * @returns The cache instance.
      */
-    writeUint16BE = (value: number, byteOffset = 0, verifyAlignment = true, check = true): this => {
+    writeUint16BE = (value: number, offset = 0, verifyAlignment = true, check = true): this => {
         if (value < 0 || value > 0xffff) {
             throw new RangeError(`[Cache - writeUint16BE] Value is out of bounds: '${value}'.`)
         }
-        if (verifyAlignment && byteOffset % 2 !== 0) {
-            throw new RangeError(`[Cache - writeUint16BE] Invalid byte offset alignment: '${byteOffset}' (%2).`)
+        if (verifyAlignment && offset % 2 !== 0) {
+            throw new RangeError(`[Cache - writeUint16BE] Invalid offset alignment: '${offset}' (%2).`)
         }
 
-        if (check) this.check(byteOffset, 2)
+        if (check) this.check(offset, 2)
 
         value >>>= 0
-        this[byteOffset] = (value >> 8) & 0xff
-        this[byteOffset + 1] = value & 0xff
+        this[offset] = (value >> 8) & 0xff
+        this[offset + 1] = value & 0xff
 
         return this
     }
@@ -451,51 +467,51 @@ export default class Cache extends Uint8Array {
     /**
      * Writes a single 16-bit value to the cache.
      * @param value The value to write.
-     * @param byteOffset The byte offset to write to (optional, defaults to 0).
+     * @param offset The offset to write to (optional, defaults to 0).
      * @param endianness The endianness to use (optional, defaults to the platform's endianness).*
-     * @param verifyAlignment Whether to verify that the byte offset is aligned to 2 bytes (optional, defaults to true).
+     * @param verifyAlignment Whether to verify that the offset is aligned to 2 bytes (optional, defaults to true).
      * @param check Whether to enable the overall check (optional, defaults to true).
      * @returns The cache instance.
      */
     writeUint16 = (
         value: number,
-        byteOffset = 0,
+        offset = 0,
         endianness = this.platformEndianness,
         verifyAlignment = true,
         check = true
     ): this => {
         if (this.normalizeEndianness(endianness) === "LE") {
-            this.writeUint16LE(value, byteOffset, verifyAlignment, check)
+            this.writeUint16LE(value, offset, verifyAlignment, check)
             return this
         }
 
-        this.writeUint16BE(value, byteOffset, verifyAlignment, check)
+        this.writeUint16BE(value, offset, verifyAlignment, check)
         return this
     }
 
     /**
      * **[LITTLE ENDIAN]** Writes a single 32-bit word to the cache.
      * @param value The value to write.
-     * @param byteOffset The byte offset to write to (optional, defaults to 0).
-     * @param verifyAlignment Whether to verify that the byte offset is aligned to 4 bytes (optional, defaults to true).
+     * @param offset The offset to write to (optional, defaults to 0).
+     * @param verifyAlignment Whether to verify that the offset is aligned to 4 bytes (optional, defaults to true).
      * @param check Whether to enable the overall check (optional, defaults to true).
      * @returns The cache instance.
      */
-    writeUint32LE = (value: number, byteOffset = 0, verifyAlignment = true, check = true): this => {
+    writeUint32LE = (value: number, offset = 0, verifyAlignment = true, check = true): this => {
         if (value < 0 || value > 0xffffffff) {
             throw new RangeError(`[Cache - writeUint32LE] Value is out of bounds: '${value}'.`)
         }
-        if (verifyAlignment && byteOffset % 4 !== 0) {
-            throw new RangeError(`[Cache - writeUint32LE] Invalid byte offset alignment: '${byteOffset}' (%4).`)
+        if (verifyAlignment && offset % 4 !== 0) {
+            throw new RangeError(`[Cache - writeUint32LE] Invalid offset alignment: '${offset}' (%4).`)
         }
 
-        if (check) this.check(byteOffset, 4)
+        if (check) this.check(offset, 4)
 
         value >>>= 0
-        this[byteOffset] = value & 0xff
-        this[byteOffset + 1] = (value >> 8) & 0xff
-        this[byteOffset + 2] = (value >> 16) & 0xff
-        this[byteOffset + 3] = (value >> 24) & 0xff
+        this[offset] = value & 0xff
+        this[offset + 1] = (value >> 8) & 0xff
+        this[offset + 2] = (value >> 16) & 0xff
+        this[offset + 3] = (value >> 24) & 0xff
 
         return this
     }
@@ -503,26 +519,26 @@ export default class Cache extends Uint8Array {
     /**
      * **[BIG ENDIAN]** Writes a single 32-bit word to the cache.
      * @param value The value to write.
-     * @param byteOffset The byte offset to write to (optional, defaults to 0).
-     * @param verifyAlignment Whether to verify that the byte offset is aligned to 4 bytes (optional, defaults to true).
+     * @param offset The offset to write to (optional, defaults to 0).
+     * @param verifyAlignment Whether to verify that the offset is aligned to 4 bytes (optional, defaults to true).
      * @param check Whether to enable the overall check (optional, defaults to true).
      * @returns The cache instance.
      */
-    writeUint32BE = (value: number, byteOffset = 0, verifyAlignment = true, check = true): this => {
+    writeUint32BE = (value: number, offset = 0, verifyAlignment = true, check = true): this => {
         if (value < 0 || value > 0xffffffff) {
             throw new RangeError(`[Cache - writeUint32BE] Value is out of bounds: '${value}'.`)
         }
-        if (verifyAlignment && byteOffset % 4 !== 0) {
-            throw new RangeError(`[Cache - writeUint32BE] Invalid byte offset alignment: '${byteOffset}' (%4).`)
+        if (verifyAlignment && offset % 4 !== 0) {
+            throw new RangeError(`[Cache - writeUint32BE] Invalid offset alignment: '${offset}' (%4).`)
         }
 
-        if (check) this.check(byteOffset, 4)
+        if (check) this.check(offset, 4)
 
         value >>>= 0
-        this[byteOffset] = (value >> 24) & 0xff
-        this[byteOffset + 1] = (value >> 16) & 0xff
-        this[byteOffset + 2] = (value >> 8) & 0xff
-        this[byteOffset + 3] = value & 0xff
+        this[offset] = (value >> 24) & 0xff
+        this[offset + 1] = (value >> 16) & 0xff
+        this[offset + 2] = (value >> 8) & 0xff
+        this[offset + 3] = value & 0xff
 
         return this
     }
@@ -530,49 +546,46 @@ export default class Cache extends Uint8Array {
     /**
      * Writes a single 32-bit word to the cache.
      * @param value The value to write.
-     * @param byteOffset The byte offset to write to (optional, defaults to 0).
+     * @param offset The offset to write to (optional, defaults to 0).
      * @param endianness The endianness to use (optional, defaults to the platform's endianness).
-     * @param verifyAlignment Whether to verify that the byte offset is aligned to 4 bytes (optional, defaults to true).
+     * @param verifyAlignment Whether to verify that the offset is aligned to 4 bytes (optional, defaults to true).
      * @param check Whether to enable the overall check (optional, defaults to true).
      * @returns The cache instance.
      */
     writeUint32 = (
         value: number,
-        byteOffset = 0,
+        offset = 0,
         endianness = this.platformEndianness,
         verifyAlignment = true,
         check = true
     ): this => {
         if (this.normalizeEndianness(endianness) === "LE") {
-            this.writeUint32LE(value, byteOffset, verifyAlignment, check)
+            this.writeUint32LE(value, offset, verifyAlignment, check)
             return this
         }
 
-        this.writeUint32BE(value, byteOffset, verifyAlignment, check)
+        this.writeUint32BE(value, offset, verifyAlignment, check)
         return this
     }
 
     /**
      * Writes an array of bits to the cache.
-     *
-     * **Note:** The offset is in bits, not bytes in contrast to the other methods,
-     * same thing for the length.
      * @param array The array of bits to write to the cache.
-     * @param offset The offset to start writing at **as a number of bits** (optional, defaults to 0).
-     * @param length The length to write **as a number of bits** (optional, defaults to the array length).
+     * @param bitOffset The offset to start writing at **as a number of bits** (optional, defaults to 0).
+     * @param bitLength The length to write **as a number of bits** (optional, defaults to the array length).
      * @param msbFirst Whether to write the bits from the most significant bit (optional, defaults to true).
      * @returns The cache instance.
      */
-    writeBits = (array: Bit[], offset = 0, length = array.length, msbFirst = true): this => {
+    writeBits = (array: Bit[], bitOffset = 0, bitLength = array.length, msbFirst = true): this => {
         if (!array || !Array.isArray(array)) {
             throw new TypeError(`[Cache - writeBits] Invalid array of bits: '${array}'.`)
         }
 
-        const byteOffset = Math.floor(offset / 8)
-        const byteLength = Math.ceil(length / 8)
-        this.check(byteOffset, byteLength)
+        const offset = Math.floor(bitOffset / 8)
+        const length = Math.ceil(bitLength / 8)
+        this.check(offset, length)
 
-        for (let i = 0; i < length; i++) this.writeBit(array[i], offset + i, msbFirst, false)
+        for (let i = 0; i < bitLength; i++) this.writeBit(array[i], bitOffset + i, msbFirst, false)
 
         return this
     }
@@ -584,7 +597,7 @@ export default class Cache extends Uint8Array {
      * @param length The length to write (optional, defaults to the array length).
      * @returns The cache instance.
      */
-    writeUint8Array = (array: Uint8Array, offset = 0, length = array.length): this => {
+    writeUint8Array = (array: Uint8Array, offset = 0, length = array.byteLength): this => {
         if (!array || !(array instanceof Uint8Array)) {
             throw new TypeError(`[Cache - writeUint8Array] Invalid Uint8Array: '${array}'.`)
         }
@@ -599,38 +612,38 @@ export default class Cache extends Uint8Array {
     /**
      * Writes a Uint16Array to the cache.
      * @param array The Uint16Array to write to the cache.
-     * @param byteOffset The byte offset to start writing at (optional, defaults to 0).
-     * @param byteLength The byte length to write (optional, defaults to the array byte length).
+     * @param offset The offset to start writing at (optional, defaults to 0).
+     * @param length The length to write (optional, defaults to the array length).
      * @param endianness The endianness to use (optional, defaults to the platform's endianness).
-     * @param verifyAlignment Whether to verify that the byte offset is aligned to 2 bytes (optional, defaults to true).
+     * @param verifyAlignment Whether to verify that the offset is aligned to 2 bytes (optional, defaults to true).
      * @returns The cache instance.
      */
     writeUint16Array = (
         array: Uint16Array,
-        byteOffset = 0,
-        byteLength = array.byteLength,
+        offset = 0,
+        length = array.byteLength,
         endianness = this.platformEndianness,
         verifyAlignment = true
     ): this => {
         if (!array || !(array instanceof Uint16Array)) {
             throw new TypeError(`[Cache - writeUint16Array] Invalid Uint16Array: '${array}'.`)
         }
-        if (verifyAlignment && byteOffset % 2 !== 0) {
-            throw new RangeError(`[Cache - writeUint16Array] Invalid byte offset alignment: '${byteOffset}' (%2).`)
+        if (verifyAlignment && offset % 2 !== 0) {
+            throw new RangeError(`[Cache - writeUint16Array] Invalid offset alignment: '${offset}' (%2).`)
         }
 
-        this.check(byteOffset, byteLength)
+        this.check(offset, length)
 
         if (this.normalizeEndianness(endianness) === "LE") {
-            for (let i = 0; i < byteLength; i += 2) {
-                this.writeUint16LE(array[i / 2], byteOffset + i, verifyAlignment, false)
+            for (let i = 0; i < length; i += 2) {
+                this.writeUint16LE(array[i / 2], offset + i, verifyAlignment, false)
             }
 
             return this
         }
 
-        for (let i = 0; i < byteLength; i += 2) {
-            this.writeUint16BE(array[i / 2], byteOffset + i, verifyAlignment, false)
+        for (let i = 0; i < length; i += 2) {
+            this.writeUint16BE(array[i / 2], offset + i, verifyAlignment, false)
         }
 
         return this
@@ -639,38 +652,38 @@ export default class Cache extends Uint8Array {
     /**
      * Writes a Uint32Array to the cache.
      * @param array The Uint32Array to write to the cache.
-     * @param byteOffset The byte offset to start writing at (optional, defaults to 0).
-     * @param byteLength The byte length to write (optional, defaults to the array byte length).
+     * @param offset The offset to start writing at (optional, defaults to 0).
+     * @param length The length to write (optional, defaults to the array length).
      * @param endianness The endianness to use (optional, defaults to the platform's endianness).
-     * @param verifyAlignment Whether to verify that the byte offset is aligned to 4 bytes (optional, defaults to true).
+     * @param verifyAlignment Whether to verify that the offset is aligned to 4 bytes (optional, defaults to true).
      * @returns The cache instance.
      */
     writeUint32Array = (
         array: Uint32Array,
-        byteOffset = 0,
-        byteLength = array.byteLength,
+        offset = 0,
+        length = array.byteLength,
         endianness = this.platformEndianness,
         verifyAlignment = true
     ): this => {
         if (!array || !(array instanceof Uint32Array)) {
             throw new TypeError(`[Cache - writeUint32Array] Invalid Uint32Array: '${array}'.`)
         }
-        if (verifyAlignment && byteOffset % 4 !== 0) {
-            throw new RangeError(`[Cache - writeUint32Array] Invalid byte offset alignment: '${byteOffset}' (%4).`)
+        if (verifyAlignment && offset % 4 !== 0) {
+            throw new RangeError(`[Cache - writeUint32Array] Invalid offset alignment: '${offset}' (%4).`)
         }
 
-        this.check(byteOffset, byteLength)
+        this.check(offset, length)
 
         if (this.normalizeEndianness(endianness) === "LE") {
-            for (let i = 0; i < byteLength; i += 4) {
-                this.writeUint32LE(array[i / 4], byteOffset + i, verifyAlignment, false)
+            for (let i = 0; i < length; i += 4) {
+                this.writeUint32LE(array[i / 4], offset + i, verifyAlignment, false)
             }
 
             return this
         }
 
-        for (let i = 0; i < byteLength; i += 4) {
-            this.writeUint32BE(array[i / 4], byteOffset + i, verifyAlignment, false)
+        for (let i = 0; i < length; i += 4) {
+            this.writeUint32BE(array[i / 4], offset + i, verifyAlignment, false)
         }
 
         return this
@@ -682,7 +695,7 @@ export default class Cache extends Uint8Array {
      * **No alignment is required, the length is automatically calculated.**
      * @param value The big integer to write to the cache.
      * @param offset The offset to start writing at (optional, defaults to 0).
-     * @param length The length to write (optional, defaults to the value length).
+     * @param length The length to write (optional, defaults to the array length).
      * @returns The cache instance.
      */
     writeBigIntLE = (value: bigint, offset = 0, length = Math.ceil(Number(value).toString(16).length / 2)): this => {
@@ -703,7 +716,7 @@ export default class Cache extends Uint8Array {
      * **No alignment is required, the length is automatically calculated.**
      * @param value The big integer to write to the cache.
      * @param offset The offset to start writing at (optional, defaults to 0).
-     * @param length The length to write (optional, defaults to the value length).
+     * @param length The length to write (optional, defaults to the array length).
      * @returns The cache instance.
      */
     writeBigIntBE = (value: bigint, offset = 0, length = Math.ceil(Number(value).toString(16).length / 2)): this => {
@@ -724,7 +737,7 @@ export default class Cache extends Uint8Array {
      * **No alignment is required, the length is automatically calculated.**
      * @param value The big integer to write to the cache.
      * @param offset The offset to start writing at (optional, defaults to 0).
-     * @param length The length to write (optional, defaults to the value length).
+     * @param length The length to write (optional, defaults to the array length).
      * @param endianness The endianness to use (optional, defaults to the platform's endianness).
      * @returns The cache instance.
      */
@@ -772,27 +785,48 @@ export default class Cache extends Uint8Array {
     }
 
     /**
+     * Reads a part of the cache and returns it as a string using a specific encoding.
+     *
+     * **Note:** The encoding is limited to the following:
+     * - `utf8`: UTF-8 encoding.
+     * - `hex`: Hexadecimal encoding.
+     *
+     * **Note:** The `hex` encoding supports `0x` prefix but there's no `endianness` parameter here,
+     * it follows the order of the string.
+     * @param offset The offset to start reading from (optional, defaults to 0).
+     * @param length The length to read (optional, defaults to the cache length - offset).
+     * @param encoding The encoding to use (optional, defaults to "utf8").
+     * @returns The string.
+     */
+    readString = (offset = 0, length = this.length - offset, encoding: "hex" | "utf8" = "utf8"): string => {
+        if (encoding === "utf8") return this.readUtf8String(offset, length)
+        if (encoding === "hex") return this.readHexString(offset, length)
+
+        throw new TypeError(`[Cache - readString] Invalid encoding: '${encoding}'.`)
+    }
+
+    /**
      * Read a single bit from the cache.
      *
      * **Note:** The offset is in bits, not bytes in contrast to the other methods.
-     * @param offset The offset to read from **as a number of bits** (optional, defaults to 0).
+     * @param bitOffset The offset to read from **as a number of bits** (optional, defaults to 0).
      * @param msbFirst Whether to read the bit from the most significant bit (optional, defaults to true).
      * @param check Whether to enable the overall check (optional, defaults to true).
      * @returns The bit as 0 or 1.
      */
-    readBit = (offset = 0, msbFirst = true, check = true): Bit => {
-        const byteOffset = Math.floor(offset / 8)
-        if (check) this.check(byteOffset, 1)
+    readBit = (bitOffset = 0, msbFirst = true, check = true): Bit => {
+        const offset = Math.floor(bitOffset / 8)
+        if (check) this.check(offset, 1)
 
-        const bitOffset = msbFirst ? 7 - (offset % 8) : offset % 8
-        return (this[byteOffset] & (1 << bitOffset)) !== 0 ? 1 : 0
+        const orderedBitOffset = msbFirst ? 7 - (bitOffset % 8) : bitOffset % 8
+        return (this[offset] & (1 << orderedBitOffset)) !== 0 ? 1 : 0
     }
 
     /**
      * Reads a single byte from the cache.
      *
      * Equivalent to using the index signature (square bracket notation).
-     * @param offset The offset to read from (optional, defaults to 0).
+     * @param offset The offset to start reading from (optional, defaults to 0).
      * @param check Whether to enable the overall check (optional, defaults to true).
      * @returns The byte as number.
      */
@@ -803,115 +837,138 @@ export default class Cache extends Uint8Array {
 
     /**
      * **[LITTLE ENDIAN]** Reads a single 16-bit value from the cache.
-     * @param byteOffset The byte offset to read from (optional, defaults to 0).
-     * @param verifyAlignment Whether to verify that the byte offset is aligned to 2 bytes (optional, defaults to true).
+     * @param offset The offset to read from (optional, defaults to 0).
+     * @param verifyAlignment Whether to verify that the offset is aligned to 2 bytes (optional, defaults to true).
      * @param check Whether to enable the overall check (optional, defaults to true).
      * @returns The 16-bit value.
      */
-    readUint16LE = (byteOffset = 0, verifyAlignment = true, check = true): number => {
-        if (verifyAlignment && byteOffset % 2 !== 0) {
-            throw new RangeError(`[Cache - readUint16LE] Invalid byte offset alignment: '${byteOffset}' (%2).`)
+    readUint16LE = (offset = 0, verifyAlignment = true, check = true): number => {
+        if (verifyAlignment && offset % 2 !== 0) {
+            throw new RangeError(`[Cache - readUint16LE] Invalid offset alignment: '${offset}' (%2).`)
         }
 
-        if (check) this.check(byteOffset, 2)
+        if (check) this.check(offset, 2)
 
-        return (this[byteOffset] | (this[byteOffset + 1] << 8)) >>> 0
+        return (this[offset] | (this[offset + 1] << 8)) >>> 0
     }
 
     /**
      * **[BIG ENDIAN]** Reads a single 16-bit value from the cache.
-     * @param byteOffset The byte offset to read from (optional, defaults to 0).
-     * @param verifyAlignment Whether to verify that the byte offset is aligned to 2 bytes (optional, defaults to true).
+     * @param offset The offset to read from (optional, defaults to 0).
+     * @param verifyAlignment Whether to verify that the offset is aligned to 2 bytes (optional, defaults to true).
      * @param check Whether to enable the overall check (optional, defaults to true).
      * @returns The 16-bit value.
      */
-    readUint16BE = (byteOffset = 0, verifyAlignment = true, check = true): number => {
-        if (verifyAlignment && byteOffset % 2 !== 0) {
-            throw new RangeError(`[Cache - readUint16BE] Invalid byte offset alignment: '${byteOffset}' (%2).`)
+    readUint16BE = (offset = 0, verifyAlignment = true, check = true): number => {
+        if (verifyAlignment && offset % 2 !== 0) {
+            throw new RangeError(`[Cache - readUint16BE] Invalid offset alignment: '${offset}' (%2).`)
         }
 
-        if (check) this.check(byteOffset, 2)
+        if (check) this.check(offset, 2)
 
-        return ((this[byteOffset] << 8) | this[byteOffset + 1]) >>> 0
+        return ((this[offset] << 8) | this[offset + 1]) >>> 0
     }
 
     /**
      * Reads a single 16-bit value from the cache.
-     * @param byteOffset The byte offset to read from (optional, defaults to 0).
+     * @param offset The offset to read from (optional, defaults to 0).
      * @param endianness Whether to read the value in Little Endian (optional, defaults to false).
-     * @param verifyAlignment Whether to verify that the byte offset is aligned to 2 bytes (optional, defaults to true).
+     * @param verifyAlignment Whether to verify that the offset is aligned to 2 bytes (optional, defaults to true).
      * @param check Whether to enable the overall check (optional, defaults to true).
      * @returns The 16-bit value.
      */
-    readUint16 = (
-        byteOffset = 0,
-        endianness = this.platformEndianness,
-        verifyAlignment = true,
-        check = true
-    ): number => {
-        if (this.normalizeEndianness(endianness) === "LE") return this.readUint16LE(byteOffset, verifyAlignment, check)
-        return this.readUint16BE(byteOffset, verifyAlignment, check)
+    readUint16 = (offset = 0, endianness = this.platformEndianness, verifyAlignment = true, check = true): number => {
+        if (this.normalizeEndianness(endianness) === "LE") return this.readUint16LE(offset, verifyAlignment, check)
+        return this.readUint16BE(offset, verifyAlignment, check)
     }
 
     /**
      * **[LITTLE ENDIAN]** Reads a single 32-bit word from the cache.
-     * @param byteOffset The byte offset to read from (optional, defaults to 0).
-     * @param verifyAlignment Whether to verify that the byte offset is aligned to 4 bytes (optional, defaults to true).
+     * @param offset The offset to read from (optional, defaults to 0).
+     * @param verifyAlignment Whether to verify that the offset is aligned to 4 bytes (optional, defaults to true).
      * @param check Whether to enable the overall check (optional, defaults to true).
      */
-    readUint32LE = (byteOffset = 0, verifyAlignment = true, check = true): number => {
-        if (verifyAlignment && byteOffset % 4 !== 0) {
-            throw new RangeError(`[Cache - readUint32LE] Invalid byte offset alignment: '${byteOffset}' (%4).`)
+    readUint32LE = (offset = 0, verifyAlignment = true, check = true): number => {
+        if (verifyAlignment && offset % 4 !== 0) {
+            throw new RangeError(`[Cache - readUint32LE] Invalid offset alignment: '${offset}' (%4).`)
         }
 
-        if (check) this.check(byteOffset, 4)
+        if (check) this.check(offset, 4)
 
-        return (
-            (this[byteOffset] |
-                (this[byteOffset + 1] << 8) |
-                (this[byteOffset + 2] << 16) |
-                (this[byteOffset + 3] << 24)) >>>
-            0
-        )
+        return (this[offset] | (this[offset + 1] << 8) | (this[offset + 2] << 16) | (this[offset + 3] << 24)) >>> 0
     }
 
     /**
      * **[BIG ENDIAN]** Reads a single 32-bit word from the cache.
-     * @param byteOffset The byte offset to read from (optional, defaults to 0).
-     * @param verifyAlignment Whether to verify that the byte offset is aligned to 4 bytes (optional, defaults to true).
+     * @param offset The offset to read from (optional, defaults to 0).
+     * @param verifyAlignment Whether to verify that the offset is aligned to 4 bytes (optional, defaults to true).
      * @param check Whether to enable the overall check (optional, defaults to true).
      */
-    readUint32BE = (byteOffset = 0, verifyAlignment = true, check = true): number => {
-        if (verifyAlignment && byteOffset % 4 !== 0) {
-            throw new RangeError(`[Cache - readUint32BE] Invalid byte offset alignment: '${byteOffset}' (%4).`)
+    readUint32BE = (offset = 0, verifyAlignment = true, check = true): number => {
+        if (verifyAlignment && offset % 4 !== 0) {
+            throw new RangeError(`[Cache - readUint32BE] Invalid offset alignment: '${offset}' (%4).`)
         }
 
-        if (check) this.check(byteOffset, 4)
+        if (check) this.check(offset, 4)
 
-        return (
-            ((this[byteOffset] << 24) |
-                (this[byteOffset + 1] << 16) |
-                (this[byteOffset + 2] << 8) |
-                this[byteOffset + 3]) >>>
-            0
-        )
+        return ((this[offset] << 24) | (this[offset + 1] << 16) | (this[offset + 2] << 8) | this[offset + 3]) >>> 0
     }
 
     /**
      * Reads a single 32-bit word from the cache.
-     * @param byteOffset The byte offset to read from (optional, defaults to 0).
+     * @param offset The offset to read from (optional, defaults to 0).
      * @param endianness Whether to read the value in Little Endian (optional, defaults to false).
-     * @param verifyAlignment Whether to verify that the byte offset is aligned to 4 bytes (optional, defaults to true).
+     * @param verifyAlignment Whether to verify that the offset is aligned to 4 bytes (optional, defaults to true).
      * @param check Whether to enable the overall check (optional, defaults to true).
      */
-    readUint32 = (
-        byteOffset = 0,
-        endianness = this.platformEndianness,
-        verifyAlignment = true,
-        check = true
-    ): number => {
-        if (this.normalizeEndianness(endianness) === "LE") return this.readUint32LE(byteOffset, verifyAlignment, check)
-        return this.readUint32BE(byteOffset, verifyAlignment, check)
+    readUint32 = (offset = 0, endianness = this.platformEndianness, verifyAlignment = true, check = true): number => {
+        if (this.normalizeEndianness(endianness) === "LE") return this.readUint32LE(offset, verifyAlignment, check)
+        return this.readUint32BE(offset, verifyAlignment, check)
+    }
+
+    /**
+     * Reads a part of the cache and return it as a bit array.
+     * @param offset The offset to start reading from (optional, defaults to 0).
+     * @param length The length to read (optional, defaults to the cache length - offset).
+     * @param msbFirst Whether to read the bits from the most significant bit (optional, defaults to true).
+     * @returns The bit array.
+     */
+    readBits = (offset = 0, length = this.length - offset, msbFirst = true): Bit[] => {
+        const bits: Bit[] = []
+
+        for (let i = 0; i < length; i++) bits.push(this.readBit(offset + i, msbFirst, false))
+
+        return bits
+    }
+
+    /**
+     * Reads a part of the cache and return it as a Uint8Array.
+     * @param offset The offset to start reading from (optional, defaults to 0).
+     * @param length The length to read (optional, defaults to the cache length - offset).
+     * @returns The Uint8Array.
+     */
+    readUint8Array = (offset = 0, length = this.length - offset): Uint8Array => {
+        return new Uint8Array(this.buffer, offset ?? this.offset, length ?? this.length)
+    }
+
+    /**
+     * Reads a part of the cache and return it as a Uint16Array.
+     * @param offset The offset to start reading from (optional, defaults to 0).
+     * @param length The length to read (optional, defaults to the cache length - offset).
+     * @returns The Uint16Array.
+     */
+    readUint16Array = (offset = 0, length = this.length - offset): Uint16Array => {
+        return new Uint16Array(this.buffer, offset ?? this.offset, length ? length / 2 : this.length / 2)
+    }
+
+    /**
+     * Reads a part of the cache and return it as a Uint32Array.
+     * @param offset The offset to start reading from (optional, defaults to 0).
+     * @param length The length to read (optional, defaults to the cache length - offset).
+     * @returns The Uint32Array.
+     */
+    readUint32Array = (offset = 0, length = this.length - offset): Uint32Array => {
+        return new Uint32Array(this.buffer, offset ?? this.offset, length ? length / 4 : this.length / 4)
     }
 
     /**
@@ -991,8 +1048,6 @@ export default class Cache extends Uint8Array {
 
     /**
      * Converts the cache into a bit array.
-     *
-     * **Warning:** This method is not efficient for large caches, use the `toUint8Array` method instead.
      * @param msbFirst Whether to read the bits from the most significant bit (optional, defaults to true).
      * @returns The bit array.
      */
