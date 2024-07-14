@@ -1030,6 +1030,9 @@ export default class Cache extends Uint8Array {
         }
 
         if (check) this.check(index, size)
+
+        switch (maxIndex - index + 1) {
+        }
     }
 
     /**
