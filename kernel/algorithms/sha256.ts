@@ -170,27 +170,15 @@ export default class Sha256Algorithm {
             this._block = new Uint32Array(totalLength >> 2)
         }
 
-        // console.log("BCA:", cache.readHexString(inputSlot?.start || 0))
-        // console.log("BBK:", Buffer.from(this._block.buffer).toString("hex"))
-
         // Note: no need to erase the data, if the length is the same, the data will be overwritten
         // and in the case of different lengths, the previous array will be garbage collected.
 
         // Copy the input data to the block
-        // for (let i = 0; i < length; i += 4) {
-        //     if (length % 4 !== 0 && i + 4 > length) {
-        //         // If the length is not a multiple of 4, pad the last bytes with zeros,
-        //         // We don't want to read random data from the cache
-        //         this._block[i >> 2] = 0
-        //         continue
-        //     }
+        for (let i = 0; i < length; i += 4) {
+            console.log("I:", i, ":", length, i >> 2)
+            this._block[i >> 2] = cache.readUint32BE((inputSlot?.start || 0) + i)
+        }
 
-        //     this._block[i >> 2] = cache.readUint32BE((inputSlot?.start || 0) + i)
-        // }
-
-        // cache.
-
-        // console.log("ACA:", Buffer.from(cache).toString("hex"))
         console.log("ABK:", Buffer.from(this._block.buffer).toString("hex"))
 
         // Append padding bits and length
