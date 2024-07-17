@@ -23,7 +23,7 @@
         "sandbox": "node --no-warnings=ExperimentalWarning --loader ts-node/esm ./tests/sandbox.ts",
         "lint": "eslint .",
         "format": "prettier --write .",
-        "typecheck": "tsc --noEmit"
+        "check-types": "tsc --noEmit"
     },
     "imports": {
         "#config/*": "./config/*.js",

@@ -1012,28 +1012,9 @@ export default class Cache extends Uint8Array {
     }
 
     /**
-     * Reads a certain amount of bytes from the cache based on an index / max index pair,
-     * and converts it into an unsigned integer of a specific size without risking overflow
-     * and without requiring alignment, the returned value is always of the specified size
-     * with 0's padding if necessary.
      *
-     * **Note:** The `maxIndex` is inclusive.
-     * @param index The index to read the value from.
-     * @param maxIndex The maximum index to read from (optional, defaults to the cache length - 1).
-     * @param size The size of the integer to read (optional, defaults to 1).
-     * @param check Whether to enable the overall check (optional, defaults to true).
-     * @returns The unsigned integer.
      */
-    readSafeUint = (index: number, maxIndex = this.length - 1, size = 1, check = true): number => {
-        if (size < 1 || size > 4) {
-            throw new RangeError(`[Cache - readSafeUint] Invalid size: '${size}'.`)
-        }
-
-        if (check) this.check(index, size)
-
-        switch (maxIndex - index + 1) {
-        }
-    }
+    readSafeUint = (): number => {}
 
     /**
      * ====================

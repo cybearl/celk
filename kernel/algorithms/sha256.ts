@@ -175,7 +175,7 @@ export default class Sha256Algorithm {
 
         // Copy the input data to the block
         for (let i = 0; i < length; i += 4) {
-            console.log("I:", i, ":", length, i >> 2)
+            console.log("I:", i, ":", length)
             this._block[i >> 2] = cache.readUint32BE((inputSlot?.start || 0) + i)
         }
 
