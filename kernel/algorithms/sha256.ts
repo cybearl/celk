@@ -175,8 +175,16 @@ export default class Sha256Algorithm {
 
         // Copy the input data to the block
         for (let i = 0; i < length; i += 4) {
-            console.log("I:", i, ":", length)
-            this._block[i >> 2] = cache.readUint32BE((inputSlot?.start || 0) + i)
+            const value = cache.readUint32BE((inputSlot?.start || 0) + i)
+
+            // In case the input data length is not a multiple of 4 bytes
+            // we need to create a mask that replaces the overflowing bytes with zeros
+            if (i + 4 > length) {
+                const mask = 0xffffffff << (32 - (length % 4) * 8)
+                this._block[i >> 2] = value & mask
+            } else {
+                this._block[i >> 2] = value
+            }
         }
 
         console.log("ABK:", Buffer.from(this._block.buffer).toString("hex"))

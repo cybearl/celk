@@ -1012,11 +1012,6 @@ export default class Cache extends Uint8Array {
     }
 
     /**
-     *
-     */
-    readSafeUint = (): number => {}
-
-    /**
      * ====================
      *  CONVERSION METHODS
      * ====================
