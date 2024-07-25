@@ -177,13 +177,13 @@ export default class Sha256Algorithm {
         for (let i = 0; i < length; i += 4) {
             const value = cache.readUint32BE((inputSlot?.start || 0) + i)
 
-            // In case the input data length is not a multiple of 4 bytes
-            // we need to create a mask that replaces the overflowing bytes with zeros
-            if (i + 4 > length) {
+            if (i + 4 <= length) {
+                this._block[i >> 2] = value
+            } else {
+                // In case the input data length is not a multiple of 4 bytes
+                // we need to create a mask that replaces the overflowing bytes with zeros
                 const mask = 0xffffffff << (32 - (length % 4) * 8)
                 this._block[i >> 2] = value & mask
-            } else {
-                this._block[i >> 2] = value
             }
         }
 
