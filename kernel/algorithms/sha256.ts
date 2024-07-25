@@ -187,8 +187,6 @@ export default class Sha256Algorithm {
             }
         }
 
-        console.log("ABK:", Buffer.from(this._block.buffer).toString("hex"))
-
         // Append padding bits and length
         this._block[bitLength >> 5] |= 0x80 << (24 - (bitLength % 32))
         this._block[(((bitLength + 64) >>> 9) << 4) + 15] = bitLength

@@ -61,8 +61,8 @@ export default class Ripemd160Algorithm {
     /** Stores the last input padded data length. */
     private _lastLength = 0
 
-    /** Reusable input array that stores the input data. */
-    private _inputArray: Uint32Array = new Uint32Array(0)
+    /** Reusable array that stores the input data. */
+    private _block: Uint32Array = new Uint32Array(0)
 
     /** Temporary array to store the hash values. */
     private _hash = new Uint32Array(8)
@@ -147,7 +147,7 @@ export default class Ripemd160Algorithm {
         // Working variable
         let T
 
-        for (let i = 0; i < this._inputArray.length; i += 16) {
+        for (let i = 0; i < this._block.length; i += 16) {
             al = ar = this._hash[0]
             bl = br = this._hash[1]
             cl = cr = this._hash[2]
@@ -155,7 +155,7 @@ export default class Ripemd160Algorithm {
             el = er = this._hash[4]
 
             for (let j = 0; j < 80; j++) {
-                T = safeAdd32x4(al, this._f(j, bl, cl, dl), this._inputArray[i + this._ZL[j]], this._k1(j))
+                T = safeAdd32x4(al, this._f(j, bl, cl, dl), this._block[i + this._ZL[j]], this._k1(j))
                 T = safeAdd32(rotl32(T, this._SL[j]), el)
 
                 al = el
@@ -164,7 +164,7 @@ export default class Ripemd160Algorithm {
                 cl = bl
                 bl = T
 
-                T = safeAdd32x4(ar, this._f(79 - j, br, cr, dr), this._inputArray[i + this._ZR[j]], this._k2(j))
+                T = safeAdd32x4(ar, this._f(79 - j, br, cr, dr), this._block[i + this._ZR[j]], this._k2(j))
                 T = safeAdd32(rotl32(T, this._SR[j]), er)
 
                 ar = er
@@ -184,7 +184,9 @@ export default class Ripemd160Algorithm {
         }
 
         // Write to cache at offset
-        cache.writeUint32Array(this._hash, offset, undefined, "LE")
+        for (let i = 0; i < 5; i++) {
+            cache.writeUint32LE(this._hash[i], offset + i * 4, false)
+        }
     }
 
     /**
@@ -205,7 +207,7 @@ export default class Ripemd160Algorithm {
             // Calculate the total length of the input data + 1 byte (0x80) + 8 bytes (length in bits)
             // and align it to 64 bytes with zeros
             const totalLength = length + 1 + 8 + (64 - ((length + 9) % 64))
-            this._inputArray = new Uint32Array(totalLength >> 2)
+            this._block = new Uint32Array(totalLength >> 2)
         }
 
         // Note: no need to erase the data, if the length is the same, the data will be overwritten
@@ -213,12 +215,21 @@ export default class Ripemd160Algorithm {
 
         // Copy the input data to the input array
         for (let i = 0; i < length; i += 4) {
-            this._inputArray[i >> 2] = cache.readUint32LE((inputSlot?.start || 0) + i)
+            const value = cache.readUint32LE((inputSlot?.start || 0) + i)
+
+            if (i + 4 <= length) {
+                this._block[i >> 2] = value
+            } else {
+                // In case the input data length is not a multiple of 4 bytes
+                // we need to create a mask that replaces the overflowing bytes with zeros
+                const mask = 0xffffffff >>> (32 - (length % 4) * 8)
+                this._block[i >> 2] = value & mask
+            }
         }
 
         // Append padding bits and length
-        this._inputArray[bitLength >> 5] |= 0x80 << bitLength % 32
-        this._inputArray[(((bitLength + 64) >>> 9) << 4) + 14] = bitLength
+        this._block[bitLength >> 5] |= 0x80 << bitLength % 32
+        this._block[(((bitLength + 64) >>> 9) << 4) + 14] = bitLength
 
         // Update the last length
         this._lastLength = length
