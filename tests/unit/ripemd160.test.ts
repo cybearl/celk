@@ -11,7 +11,7 @@ test.group("ripemd160 / hash", (group) => {
 
     group.each.setup(() => {
         ripemd160Algorithm = new Ripemd160Algorithm()
-        cache = new Cache(40)
+        cache = new Cache(128)
     })
 
     test("It should hash the input and write the result into the output slot", ({ expect }) => {
@@ -58,5 +58,25 @@ test.group("ripemd160 / hash", (group) => {
 
         expect(firstHash).toBe(output)
         expect(secondHash).toBe(output)
+    })
+
+    test("It should properly hash the same non-aligned input twice (length % 4 != 0)", ({ expect }) => {
+        const testInput =
+            "04E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855E3B0C44298FC1C149AFBF4C8996FB92427AE41E4649B934CA495991B7852B855"
+        const testOutput = "5D5ADDB6E9EDC062325B990C9DDECECAA901D50A"
+
+        const inputSlot = { start: 0, length: 65, end: 65 }
+        const outputSlot = { start: 65, length: 20, end: 85 }
+
+        cache.writeHexString(testInput, inputSlot.start)
+
+        ripemd160Algorithm.hash(cache, inputSlot, outputSlot)
+        const firstHash = cache.readHexString(outputSlot.start, outputSlot.length)
+
+        ripemd160Algorithm.hash(cache, inputSlot, outputSlot)
+        const secondHash = cache.readHexString(outputSlot.start, outputSlot.length)
+
+        expect(firstHash).toBe(testOutput)
+        expect(secondHash).toBe(testOutput)
     })
 })
