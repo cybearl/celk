@@ -31,12 +31,7 @@ export default class Secp256k1Algorithm {
      * @param inputSlot The position of the data to read in the cache (optional, defaults to 0 => length).
      * @param outputSlot The position to write the hash to in the cache (optional, defaults to 0 => data length).
      */
-    static generate(
-        mode: PublicKeyGenerationMode,
-        cache: Cache,
-        inputSlot?: MemorySlot,
-        outputSlot?: MemorySlot
-    ): void {
+    generate(mode: PublicKeyGenerationMode, cache: Cache, inputSlot?: MemorySlot, outputSlot?: MemorySlot): void {
         if (mode === "compressed") {
             if (cache.length < 33) {
                 throw new Error(
