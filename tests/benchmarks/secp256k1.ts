@@ -14,6 +14,8 @@ export default function executeSecp256k1AlgorithmBenchmark(_: any, benchmarkDura
     externalLogger.info(`>> Benchmark duration: ${benchmarkDuration} millisecond(s)`)
     externalLogger.info(">> Benchmark input size: unused (Secp256k1Algorithm is not input-size dependent)")
 
+    const secp256k1 = new Secp256k1Algorithm()
+
     // Test values
     const randomUint8Array = new Uint8Array(32)
     for (let i = 0; i < 32; i++) randomUint8Array[i] = Math.floor(Math.random() * 0xff)
@@ -27,8 +29,8 @@ export default function executeSecp256k1AlgorithmBenchmark(_: any, benchmarkDura
     // Benchmark
     const bench = new Bench(benchmarkDuration)
 
-    bench.benchmark(() => Secp256k1Algorithm.generate("compressed", cache, inputSlot, outputSlot), "hash(c32)")
-    bench.benchmark(() => Secp256k1Algorithm.generate("uncompressed", cache, inputSlot, outputSlot), "hash(u:32)")
+    bench.benchmark(() => secp256k1.generate("compressed", cache, inputSlot, outputSlot), "hash(c32)")
+    bench.benchmark(() => secp256k1.generate("uncompressed", cache, inputSlot, outputSlot), "hash(u32)")
 
     bench.print()
 }

@@ -14,6 +14,8 @@ export default function executeKeccak256AlgorithmBenchmark(benchmarkInputSize: n
     externalLogger.info(`>> Benchmark duration: ${benchmarkDuration} millisecond(s)`)
     externalLogger.info(`>> Benchmark input size: ${benchmarkInputSize.toLocaleString("en-US")}`)
 
+    const keccak256 = new Keccak256Algorithm()
+
     // Test values
     const oneUint8Array = new Uint8Array(1)
     oneUint8Array[0] = 0xff
@@ -34,7 +36,7 @@ export default function executeKeccak256AlgorithmBenchmark(benchmarkInputSize: n
     // Benchmark
     const bench = new Bench(benchmarkDuration)
 
-    bench.benchmark(() => Keccak256Algorithm.hash(cache, inputSlot, outputSlot), `hash(${benchmarkInputSize})`)
-    bench.benchmark(() => Keccak256Algorithm.hash(cacheX1, X1InputSlot, X1OutputSlot), `hash(1)`)
+    bench.benchmark(() => keccak256.hash(cache, inputSlot, outputSlot), `hash(${benchmarkInputSize})`)
+    bench.benchmark(() => keccak256.hash(cacheX1, X1InputSlot, X1OutputSlot), `hash(1)`)
     bench.print()
 }
