@@ -10,6 +10,7 @@
  * - [Wiki](https://en.bitcoin.it/wiki/Base58Check_encoding).
  * - [YouTube Video](https://www.youtube.com/watch?v=GedV3S9X89c).
  * - [Medium](https://medium.com/concerning-pharo/understanding-base58-encoding-23e673e37ff6).
+ * - [learnmeabitcoin](https://learnmeabitcoin.com/technical/keys/base58/).
  */
 export default class Base58Encoder {
     private readonly _CHARSET = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz"
