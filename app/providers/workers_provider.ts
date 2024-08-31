@@ -17,12 +17,12 @@ export default class WorkersProvider {
      * The options for the address data cron job.
      */
     private addressDataCronOptions = {
-        removeOnComplete: true,
-        removeOnFail: true,
         delay: addressDataConfig.initialDelay,
         repeat: {
             every: addressDataConfig.repeatEvery,
         },
+        removeOnComplete: true,
+        removeOnFail: true,
     }
 
     /**

@@ -59,6 +59,7 @@ export default class Cache extends Uint8Array {
         }
     ) {
         if (length < 0) throw new RangeError(`[Cache - constructor] Invalid cache length: '${length}'.`)
+        if (!Number.isInteger(length)) throw new TypeError(`[Cache - constructor] Invalid cache length: '${length}'.`)
 
         if (!options) super(length)
         else super(options.buffer, options?.offset, options?.length)

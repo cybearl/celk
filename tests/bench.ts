@@ -1,4 +1,5 @@
 import externalLogger from "#lib/utils/external_logger"
+import executeBase58EncoderBenchmark from "#tests/benchmarks/base58"
 import executeBech32EncoderBenchmark from "#tests/benchmarks/bech32"
 import executeCacheBenchmark from "#tests/benchmarks/cache"
 import executeKeccak256AlgorithmBenchmark from "#tests/benchmarks/keccak256"
@@ -22,6 +23,7 @@ type BenchmarkFunction = (cacheBenchmarkInputSize: number, benchmarkDuration: nu
  * Benchmark routing.
  */
 const benchmarks: { [key: string]: BenchmarkFunction } = {
+    base58: executeBase58EncoderBenchmark,
     bech32: executeBech32EncoderBenchmark,
     cache: executeCacheBenchmark,
     keccak256: executeKeccak256AlgorithmBenchmark,

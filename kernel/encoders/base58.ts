@@ -118,9 +118,9 @@ export default class Base58Encoder {
             bytes.push(0)
         }
 
-        // Write the bytes to the cache (reversed)
-        for (let i = bytes.length - 1; i >= 0; i--) {
-            cache.writeUint8(bytes[i], (slot?.start ?? 0) + i)
+        // Write the bytes to the cache
+        for (let i = 0; i < bytes.length; i++) {
+            cache.writeUint8(bytes[bytes.length - i - 1], (slot?.start ?? 0) + i)
         }
     }
 }
