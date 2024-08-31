@@ -175,11 +175,12 @@ export default class Bech32Encoder {
     }
 
     /**
-     * Encodes a Bech32 string from the bytecode stored in a `Cache` instance and the current encoding.
+     * Encodes a Bech32 string from a bytecode stored in a `Cache` instance and a witness version.
      * @param version The witness version to use (0-16).
      * @param hrp The HRP to use (Human Readable Part).
      * @param cache The `Cache` instance to read the data from.
      * @param slot The position of the data in the cache (optional, defaults to 0 => length).
+     * @returns The encoded Bech32 string.
      */
     encode(version: number, hrp: string, cache: Cache, slot?: MemorySlot): string {
         // Start with the witness version and concatenate the data converted to a 5-bit array
@@ -205,7 +206,6 @@ export default class Bech32Encoder {
      * @param bech32String The Bech32 string to decode.
      * @param cache The `Cache` instance to write the data to.
      * @param slot The position of the data in the cache (optional, defaults to 0 => data length).
-     * @returns The decoded data as a `Uint8Array`.
      * @throws An error if the Bech32 string is invalid.
      */
     decode(bech32String: string, cache: Cache, slot?: MemorySlot): void {

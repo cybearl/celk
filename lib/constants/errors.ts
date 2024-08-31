@@ -243,6 +243,12 @@ export const KernelErrors = {
         message: "The private key has an invalid length (must be 32 bytes).",
         data: null,
     },
+    INVALID_BASE58_CHARACTER: {
+        status: 400,
+        name: "INVALID_BASE58_CHARACTER",
+        message: "The Base58 string contains an invalid character.",
+        data: null,
+    },
 
     //=======
     //  404

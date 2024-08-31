@@ -1,3 +1,7 @@
+import Cache from "#kernel/cache"
+import { MemorySlot } from "#kernel/memory"
+import { KernelErrors, fe } from "#lib/constants/errors"
+
 /**
  * The `Base58Encoder` class is used to encode data coming from a
  * `Cache` instance to a Base58 string based on the current encoding.
@@ -13,6 +17,7 @@
  * - [learnmeabitcoin](https://learnmeabitcoin.com/technical/keys/base58/).
  */
 export default class Base58Encoder {
+    private readonly _BASE = 58
     private readonly _CHARSET = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz"
 
     /**
@@ -21,73 +26,101 @@ export default class Base58Encoder {
     constructor() {}
 
     /**
-     * Gets the decimal value of a string based on the characters ASCII code
-     * and their position inside the string.
-     * @param str The string to get the decimal value from.
-     * @returns The decimal value of the string.
-     */
-    _getStringDecimalValue(str: string) {
-        let value = 0
-        for (let i = str.length - 1; i >= 0; i--) {
-            // ASCII code * 2 ^ (position (from right to left) * 8)
-            value += str.charCodeAt(i) * 2 ** ((str.length - 1 - i) * 8)
-        }
-
-        return value
-    }
-
-    /**
-     * Gets the string value of a decimal number based on the Base58 charset.
-     * @param value The decimal number to get the string value from.
-     * @returns The string value of the decimal number.
-     */
-    _getDecimalStringValue(value: number) {
-        let str = ""
-
-        while (value > 0) {
-            // Get the remainder of the division by 58
-            str = this._CHARSET[value % 58] + str
-            // Get the integer division by 58
-            value = Math.floor(value / 58)
-        }
-
-        return str
-    }
-
-    /**
      * Encodes a string into a Base58 encoded string.
-     * @param str The string to encode.
+     * @param cache The `Cache` instance to read the data from.
+     * @param slot The position of the data in the cache (optional, defaults to 0 => length).
      * @returns The Base58 encoded string.
      */
-    encode(str: string) {
-        let value = this._getStringDecimalValue(str)
-        let encoded = ""
+    encode(cache: Cache, slot?: MemorySlot): string {
+        const bytes = cache.readUint8Array(slot?.start ?? 0, slot?.length ?? cache.length)
+        const indexes = [0]
 
-        while (value > 0) {
-            // Get the remainder of the division by 58
-            encoded = this._CHARSET[value % 58] + encoded
-            // Get the integer division by 58
-            value = Math.floor(value / 58)
+        for (const byte of bytes) {
+            // Shift all indexes by 8 bits
+            for (let i = 0; i < indexes.length; i++) {
+                indexes[i] <<= 8
+            }
+
+            // Add the byte to the first index
+            indexes[0] += byte
+
+            // Carry over the indexes
+            let carry = 0
+
+            for (let i = 0; i < indexes.length; i++) {
+                indexes[i] += carry
+                carry = (indexes[i] / this._BASE) | 0
+                indexes[i] %= this._BASE
+            }
+
+            // Add the carry to the indexes
+            while (carry) {
+                indexes.push(carry % this._BASE)
+                carry = (carry / this._BASE) | 0
+            }
         }
 
-        return encoded
+        // Add leading 1s
+        for (const byte of bytes) {
+            if (byte !== 0) break
+            indexes.push(0)
+        }
+
+        return indexes
+            .reverse()
+            .map((index) => this._CHARSET[index])
+            .join("")
     }
 
     /**
      * Decodes a Base58 encoded string back to its original string.
-     * @param encoded The Base58 encoded string to decode.
-     * @returns The original string.
+     * @param base58String The Base58 string to decode.
+     * @param cache The `Cache` instance to write the data to.
+     * @param slot The position of the data in the cache (optional, defaults to 0 => data length).
+     * @throws An error if the Base58 string is invalid.
      */
-    decode(encoded: string) {
-        let value = 0
+    decode(base58String: string, cache: Cache, slot?: MemorySlot) {
+        const bytes = [0]
 
-        for (let i = encoded.length - 1; i >= 0; i--) {
-            // Get the position of the character in the charset
-            let position = this._CHARSET.indexOf(encoded[i])
-            // Get the decimal value of the character
-            value += position * 58 ** (encoded.length - 1 - i)
+        for (const char of base58String) {
+            // Get the index of the character in the charset
+            const index = this._CHARSET.indexOf(char)
+
+            if (index === -1) throw new Error(fe(KernelErrors.INVALID_BASE58_CHARACTER))
+
+            // Multiply all bytes by 58
+            for (let i = 0; i < bytes.length; i++) {
+                bytes[i] *= this._BASE
+            }
+
+            // Add the index to the first byte
+            bytes[0] += index
+
+            // Carry over the bytes
+            let carry = 0
+
+            for (let i = 0; i < bytes.length; i++) {
+                bytes[i] += carry
+                carry = bytes[i] >> 8
+                bytes[i] &= 0xff
+            }
+
+            // Add the carry to the bytes
+            while (carry) {
+                bytes.push(carry & 0xff)
+                carry >>= 8
+            }
         }
 
-        return this._getDecimalStringValue(value)
+        // Add leading 0s
+        for (let i = 0; i < base58String.length - 1; i++) {
+            if (base58String[i] !== "1") break
+            bytes.push(0)
+        }
+
+        // Write the bytes to the cache (reversed)
+        for (let i = bytes.length - 1; i >= 0; i--) {
+            cache.writeUint8(bytes[i], (slot?.start ?? 0) + i)
+        }
     }
 }
