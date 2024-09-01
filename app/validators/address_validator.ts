@@ -6,6 +6,7 @@ import vine from "@vinejs/vine"
 export const addressCreationValidator = vine.compile(
     vine.object({
         hash: vine.string(),
+        isLocked: vine.boolean().optional(),
         chainId: vine.number(),
     })
 )

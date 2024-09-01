@@ -18,9 +18,7 @@ export default class WorkersProvider {
      */
     private addressDataCronOptions = {
         delay: addressDataConfig.initialDelay,
-        repeat: {
-            every: addressDataConfig.repeatEvery,
-        },
+        repeat: { every: addressDataConfig.repeatEvery },
         removeOnComplete: true,
         removeOnFail: true,
     }
@@ -34,7 +32,7 @@ export default class WorkersProvider {
     async ready() {
         if (process.env.NO_LIFECYCLE === "true") {
             // Ensures that the address data cron job is not running
-            await addressDataQueue.removeRepeatable("cron:address:data", this.addressDataCronOptions.repeat)
+            await addressDataQueue.removeRepeatable("cron-address-data", this.addressDataCronOptions.repeat)
             return
         }
 
@@ -46,7 +44,7 @@ export default class WorkersProvider {
             const addressDataWorkerName = Object.keys({ addressDataWorker })[0]
 
             if (workerName === addressDataWorkerName) {
-                await addressDataQueue.add("cron:address:data", {}, this.addressDataCronOptions)
+                await addressDataQueue.add("cron-address-data", {}, this.addressDataCronOptions)
                 logger.info(`scheduled '${workerName}' to run every ${addressDataConfig.repeatEvery / 1000} second(s)`)
                 logger.info(`address data will be automatically fetched every ${addressDataConfig.fetchEvery} hour(s)`)
             }

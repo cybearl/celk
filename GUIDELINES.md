@@ -10,3 +10,4 @@ Kernel: Classes
   for internal operations, use `Uint8Array` instead.
 - The `Cache` instance where data is read or written should **never**
   be returned by a method.
+- `NO_LIFECYCLE` injected env variable is used to prevent some features of the stack from starting.

@@ -39,6 +39,8 @@ Updates
   - Switching to versioning with the following format: `vYYYY.M.D-<type>`.
   - Implemented Base58 encoding/decoding for Bitcoin addresses.
   - Deleted PostMan in favor of `adonis-autoswagger` + project-hosted Swagger UI.
+  - Replaced basic role-check system with AdonisJS Bouncer middleware & policies.
+  - Pagination on all index routes.
 
 ### Previous updates
 - **v1.1.0**:

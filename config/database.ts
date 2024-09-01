@@ -8,7 +8,7 @@ const databaseConfig = defineConfig({
     connection: "main",
     connections: {
         main: {
-            client: "postgresql",
+            client: "pg",
             connection: env.get("DATABASE_URL"),
             migrations: {
                 naturalSort: true,

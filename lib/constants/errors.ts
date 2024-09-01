@@ -69,10 +69,22 @@ export const AppErrors = {
         message: "The address type is invalid.",
         data: null,
     },
+    INVALID_TOKEN_SCOPE: {
+        status: 400,
+        name: "INVALID_TOKEN_SCOPE",
+        message: "The token scope is invalid.",
+        data: null,
+    },
 
     //=======
     //  401
     //=======
+    UNAUTHENTICATED: {
+        status: 401,
+        name: "UNAUTHENTICATED",
+        message: "You must be authenticated to access this resource.",
+        data: null,
+    },
     UNAUTHORIZED: {
         status: 401,
         name: "UNAUTHORIZED",
@@ -82,7 +94,7 @@ export const AppErrors = {
     LOCKED: {
         status: 401,
         name: "LOCKED",
-        message: "Your account is locked. Please contact the administrator.",
+        message: "Your account is locked. Please contact an administrator.",
         data: null,
     },
     YOU_CANNOT_LOCK_YOURSELF: {
@@ -95,6 +107,12 @@ export const AppErrors = {
         status: 401,
         name: "YOU_CANNOT_UNLOCK_YOURSELF",
         message: "You cannot unlock yourself, would be too easy, right?",
+        data: null,
+    },
+    INVALID_TOKEN: {
+        status: 401,
+        name: "INVALID_TOKEN",
+        message: "The token is either expired or invalid.",
         data: null,
     },
 
@@ -120,7 +138,7 @@ export const AppErrors = {
     CHAIN_NOT_FOUND: {
         status: 404,
         name: "CHAIN_NOT_FOUND",
-        message: "The requested chain was not found.",
+        message: "This chain does not exist or is not supported.",
         data: null,
     },
     ADDRESS_NOT_FOUND: {
@@ -141,6 +159,12 @@ export const AppErrors = {
         message: "The requested user was not found.",
         data: null,
     },
+    TOKEN_NOT_FOUND: {
+        status: 404,
+        name: "TOKEN_NOT_FOUND",
+        message: "The requested token was not found.",
+        data: null,
+    },
 
     //=======
     //  405
@@ -159,6 +183,30 @@ export const AppErrors = {
         status: 409,
         name: "ADDRESS_DATA_FETCHED_TOO_SOON",
         message: "Address data must be fetched at least 10 seconds apart.",
+        data: null,
+    },
+    CHAIN_ALREADY_EXISTS: {
+        status: 409,
+        name: "CHAIN_ALREADY_EXISTS",
+        message: "A chain with this ID or name already exists.",
+        data: null,
+    },
+    ROLE_ALREADY_EXISTS: {
+        status: 409,
+        name: "ROLE_ALREADY_EXISTS",
+        message: "A role with this name already exists.",
+        data: null,
+    },
+    EMAIL_ALREADY_EXISTS: {
+        status: 409,
+        name: "EMAIL_ALREADY_EXISTS",
+        message: "A user with this email already exists.",
+        data: null,
+    },
+    USERNAME_ALREADY_EXISTS: {
+        status: 409,
+        name: "USERNAME_ALREADY_EXISTS",
+        message: "A user with this username already exists.",
         data: null,
     },
 

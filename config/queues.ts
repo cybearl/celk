@@ -1,4 +1,5 @@
 import redisConfig from "#config/redis"
+import env from "#start/env"
 import { QueueOptions } from "bullmq"
 
 /**
@@ -13,7 +14,7 @@ const queuesConfig: QueueOptions = {
         // Delayed jobs
         backoff: {
             type: "exponential",
-            delay: 5000,
+            delay: env.get("NODE_ENV") === "production" ? 2048 : 1024,
         },
 
         // Auto-removal

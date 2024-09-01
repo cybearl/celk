@@ -1,11 +1,10 @@
 import BaseController from "#controllers/templates/base_controller"
 import { AppErrors } from "#lib/constants/errors"
 import { getAddressType } from "#lib/utils/addresses"
-import { getAuthUserRoles } from "#lib/utils/roles"
 import Address from "#models/address"
 import Chain from "#models/chain"
-import { RoleNames } from "#models/role"
-import { addressCreationValidator } from "#validators/addresses_validator"
+import AddressPolicy from "#policies/address_policy"
+import { addressCreationValidator } from "#validators/address_validator"
 import { fetchBitcoinAddressData, fetchEthereumAddressData } from "#workers/address_data_worker"
 import { HttpContext } from "@adonisjs/core/http"
 import logger from "@adonisjs/core/services/logger"
@@ -15,35 +14,62 @@ export default class AddressesController extends BaseController {
     /**
      * Get all addresses.
      */
-    async index({ auth }: HttpContext) {
-        const roles = await getAuthUserRoles(auth)
-
-        if (roles.includes(RoleNames.AdminRole)) {
-            const addresses = await Address.all()
-            return this.successResponse(addresses)
+    async index({ auth, bouncer, request }: HttpContext) {
+        if (await bouncer.with(AddressPolicy).denies("index")) {
+            return this.errorResponse(AppErrors.UNAUTHORIZED)
         }
 
-        const addresses = await Address.query().where("userId", auth.user!.id)
-        return this.successResponse(addresses)
+        const queries = request.qs()
+        const options = this.getQueryOptions(queries)
+
+        const addresses = await Address.query()
+            .where("userId", auth.user!.id)
+            .orderBy(options.orderBy, options.orderDirection)
+            .paginate(options.page, options.limit)
+
+        const res = addresses.toJSON()
+        return this.successResponse(res.data, res.meta)
+    }
+
+    /**
+     * Get all addresses (reserved for administrators only).
+     */
+    async indexAll({ bouncer, request }: HttpContext) {
+        if (await bouncer.with(AddressPolicy).denies("indexAll")) {
+            return this.errorResponse(AppErrors.UNAUTHORIZED)
+        }
+
+        const queries = request.qs()
+        const options = this.getQueryOptions(queries)
+
+        const addresses = await Address.query()
+            .orderBy(options.orderBy, options.orderDirection)
+            .paginate(options.page, options.limit)
+
+        const res = addresses.toJSON()
+        return this.successResponse(res.data, res.meta)
     }
 
     /**
      * Add a new address.
      */
-    async store({ request, auth }: HttpContext) {
-        const { hash, chainId } = await request.validateUsing(addressCreationValidator)
+    async store({ bouncer, request, auth }: HttpContext) {
+        if (await bouncer.with(AddressPolicy).denies("store")) {
+            return this.errorResponse(AppErrors.UNAUTHORIZED)
+        }
+
+        const { hash, isLocked, chainId } = await request.validateUsing(addressCreationValidator)
 
         const type = getAddressType(hash)
         if (!type) return this.errorResponse(AppErrors.INVALID_ADDRESS_TYPE)
 
         const chain = await Chain.find(chainId)
-        if (!chain) {
-            return this.errorResponse(AppErrors.CHAIN_NOT_FOUND, null, "This chain does not exist or is not supported.")
-        }
+        if (!chain) return this.errorResponse(AppErrors.CHAIN_NOT_FOUND)
 
         const address = await Address.create({
             type,
             hash,
+            isLocked,
             chainId,
             userId: auth.user!.id,
         })
@@ -54,18 +80,13 @@ export default class AddressesController extends BaseController {
     /**
      * Get address by ID.
      */
-    async show({ params, auth }: HttpContext) {
-        const roles = await getAuthUserRoles(auth)
-
-        if (roles.includes(RoleNames.AdminRole)) {
-            const address = await Address.find(params.address_id)
-            if (!address) return this.errorResponse(AppErrors.ADDRESS_NOT_FOUND)
-
-            return this.successResponse(address)
-        }
-
-        const address = await Address.query().where("userId", auth.user!.id).andWhere("id", params.address_id).first()
+    async show({ bouncer, params }: HttpContext) {
+        const address = await Address.find(params.address_id)
         if (!address) return this.errorResponse(AppErrors.ADDRESS_NOT_FOUND)
+
+        if (await bouncer.with(AddressPolicy).denies("show", address)) {
+            return this.errorResponse(AppErrors.UNAUTHORIZED)
+        }
 
         return this.successResponse(address)
     }
@@ -73,21 +94,20 @@ export default class AddressesController extends BaseController {
     /**
      * Update address data by ID.
      */
-    async update({ params, auth }: HttpContext) {
-        const roles = await getAuthUserRoles(auth)
-
-        let address: Address | null = null
-        if (roles.includes(RoleNames.AdminRole)) address = await Address.find(params.address_id)
-        else address = await Address.query().where("userId", auth.user!.id).andWhere("id", params.address_id).first()
-
+    async update({ bouncer, params, auth }: HttpContext) {
+        const address = await Address.find(params.address_id)
         if (!address) return this.errorResponse(AppErrors.ADDRESS_NOT_FOUND)
+
+        if (await bouncer.with(AddressPolicy).denies("update", address)) {
+            return this.errorResponse(AppErrors.UNAUTHORIZED)
+        }
 
         if (address.fetchedAt) {
             // Verify that the fetchedAt field is not < 10 seconds ago
             const diff = Math.abs(address.fetchedAt.diffNow("seconds").seconds)
 
             if (diff < 10) {
-                logger.debug(`Address data for ${address.hash} was fetched too soon (${diff} seconds < 10 seconds)`)
+                logger.debug(`address data for ${address.hash} was fetched too soon (${diff} seconds < 10 seconds)`)
                 return this.errorResponse(AppErrors.ADDRESS_DATA_FETCHED_TOO_SOON)
             }
         }
@@ -114,14 +134,13 @@ export default class AddressesController extends BaseController {
     /**
      * Delete address by ID.
      */
-    async destroy({ params, auth }: HttpContext) {
-        const roles = await getAuthUserRoles(auth)
-
-        let address: Address | null = null
-        if (roles.includes(RoleNames.AdminRole)) address = await Address.find(params.address_id)
-        else address = await Address.query().where("userId", auth.user!.id).andWhere("id", params.address_id).first()
-
+    async destroy({ bouncer, params }: HttpContext) {
+        const address = await Address.find(params.address_id)
         if (!address) return this.errorResponse(AppErrors.ADDRESS_NOT_FOUND)
+
+        if (await bouncer.with(AddressPolicy).denies("destroy", address)) {
+            return this.errorResponse(AppErrors.UNAUTHORIZED)
+        }
 
         await address.delete()
         return this.successResponse()
@@ -130,14 +149,13 @@ export default class AddressesController extends BaseController {
     /**
      * Locks an address, preventing it from being used in any research stack.
      */
-    async lock({ params, auth }: HttpContext) {
-        const roles = await getAuthUserRoles(auth)
-
-        let address: Address | null = null
-        if (roles.includes(RoleNames.AdminRole)) address = await Address.find(params.address_id)
-        else address = await Address.query().where("userId", auth.user!.id).andWhere("id", params.address_id).first()
-
+    async lock({ bouncer, params, auth }: HttpContext) {
+        const address = await Address.find(params.address_id)
         if (!address) return this.errorResponse(AppErrors.ADDRESS_NOT_FOUND)
+
+        if (await bouncer.with(AddressPolicy).denies("lock", address)) {
+            return this.errorResponse(AppErrors.UNAUTHORIZED)
+        }
 
         address.isLocked = true
         await address.save()
@@ -149,14 +167,13 @@ export default class AddressesController extends BaseController {
     /**
      * Unlocks an address, allowing it to be used in research stacks again.
      */
-    async unlock({ params, auth }: HttpContext) {
-        const roles = await getAuthUserRoles(auth)
-
-        let address: Address | null = null
-        if (roles.includes(RoleNames.AdminRole)) address = await Address.find(params.address_id)
-        else address = await Address.query().where("userId", auth.user!.id).andWhere("id", params.address_id).first()
-
+    async unlock({ bouncer, params, auth }: HttpContext) {
+        const address = await Address.find(params.address_id)
         if (!address) return this.errorResponse(AppErrors.ADDRESS_NOT_FOUND)
+
+        if (await bouncer.with(AddressPolicy).denies("unlock", address)) {
+            return this.errorResponse(AppErrors.UNAUTHORIZED)
+        }
 
         address.isLocked = false
         await address.save()

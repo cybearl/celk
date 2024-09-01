@@ -1,6 +1,7 @@
 import { defineConfig } from "@adonisjs/auth"
 import { InferAuthEvents, Authenticators } from "@adonisjs/auth/types"
 import { tokensGuard, tokensUserProvider } from "@adonisjs/auth/access_tokens"
+import { basicAuthGuard, basicAuthUserProvider } from "@adonisjs/auth/basic_auth"
 
 /**
  * The configuration settings for the auth module,
@@ -9,9 +10,14 @@ import { tokensGuard, tokensUserProvider } from "@adonisjs/auth/access_tokens"
 const authConfig = defineConfig({
     default: "token",
     guards: {
+        base64credentials: basicAuthGuard({
+            provider: basicAuthUserProvider({
+                model: () => import("#models/user"),
+            }),
+        }),
         token: tokensGuard({
             provider: tokensUserProvider({
-                tokens: "accessTokens",
+                tokens: "tokens",
                 model: () => import("#models/user"),
             }),
         }),

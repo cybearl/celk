@@ -23,16 +23,16 @@ export default class AuthMiddleware {
         } catch (error) {
             return ctx.response.unauthorized({
                 success: false,
-                message: "The authentication credentials are invalid.",
-                error: AppErrors.UNAUTHORIZED,
+                message: "The token that was provided is invalid or has expired.",
+                error: AppErrors.INVALID_TOKEN,
             })
         }
 
         if (!ctx.auth.user) {
             return ctx.response.unauthorized({
                 success: false,
-                message: "Invalid connection attempt for unknown reason.",
-                error: AppErrors.UNAUTHORIZED,
+                message: AppErrors.UNAUTHENTICATED.message,
+                error: AppErrors.UNAUTHENTICATED,
             })
         }
 

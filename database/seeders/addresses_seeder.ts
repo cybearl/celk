@@ -7,8 +7,6 @@ export default class extends BaseSeeder {
     static environment = ["development", "testing", "production"]
 
     async run() {
-        logger.info("seeding addresses..")
-
         const addressesToSeed = [
             "14zfBQx95CP2iRxUuyouhqJsBzgj9iKt4X",
             "1MeUgutKkYiyy6rchnhs52c3y2XdjC9AMp",

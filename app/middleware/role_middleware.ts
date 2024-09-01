@@ -23,8 +23,8 @@ export default class RoleMiddleware {
         if (!ctx.auth.isAuthenticated) {
             return ctx.response.forbidden({
                 success: false,
-                message: "You must be authenticated to access this route.",
-                error: AppErrors.UNAUTHORIZED,
+                message: AppErrors.UNAUTHENTICATED.message,
+                error: AppErrors.UNAUTHENTICATED,
             })
         }
 

@@ -19,6 +19,7 @@ services:
     image: postgres
     restart: always
     environment:
+      PGPORT: 5433
       POSTGRES_DB: postgres
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres

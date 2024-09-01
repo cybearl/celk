@@ -13,7 +13,7 @@ export default class HttpExceptionHandler extends ExceptionHandler {
      * response to the client
      */
     async handle(error: unknown, ctx: HttpContext) {
-        // TODO: Overwrite errors to match my standards here
+        // TODO: Overwrite errors to match standard here
         return super.handle(error, ctx)
     }
 

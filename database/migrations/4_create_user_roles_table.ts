@@ -16,6 +16,10 @@ export default class SkillUsers extends BaseSchema {
 
             // Unique constraint for both (pivot table)
             table.unique(["user_id", "role_id"])
+
+            // Dates
+            table.timestamp("created_at").notNullable()
+            table.timestamp("updated_at").notNullable()
         })
     }
 

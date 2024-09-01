@@ -89,7 +89,7 @@ export async function getBitcoinAddressData(address: string, limit = 32, offset 
         const data = await response.json()
         return data as BitcoinAddressData
     } catch (error) {
-        logger.warn(`Bitcoin API endpoint returned an error while fetching with URL: ${url}`)
+        logger.warn(`bitcoin API endpoint returned an error while fetching with URL: ${url}`)
         logger.warn(error)
         return null
     }
@@ -111,7 +111,7 @@ export async function getEthereumAddressData(address: string, page = 1, offset =
         const txs = await provider.getHistory(address, { page, offset })
         return { balance, txCount, txs }
     } catch (error) {
-        logger.warn(`Ethereum API endpoint returned an error while fetching with address: ${address}`)
+        logger.warn(`ethereum API endpoint returned an error while fetching with address: ${address}`)
         logger.warn(error)
         return null
     }

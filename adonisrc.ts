@@ -5,7 +5,11 @@ export default defineConfig({
      * List of ace commands to register from packages. The application commands
      * will be scanned automatically from the "./commands" directory.
      */
-    commands: [() => import("@adonisjs/core/commands"), () => import("@adonisjs/lucid/commands")],
+    commands: [
+        () => import("@adonisjs/core/commands"),
+        () => import("@adonisjs/lucid/commands"),
+        () => import("@adonisjs/bouncer/commands"),
+    ],
 
     /*
      * List of service providers to import and register when booting the
@@ -23,6 +27,7 @@ export default defineConfig({
         () => import("@adonisjs/lucid/database_provider"),
         () => import("@adonisjs/auth/auth_provider"),
         () => import("#providers/workers_provider"),
+        () => import("@adonisjs/bouncer/bouncer_provider"),
     ],
 
     /*
@@ -47,6 +52,6 @@ export default defineConfig({
                 timeout: 30000,
             },
         ],
-        forceExit: false,
+        forceExit: true,
     },
 })
