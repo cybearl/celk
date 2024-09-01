@@ -1,4 +1,4 @@
-import { MAX_DESCRIPTION_LENGTH, MAX_NAME_LENGTH } from "#lib/constants/db"
+import { MAX_DESCRIPTION_LENGTH, MAX_NAME_LENGTH } from "#lib/constants/database"
 import { BaseSchema } from "@adonisjs/lucid/schema"
 
 export default class extends BaseSchema {

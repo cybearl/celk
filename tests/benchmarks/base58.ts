@@ -15,11 +15,15 @@ export default function executeBase58EncoderBenchmark(_: any, benchmarkDuration:
 
     // Test values
     const base58InputUtf8 = "128739950dcdd98e5e"
-    const base58Output = "33MH7LyrfQM1c1N4rHNLLFWfv"
+    const base58OutputUtf8 = "33MH7LyrfQM1c1N4rHNLLFWfv"
+
+    const base58InputAddress = "0x00B33370C37DD76D5723354122B8AC7F58D95450D154AF8401"
+    const base58OutputAddress = "1HLXaV8k8JsT9gAzKJm4zKau5PcYSqpkpQ"
 
     // Test cache instances
-    const base58InputCache = Cache.fromUtf8String(base58InputUtf8)
-    const base58OutputCache = new Cache(base58InputUtf8.length / 2 + 1)
+    const base58InputUtf8Cache = Cache.fromUtf8String(base58InputUtf8)
+    const base58InputAddressCache = Cache.fromHexString(base58InputAddress)
+    const base58OutputCache = new Cache(256)
 
     // Test Base58Encoder instances
     const base58Encoder = new Base58Encoder()
@@ -27,7 +31,20 @@ export default function executeBase58EncoderBenchmark(_: any, benchmarkDuration:
     // Benchmark
     const bench = new Bench(benchmarkDuration)
 
-    bench.benchmark(() => base58Encoder.encode(base58InputCache), `encode(${base58InputCache.length})`)
-    bench.benchmark(() => base58Encoder.decode(base58Output, base58OutputCache), `decode(${base58OutputCache.length})`)
+    bench.benchmark(() => base58Encoder.encode(base58InputUtf8Cache), `encode(${base58InputUtf8.length})`)
+    bench.benchmark(
+        () => base58Encoder.decode(base58OutputUtf8, base58OutputCache, { start: 0, length: 25, end: 25 }),
+        `decode(${base58OutputUtf8.length})`
+    )
+
+    bench.benchmark(
+        () => base58Encoder.encode(base58InputAddressCache),
+        `encode(${base58InputAddress.length / 2} - address)`
+    )
+    bench.benchmark(
+        () => base58Encoder.decode(base58OutputAddress, base58OutputCache, { start: 0, length: 34, end: 34 }),
+        `decode(${base58OutputAddress.length} - address)`
+    )
+
     bench.print("base58")
 }

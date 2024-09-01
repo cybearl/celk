@@ -35,20 +35,23 @@ Benchmark environment:
 
 Updates
 -------
-### v1.1.0 Switching to AdonisJS
-- Switching from raw `ts-node` to [AdonisJS](https://adonisjs.com/) with the goal of making it a backend API.
-- Implemented [Lucid ORM](https://lucid.adonisjs.com/docs/introduction) for the database (PostgreSQL).
-- Implemented [Japa](https://japa.dev/docs/introduction) for the tests.
-- Implemented [BullMQ](https://docs.bullmq.io/) for the jobs.
-- Implemented a system that fetches the address data (number of TXs, last TX date, balance, etc..) from the blockchain.
-- Implemented the `v1.0.9` benchmarking system with slight improvements.
-- Added `ts-node` to be able to run arbitrary scripts for development/debugging purposes.
-- Implemented and improved the original `v1.0.9` cache system.
-- Started working on a Ethereum address generator.
-- Implemented Bech32 encoding/decoding for Bitcoin addresses.
-- Removed self-implementation of the different algorithms in favor of using external libraries.
+### Latest update (v2024.9.0-alpha):
+  - Switching to versioning with the following format: `vYYYY.M.D-<type>`.
+  - Implemented Base58 encoding/decoding for Bitcoin addresses.
+  - Deleted PostMan in favor of `adonis-autoswagger` + project-hosted Swagger UI.
 
 ### Previous updates
+- **v1.1.0**:
+  - Switching from raw `ts-node` to [AdonisJS](https://adonisjs.com/) with the goal of making it a backend API.
+  - Implemented [Lucid ORM](https://lucid.adonisjs.com/docs/introduction) for the database (PostgreSQL).
+  - Implemented [Japa](https://japa.dev/docs/introduction) for the tests.
+  - Implemented [BullMQ](https://docs.bullmq.io/) for the jobs.
+  - Implemented a system that fetches the address data (number of TXs, last TX date, balance, etc..) from the blockchain.
+  - Implemented the `v1.0.9` benchmarking system with slight improvements.
+  - Added `ts-node` to be able to run arbitrary scripts for development/debugging purposes.
+  - Implemented and improved the original `v1.0.9` cache system.
+  - Started working on a Ethereum address generator.
+  - Implemented Bech32 encoding/decoding for Bitcoin addresses.
 - **v1.0.9**: Started working on a new architecture, with Jest, and a new Cache class.
   - Cancelled in favor of switching to AdonisJS because I wanted to make it a backend API,
     and also because the code started to be a real mess, really hard to maintain and even more

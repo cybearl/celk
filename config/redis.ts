@@ -1,15 +1,14 @@
 import env from "#start/env"
-import { RedisOptions } from "bullmq"
+import { default as IORedis } from "ioredis"
 
-/**
- * The Redis connection configuration.
- */
-const redisConfig: RedisOptions = {
-    host: env.get("REDIS_HOST"),
-    port: env.get("REDIS_PORT"),
-    password: env.get("REDIS_PASSWORD"),
-    db: 0,
-    keyPrefix: "",
+const redisConfig: IORedis.RedisOptions = {
+    // https://github.com/nocodb/nocodb/issues/2452#issue-1279896470
+    maxRetriesPerRequest: null,
 }
 
-export default redisConfig
+/**
+ * A reusable IORedis connector for the Redis database.
+ */
+const redisConnector = new IORedis.Redis(env.get("REDIS_URL"), redisConfig)
+
+export default redisConnector

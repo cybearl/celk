@@ -15,19 +15,14 @@ export default await Env.create(new URL("../", import.meta.url), {
     TZ: Env.schema.string(),
 
     // App name and key (AES-256-CBC)
+    APP_NAME: Env.schema.string(),
     APP_KEY: Env.schema.string(),
 
-    // Redis database
-    REDIS_HOST: Env.schema.string({ format: "host" }),
-    REDIS_PORT: Env.schema.number(),
-    REDIS_PASSWORD: Env.schema.string(),
-
     // PostgreSQL database
-    POSTGRES_HOST: Env.schema.string({ format: "host" }),
-    POSTGRES_PORT: Env.schema.number(),
-    POSTGRES_USER: Env.schema.string(),
-    POSTGRES_PASSWORD: Env.schema.string(),
-    POSTGRES_DB: Env.schema.string(),
+    DATABASE_URL: Env.schema.string(),
+
+    // Redis database
+    REDIS_URL: Env.schema.string(),
 
     // Default administrator
     DEFAULT_ADMIN_EMAIL: Env.schema.string({ format: "email" }),

@@ -1,4 +1,4 @@
-import { MAX_ADDRESS_LENGTH } from "#lib/constants/db"
+import { MAX_ADDRESS_LENGTH } from "#lib/constants/database"
 import { AddressType } from "#models/address"
 import { BaseSchema } from "@adonisjs/lucid/schema"
 

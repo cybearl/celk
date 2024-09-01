@@ -2,7 +2,7 @@ import type { HttpContext } from "@adonisjs/core/http"
 import type { NextFn } from "@adonisjs/core/types/http"
 import type { Authenticators } from "@adonisjs/auth/types"
 import { AppErrors } from "#lib/constants/errors"
-import { REDIRECT_TO } from "#lib/constants/db"
+import { REDIRECT_TO } from "#lib/constants/database"
 import logger from "@adonisjs/core/services/logger"
 
 /**

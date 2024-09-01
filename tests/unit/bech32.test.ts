@@ -22,17 +22,17 @@ test.group("bech32 / encode", (group) => {
 test.group("bech32 / decode", (group) => {
     let bech32Encoder: Bech32Encoder
 
-    const input = "bc1qz2rnn9gdehvcuhqp5pt2rx3m92w80wdhzp9xlg"
-    const outputHex = "128739950dcdd98e5c01a056a19a3b2a9c77b9b7"
+    const inputHex = "128739950dcdd98e5c01a056a19a3b2a9c77b9b7"
+    const output = "bc1qz2rnn9gdehvcuhqp5pt2rx3m92w80wdhzp9xlg"
 
     group.each.setup(() => {
         bech32Encoder = new Bech32Encoder()
     })
 
     test("It should decode a bech32 string and write it into a cache", ({ expect }) => {
-        const cache = new Cache(outputHex.length / 2)
-        bech32Encoder.decode(input, cache)
-        expect(cache.toHexString()).toBe(outputHex.toUpperCase())
+        const cache = new Cache(inputHex.length / 2)
+        bech32Encoder.decode(output, cache)
+        expect(cache.toHexString()).toBe(inputHex.toUpperCase())
     })
 })
 
@@ -56,16 +56,16 @@ test.group("bech32m / encode", (group) => {
 test.group("bech32m / decode", (group) => {
     let bech32Encoder: Bech32Encoder
 
-    const input = "bc1gz2rnn9gdehvcuhqp5pt2rx3m92w80wdhamfqfq"
-    const outputHex = "128739950dcdd98e5c01a056a19a3b2a9c77b9b7"
+    const inputHex = "128739950dcdd98e5c01a056a19a3b2a9c77b9b7"
+    const output = "bc1qz2rnn9gdehvcuhqp5pt2rx3m92w80wdhzp9xlg"
 
     group.each.setup(() => {
         bech32Encoder = new Bech32Encoder()
     })
 
     test("It should decode a bech32m string to a cache", ({ expect }) => {
-        const cache = new Cache(outputHex.length / 2)
-        bech32Encoder.decode(input, cache)
-        expect(cache.toHexString()).toBe(outputHex.toUpperCase())
+        const cache = new Cache(inputHex.length / 2)
+        bech32Encoder.decode(output, cache)
+        expect(cache.toHexString()).toBe(inputHex.toUpperCase())
     })
 })

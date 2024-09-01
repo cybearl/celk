@@ -1,7 +1,7 @@
 import BaseController from "#controllers/templates/base_controller"
 import { AppErrors } from "#lib/constants/errors"
 import { getAddressType } from "#lib/utils/addresses"
-import { getUserRoles } from "#lib/utils/roles"
+import { getAuthUserRoles } from "#lib/utils/roles"
 import Address from "#models/address"
 import Chain from "#models/chain"
 import { RoleNames } from "#models/role"
@@ -16,7 +16,7 @@ export default class AddressesController extends BaseController {
      * Get all addresses.
      */
     async index({ auth }: HttpContext) {
-        const roles = await getUserRoles(auth)
+        const roles = await getAuthUserRoles(auth)
 
         if (roles.includes(RoleNames.AdminRole)) {
             const addresses = await Address.all()
@@ -55,7 +55,7 @@ export default class AddressesController extends BaseController {
      * Get address by ID.
      */
     async show({ params, auth }: HttpContext) {
-        const roles = await getUserRoles(auth)
+        const roles = await getAuthUserRoles(auth)
 
         if (roles.includes(RoleNames.AdminRole)) {
             const address = await Address.find(params.address_id)
@@ -74,7 +74,7 @@ export default class AddressesController extends BaseController {
      * Update address data by ID.
      */
     async update({ params, auth }: HttpContext) {
-        const roles = await getUserRoles(auth)
+        const roles = await getAuthUserRoles(auth)
 
         let address: Address | null = null
         if (roles.includes(RoleNames.AdminRole)) address = await Address.find(params.address_id)
@@ -115,7 +115,7 @@ export default class AddressesController extends BaseController {
      * Delete address by ID.
      */
     async destroy({ params, auth }: HttpContext) {
-        const roles = await getUserRoles(auth)
+        const roles = await getAuthUserRoles(auth)
 
         let address: Address | null = null
         if (roles.includes(RoleNames.AdminRole)) address = await Address.find(params.address_id)
@@ -131,7 +131,7 @@ export default class AddressesController extends BaseController {
      * Locks an address, preventing it from being used in any research stack.
      */
     async lock({ params, auth }: HttpContext) {
-        const roles = await getUserRoles(auth)
+        const roles = await getAuthUserRoles(auth)
 
         let address: Address | null = null
         if (roles.includes(RoleNames.AdminRole)) address = await Address.find(params.address_id)
@@ -150,7 +150,7 @@ export default class AddressesController extends BaseController {
      * Unlocks an address, allowing it to be used in research stacks again.
      */
     async unlock({ params, auth }: HttpContext) {
-        const roles = await getUserRoles(auth)
+        const roles = await getAuthUserRoles(auth)
 
         let address: Address | null = null
         if (roles.includes(RoleNames.AdminRole)) address = await Address.find(params.address_id)

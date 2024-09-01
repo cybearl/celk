@@ -2,21 +2,14 @@ import env from "#start/env"
 import { defineConfig } from "@adonisjs/lucid"
 
 /**
- * The PostgreSQL connection configuration.
+ * The database connection configuration.
  */
-const dbConfig = defineConfig({
+const databaseConfig = defineConfig({
     connection: "main",
     connections: {
         main: {
             client: "postgresql",
-            connection: {
-                host: env.get("POSTGRES_HOST"),
-                port: env.get("POSTGRES_PORT"),
-                user: env.get("POSTGRES_USER"),
-                password: env.get("POSTGRES_PASSWORD"),
-                database: env.get("POSTGRES_DB"),
-                ssl: true,
-            },
+            connection: env.get("DATABASE_URL"),
             migrations: {
                 naturalSort: true,
                 paths: ["database/migrations"],
@@ -28,4 +21,4 @@ const dbConfig = defineConfig({
     },
 })
 
-export default dbConfig
+export default databaseConfig
