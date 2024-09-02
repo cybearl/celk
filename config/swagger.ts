@@ -44,7 +44,12 @@ const autoSwaggerBaseConfig: AutoSwaggerOptions = {
     ignore: ["/swagger", "/docs", "/admin/*"],
     preferredPutPatch: "PUT",
     common: {
-        parameters: {}, // OpenAPI conform parameters that are commonly used
+        parameters: {
+            AddressType: {
+                type: "string",
+                format: "byte",
+            },
+        }, // OpenAPI conform parameters that are commonly used
         headers: {}, // OpenAPI conform headers that are commonly used
     },
     securitySchemes: {},
