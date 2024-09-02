@@ -8,7 +8,8 @@ import { HttpContext } from "@adonisjs/core/http"
  * @returns The user's roles (as an array of role names).
  */
 export async function getAuthUserRoles(auth: HttpContext["auth"]) {
-    const roles = await auth.user!.related("roles").query().select("name")
+    if (!auth.user) return []
+    const roles = await (auth.user as User).related("roles").query().select("name")
     return roles.map((role) => role.name)
 }
 
