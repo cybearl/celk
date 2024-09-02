@@ -1,4 +1,4 @@
-import { AddressType } from "#models/address"
+import { AddressType } from "#lib/constants/enums"
 
 /**
  * Get the type of an address.

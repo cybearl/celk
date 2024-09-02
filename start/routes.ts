@@ -10,20 +10,6 @@ const RolesController = () => import("#controllers/roles_controller")
 const TokensController = () => import("#controllers/tokens_controller")
 const UsersController = () => import("#controllers/users_controller")
 
-// ======================================
-//  Root route (for health checks, etc.)
-// ======================================
-router.get("/", async ({ response }) =>
-    response.json({
-        success: true,
-        data: {
-            status: "online",
-            message: "A service provided by Cybearl, all rights reserved.",
-            timestamp: new Date().toISOString(),
-        },
-    })
-)
-
 // =========================================
 //  Authentication routes (via credentials)
 // =========================================
@@ -117,3 +103,6 @@ router
     .prefix("/admin")
     .use(middleware.auth({ guards: ["base64credentials", "token"] }))
     .use(middleware.role({ role: "admin" }))
+
+// Default route redirects to the docs
+router.get("/", async ({ response }) => response.redirect("/docs"))

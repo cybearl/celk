@@ -1,47 +1,5 @@
+import { TokenAbility, TokenScope } from "#lib/constants/enums"
 import User from "#models/user"
-
-/**
- * The scope of a token that can be issued.
- */
-export enum TokenScope {
-    UNRESTRICTED = "unrestricted",
-    API_KEY = "api-key",
-    API_SECRET = "api-secret",
-}
-
-/**
- * A list of all available token abilities.
- */
-export enum TokenAbility {
-    // Unrestricted / all abilities
-    UNRESTRICTED = "*",
-
-    // Addresses
-    ADDRESS_READ = "address:read",
-    ADDRESS_CREATE = "address:create",
-    ADDRESS_UPDATE = "address:update",
-    ADDRESS_DELETE = "address:delete",
-    ADDRESS_LOCK = "address:lock",
-    ADDRESS_UNLOCK = "address:unlock",
-
-    // Chains
-    CHAIN_READ = "chain:read",
-
-    // Roles
-    ROLE_READ = "role:read",
-
-    // Tokens
-    TOKEN_READ = "token:read",
-    TOKEN_CREATE = "token:create",
-    TOKEN_UPDATE = "token:update",
-    TOKEN_DELETE = "token:delete",
-
-    // Users
-    USER_READ = "user:read",
-    USER_CREATE = "user:create",
-    USER_UPDATE = "user:update",
-    USER_DELETE = "user:delete",
-}
 
 /**
  * A record of token scopes and their abilities.

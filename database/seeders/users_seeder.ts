@@ -1,4 +1,5 @@
-import Role, { RoleNames } from "#models/role"
+import { RoleNames } from "#lib/constants/enums"
+import Role from "#models/role"
 import User from "#models/user"
 import { BaseSeeder } from "@adonisjs/lucid/seeders"
 

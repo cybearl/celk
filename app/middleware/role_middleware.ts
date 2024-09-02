@@ -1,5 +1,6 @@
+import { RoleNames } from "#lib/constants/enums"
 import { AppErrors } from "#lib/constants/errors"
-import Role, { RoleNames } from "#models/role"
+import Role from "#models/role"
 import User from "#models/user"
 import type { HttpContext } from "@adonisjs/core/http"
 import logger from "@adonisjs/core/services/logger"

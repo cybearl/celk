@@ -1,21 +1,9 @@
+import { AddressType } from "#lib/constants/enums"
 import Chain from "#models/chain"
 import User from "#models/user"
 import { BaseModel, belongsTo, column } from "@adonisjs/lucid/orm"
 import type { BelongsTo } from "@adonisjs/lucid/types/relations"
 import { DateTime } from "luxon"
-
-/**
- * The type definition of an address.
- *
- * See https://bitbox.swiss/blog/content/images/2021/10/grafik-1.png for more information.
- */
-export enum AddressType {
-    P2TR = "BTC::P2TR", // Pay to Taproot
-    P2WPKH = "BTC::P2WPKH", // Pay to Witness Public Key Hash (SegWit)
-    P2SH_P2WPKH = "BTC::P2SH_P2WPKH", // Pay to Script Hash (Legacy SegWit)
-    P2PKH = "BTC::P2PKH", // Pay to Public Key Hash (Legacy)
-    ETH = "ETH::ETH", // Ethereum
-}
 
 /**
  * The model for an address.

@@ -11,3 +11,4 @@ Kernel: Classes
 - The `Cache` instance where data is read or written should **never**
   be returned by a method.
 - `NO_LIFECYCLE` injected env variable is used to prevent some features of the stack from starting.
+- See [Swagger Parameter Types](https://swagger.io/docs/specification/describing-parameters/) for more information on parameter types to use inside the Swagger documentation.

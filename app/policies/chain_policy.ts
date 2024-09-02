@@ -1,5 +1,6 @@
+import { TokenAbility } from "#lib/constants/enums"
 import { hasRole } from "#lib/utils/roles"
-import { TokenAbility, userTokenHasAbility } from "#lib/utils/tokens"
+import { userTokenHasAbility } from "#lib/utils/tokens"
 import User from "#models/user"
 import { BasePolicy } from "@adonisjs/bouncer"
 import { AuthorizerResponse } from "@adonisjs/bouncer/types"

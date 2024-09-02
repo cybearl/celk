@@ -2,7 +2,8 @@ import User from "#models/user"
 import { AuthorizerResponse } from "@adonisjs/bouncer/types"
 import { hasRole } from "#lib/utils/roles"
 import { BasePolicy } from "@adonisjs/bouncer"
-import { TokenAbility, userTokenHasAbility } from "#lib/utils/tokens"
+import { userTokenHasAbility } from "#lib/utils/tokens"
+import { TokenAbility } from "#lib/constants/enums"
 
 export default class UserPolicy extends BasePolicy {
     async before(user: User | null) {

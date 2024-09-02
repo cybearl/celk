@@ -12,7 +12,11 @@ import { DateTime } from "luxon"
 
 export default class AddressesController extends BaseController {
     /**
-     * Get all addresses.
+     * @index
+     * @operationId getAddresses
+     * @summary Get all addresses
+     * @description Get all addresses with per-user data isolation and pagination.
+     * @responseBody 200 - <Address[]>
      */
     async index({ auth, bouncer, request }: HttpContext) {
         if (await bouncer.with(AddressPolicy).denies("index")) {
