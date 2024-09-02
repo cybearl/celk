@@ -7,6 +7,8 @@ import { default as IORedis } from "ioredis"
 const redisConfig: IORedis.RedisOptions = {
     // https://github.com/nocodb/nocodb/issues/2452#issue-1279896470
     maxRetriesPerRequest: null,
+    connectTimeout: 4096,
+    keepAlive: 1000,
 }
 
 /**
