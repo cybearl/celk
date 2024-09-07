@@ -31,7 +31,6 @@ type AutoSwaggerOptions = Parameters<typeof AutoSwagger.default.docs>[1]
  * The default configuration for `adonis-autoswagger`.
  */
 const autoSwaggerBaseConfig: AutoSwaggerOptions = {
-    // path: path.dirname(url.fileURLToPath(import.meta.url)) + "/../",
     path: rootPath + "/",
     tagIndex: 1,
     info: {
