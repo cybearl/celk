@@ -9,7 +9,7 @@ import path from "node:path"
 const pck = createRequire(import.meta.url)(path.join(rootPath, "package.json"))
 
 /**
- * The description for the API.
+ *  The description for the API (supports markdown).
  */
 const description = dedent`
     **Celk** is a brute-forcing tool to work with Bitcoin and Ethereum addresses entirely
