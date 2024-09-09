@@ -1,4 +1,4 @@
-import { EtherscanProvider, Networkish, BlockTag } from "ethers" //^v6
+import { EtherscanProvider, Networkish, BlockTag } from "ethers"
 
 /**
  * The type definition of an Ethereum transaction data.

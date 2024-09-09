@@ -49,6 +49,11 @@ export const MAX_PASSWORD_LENGTH = 255
 export const MAX_NAME_LENGTH = 64
 
 /**
+ * The regex pattern for a valid name.
+ */
+export const NAME_PATTERN = /^[a-z0-9_-]+$/
+
+/**
  * The maximum length of the description column for all tables.
  */
 export const MAX_DESCRIPTION_LENGTH = 255
