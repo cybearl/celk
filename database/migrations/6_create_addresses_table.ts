@@ -1,4 +1,4 @@
-import { MAX_ADDRESS_LENGTH } from "#lib/constants/database"
+import { MAX_ADDRESS_LENGTH, MAX_NAME_LENGTH } from "#lib/constants/database"
 import { AddressType } from "#lib/constants/enums"
 import { BaseSchema } from "@adonisjs/lucid/schema"
 
@@ -9,11 +9,12 @@ export default class extends BaseSchema {
         this.schema.createTable(this.tableName, (table) => {
             table.increments("id").primary()
 
+            table.string("name", MAX_NAME_LENGTH).notNullable()
             table.enum("type", Object.values(AddressType)).notNullable()
-            table.string("hash", MAX_ADDRESS_LENGTH).notNullable().unique()
+            table.string("hash", MAX_ADDRESS_LENGTH).notNullable()
             table.specificType("bytecode", `bytea`).nullable()
-            table.double("balance").checkPositive().nullable()
-            table.integer("tx_count").checkPositive().nullable()
+            table.double("balance").nullable()
+            table.integer("tx_count").nullable()
 
             // Flags
             table.boolean("is_ready").notNullable().defaultTo(false)

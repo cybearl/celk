@@ -1,3 +1,6 @@
+import Cache from "#kernel/cache"
+import Base58Encoder from "#kernel/encoders/base58"
+import Bech32Encoder from "#kernel/encoders/bech32"
 import { AddressType } from "#lib/constants/enums"
 
 /**
@@ -22,14 +25,44 @@ export function getAddressType(address: string): AddressType | null {
 }
 
 /**
+ * Convert a Bitcoin address to its bytecode.
+ * @param address The address to convert.
+ * @returns The bytecode of the address.
+ */
+export function getBitcoinBytecode(address: string, type: AddressType) {
+    let encoding: "base58" | "bech32" | null = null
+
+    if (type === AddressType.P2TR || type === AddressType.P2WPKH) {
+        encoding = "bech32"
+    } else if (type === AddressType.P2PKH || type === AddressType.P2SH_P2WPKH) {
+        encoding = "base58"
+    }
+
+    if (!encoding) return null
+    const cache = new Cache(512)
+
+    if (encoding === "bech32") {
+        const bech32Encoder = new Bech32Encoder()
+        return bech32Encoder.decode(address, cache)
+    } else if (encoding === "base58") {
+        const base58Encoder = new Base58Encoder()
+        return base58Encoder.decode(address, cache)
+    }
+
+    return null
+}
+
+/**
  * Convert an Ethereum address to its bytecode.
+ * @param address The address to convert.
+ * @returns The bytecode of the address.
  */
 export function getEthereumBytecode(address: string) {
     const bytes = address.slice(2).split("")
 
-    const byteNumbers = []
+    const byteNumbers = new Uint8Array(bytes.length / 2)
     for (let i = 0; i < bytes.length; i += 2) {
-        byteNumbers.push(Number.parseInt(bytes[i] + bytes[i + 1], 16))
+        byteNumbers[i / 2] = Number.parseInt(bytes[i] + bytes[i + 1], 16)
     }
 
     return byteNumbers

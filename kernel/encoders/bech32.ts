@@ -182,7 +182,7 @@ export default class Bech32Encoder {
      * @param slot The position of the data in the cache (optional, defaults to 0 => length).
      * @returns The encoded Bech32 string.
      */
-    encode(version: number, hrp: string, cache: Cache, slot?: MemorySlot): string {
+    encode(version: number, hrp: "bc" | "tb", cache: Cache, slot?: MemorySlot): string {
         // Start with the witness version and concatenate the data converted to a 5-bit array
         const data = [version].concat(this._convertTo5BitArray(cache, slot))
 
@@ -206,9 +206,10 @@ export default class Bech32Encoder {
      * @param bech32String The Bech32 string to decode.
      * @param cache The `Cache` instance to write the data to.
      * @param slot The position of the data in the cache (optional, defaults to 0 => data length).
+     * @returns The decoded data as an Uint8Array (and writes it to the cache at the given slot).
      * @throws An error if the Bech32 string is invalid.
      */
-    decode(bech32String: string, cache: Cache, slot?: MemorySlot): void {
+    decode(bech32String: string, cache: Cache, slot?: MemorySlot): Uint8Array {
         if (bech32String.length < 8) {
             throw new Error(
                 fe(KernelErrors.INVALID_BECH32_LENGTH, "The Bech32 string is too short (less than 8 characters).")
@@ -282,5 +283,6 @@ export default class Bech32Encoder {
         }
 
         cache.writeUint8Array(decodedCache, slot?.start || 0)
+        return decodedCache
     }
 }

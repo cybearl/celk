@@ -83,14 +83,14 @@ type BitcoinAddressData = {
 export async function getBitcoinAddressData(address: string, limit = 32, offset = 0) {
     // TODO: Add fallback API
     const url = `https://blockchain.info/rawaddr/${address}?limit=${limit}&offset=${offset}`
-    const response = await fetch(url)
 
     try {
+        const response = await fetch(url)
+
         const data = await response.json()
         return data as BitcoinAddressData
     } catch (error) {
-        logger.warn(`bitcoin API endpoint returned an error while fetching with URL: ${url}`)
-        logger.warn(error)
+        logger.error(`bitcoin API returned an error for address '${address}':\n${error}`)
         return null
     }
 }
@@ -103,16 +103,15 @@ export async function getBitcoinAddressData(address: string, limit = 32, offset 
  * @returns The fetched address data.
  */
 export async function getEthereumAddressData(address: string, page = 1, offset = 32) {
-    const provider = new EthProvider("homestead", env.get("ETHERSCAN_API"))
-
     try {
+        const provider = new EthProvider("homestead", env.get("ETHERSCAN_API_KEY"))
         const balance = Number(formatEther(await provider.getBalance(address)))
         const txCount = await provider.getTransactionCount(address)
         const txs = await provider.getHistory(address, { page, offset })
+
         return { balance, txCount, txs }
     } catch (error) {
-        logger.warn(`ethereum API endpoint returned an error while fetching with address: ${address}`)
-        logger.warn(error)
+        logger.error(`ethereum API returned an error for address '${address}':\n${error}`)
         return null
     }
 }

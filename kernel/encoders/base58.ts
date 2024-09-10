@@ -77,9 +77,10 @@ export default class Base58Encoder {
      * @param base58String The Base58 string to decode.
      * @param cache The `Cache` instance to write the data to.
      * @param slot The position of the data in the cache (optional, defaults to 0 => data length).
+     * @returns The decoded data as an Uint8Array (and writes it to the cache at the given slot).
      * @throws An error if the Base58 string is invalid.
      */
-    decode(base58String: string, cache: Cache, slot?: MemorySlot) {
+    decode(base58String: string, cache: Cache, slot?: MemorySlot): Uint8Array {
         const bytes = [0]
 
         for (const char of base58String) {
@@ -122,5 +123,7 @@ export default class Base58Encoder {
         for (let i = 0; i < bytes.length; i++) {
             cache.writeUint8(bytes[bytes.length - i - 1], (slot?.start ?? 0) + i)
         }
+
+        return new Uint8Array(bytes)
     }
 }

@@ -1,6 +1,7 @@
 import addressDataConfig from "#config/address_data"
 import workersConfig from "#config/workers"
 import { getBitcoinAddressData, getEthereumAddressData } from "#lib/apis/web3"
+import { getBitcoinBytecode, getEthereumBytecode } from "#lib/utils/addresses"
 import Address from "#models/address"
 import { addressDataQueue } from "#queues/index"
 import logger from "@adonisjs/core/services/logger"
@@ -8,20 +9,32 @@ import { UnrecoverableError, Worker } from "bullmq"
 import { DateTime } from "luxon"
 
 /**
+ * An enum containing the different errors.
+ */
+enum AddressDataError {
+    CouldNotFetch = "could-not-fetch",
+}
+
+/**
  * Fetch the data of a Bitcoin address.
  * @param address The address to fetch the data of.
  */
 export async function fetchBitcoinAddressData(address: Address) {
-    const addressData = await getBitcoinAddressData(address.hash)
-    if (!addressData) return false
+    try {
+        address.bytecode = getBitcoinBytecode(address.hash, address.type)
 
-    // TODO: Bytecode
-    address.bytecode = new Uint8Array([0, 1, 2])
-    address.balance = addressData.final_balance / 1e8
-    address.txCount = addressData.n_tx
-    address.lastUsedAt = DateTime.fromSeconds(addressData.txs[0].time)
+        const addressData = await getBitcoinAddressData(address.hash)
+        if (!addressData) return false
 
-    return true
+        address.balance = addressData.final_balance / 1e8
+        address.txCount = addressData.n_tx
+        address.lastUsedAt = DateTime.fromSeconds(addressData.txs[0].time)
+
+        return true
+    } catch (error) {
+        logger.error(`failed to fetch data for address '${address.hash}':\n${error}`)
+        return false
+    }
 }
 
 /**
@@ -29,15 +42,21 @@ export async function fetchBitcoinAddressData(address: Address) {
  * @param address The address to fetch the data of.
  */
 export async function fetchEthereumAddressData(address: Address) {
-    const addressData = await getEthereumAddressData(address.hash)
-    if (!addressData) return false
+    try {
+        address.bytecode = getEthereumBytecode(address.hash)
 
-    // address.bytecode = getEthereumBytecode(address.hash)
-    address.balance = addressData.balance
-    address.txCount = addressData.txCount
-    address.lastUsedAt = DateTime.fromSeconds(Number(addressData.txs[0].timeStamp))
+        const addressData = await getEthereumAddressData(address.hash)
+        if (!addressData) return false
 
-    return true
+        address.balance = addressData.balance
+        address.txCount = addressData.txCount
+        address.lastUsedAt = DateTime.fromSeconds(Number(addressData.txs[0].timeStamp))
+
+        return true
+    } catch (error) {
+        logger.error(`failed to fetch data for address '${address.hash}':\n${error}`)
+        return false
+    }
 }
 
 /**
@@ -46,11 +65,17 @@ export async function fetchEthereumAddressData(address: Address) {
 const addressDataWorker = new Worker(
     addressDataQueue.name,
     async (job) => {
+        if (process.env.NO_LIFECYCLE === "true") return
+
         const fetchTime = DateTime.now().minus({ hours: addressDataConfig.fetchEvery }).toSQL()
 
         // Recover the first address that needs to be fetched,
         // either because of the fetch time or because it has never been fetched
-        const address = await Address.query().where("fetchedAt", "<", fetchTime).orWhereNull("fetchedAt").first()
+        const address = await Address.query()
+            .where("fetched_at", "<", fetchTime)
+            .orWhereNull("fetched_at")
+            .andWhereNot("is_locked", true)
+            .first()
         if (!address) return
 
         await address.load("chain")
@@ -68,16 +93,14 @@ const addressDataWorker = new Worker(
         // No matter the result, update the fetchedAt field
         // to avoid fetching the same address again
         address.fetchedAt = DateTime.now()
-        await address.save()
 
         if (!fetched) {
-            throw new UnrecoverableError(`failed to fetch data for address '${address.hash}'`)
+            await address.save()
+            throw new UnrecoverableError(AddressDataError.CouldNotFetch)
+        } else {
+            address.isReady = true
+            await address.save()
         }
-
-        address.isReady = true
-        await address.save()
-
-        logger.info(`fetched data for address '${address.hash}'`)
 
         job.updateData({ address })
     },
@@ -92,11 +115,14 @@ addressDataWorker.on("failed", (job, error) => {
         // Auto-aborted jobs are not considered failures
         if (error.message === "aborted") return
 
-        logger.error(`failed to fetch data for an address: ${error}`)
+        // Error while fetching already have their own error message
+        if (error.message === AddressDataError.CouldNotFetch) return
+
+        logger.error(`failed to fetch data for an address (unknown):\n${error}`)
         return
     }
 
-    logger.error(`failed to fetch data for address '${job.data.address.hash}': ${error}`)
+    logger.error(`failed to fetch data for address '${job.data.address.hash}':\n${error}`)
 })
 
 export default addressDataWorker

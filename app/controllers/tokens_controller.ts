@@ -2,7 +2,8 @@ import BaseController from "#controllers/templates/base_controller"
 import { AppErrors } from "#lib/constants/errors"
 
 import { userLog } from "#lib/utils/logger"
-import { TokenScope, TokenScopeAbilities, recoverTokenScope } from "#lib/utils/tokens"
+import { TokenScope } from "#lib/constants/enums"
+import { TokenScopeAbilities, recoverTokenScope } from "#lib/utils/tokens"
 import User from "#models/user"
 import TokenPolicy from "#policies/token_policy"
 import { AccessToken } from "@adonisjs/auth/access_tokens"
@@ -26,7 +27,9 @@ export default class TokensController extends BaseController {
     }
 
     /**
-     * Get all tokens (reserved for administrators only).
+     * Get all tokens.
+     *
+     * Note: This route is only accessible by admins to get ALL data.
      */
     async indexAll({ bouncer }: HttpContext) {
         if (await bouncer.with(TokenPolicy).denies("indexAll")) {
