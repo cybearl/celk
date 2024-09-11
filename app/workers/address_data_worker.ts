@@ -32,7 +32,8 @@ export async function fetchBitcoinAddressData(address: Address) {
 
         return true
     } catch (error) {
-        logger.error(`failed to fetch data for address '${address.hash}':\n${error}`)
+        logger.error(`failed to fetch data for address '${address.hash}', skipping..`)
+        logger.debug(error)
         return false
     }
 }
@@ -54,7 +55,8 @@ export async function fetchEthereumAddressData(address: Address) {
 
         return true
     } catch (error) {
-        logger.error(`failed to fetch data for address '${address.hash}':\n${error}`)
+        logger.error(`failed to fetch data for address '${address.hash}', skipping..`)
+        logger.debug(error)
         return false
     }
 }
@@ -95,6 +97,7 @@ const addressDataWorker = new Worker(
         address.fetchedAt = DateTime.now()
 
         if (!fetched) {
+            address.isReady = false
             await address.save()
             throw new UnrecoverableError(AddressDataError.CouldNotFetch)
         } else {
