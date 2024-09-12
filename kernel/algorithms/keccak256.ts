@@ -1,7 +1,7 @@
 import Cache from "#kernel/cache"
 import { MemorySlot } from "#kernel/memory"
 
-// TODO: Eventually implement my own keccak256 hash function.
+// TODO: Implement keccak256
 import { keccak_256 } from "@noble/hashes/sha3"
 
 /**

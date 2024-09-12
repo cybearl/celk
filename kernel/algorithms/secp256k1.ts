@@ -2,7 +2,7 @@ import Cache from "#kernel/cache"
 import { MemorySlot } from "#kernel/memory"
 import { KernelErrors, fe } from "#lib/constants/errors"
 
-// TODO: Eventually implement my own secp256k1 algorithm.
+// TODO: Implement secp256k1
 import { secp256k1 } from "@noble/curves/secp256k1"
 
 /**

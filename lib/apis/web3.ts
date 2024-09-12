@@ -90,6 +90,11 @@ export async function getBitcoinAddressData(address: string, limit = 32, offset 
         const data = await response.json()
         return data as BitcoinAddressData
     } catch (error) {
+        if (`${error}`.toLowerCase().includes("rate")) {
+            logger.info(`bitcoin API rate limit reached, skipping..`)
+            return null
+        }
+
         logger.error(`bitcoin API returned an error for address '${address}':\n${error}`)
         return null
     }

@@ -128,4 +128,12 @@ addressDataWorker.on("failed", (job, error) => {
     logger.error(`failed to fetch data for address '${job.data.address.hash}':\n${error}`)
 })
 
+/**
+ * Event listener for the 'completed' event of the worker.
+ */
+addressDataWorker.on("completed", (job) => {
+    if (!job || !job.data.address) return
+    logger.info(`fetched data for address '${job.data.address.hash}'..`)
+})
+
 export default addressDataWorker

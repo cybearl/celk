@@ -6,7 +6,7 @@ import { Worker } from "bullmq"
 
 // List all the workers that should be started on AdonisJs boot
 const workers: { [workerName: string]: Worker } = {
-    addressDataWorker,
+    "address-data-worker": addressDataWorker,
 }
 
 /**
@@ -41,9 +41,8 @@ export default class WorkersProvider {
             const worker = workers[workerName]
             if (!worker.isRunning()) worker.run()
 
-            const addressDataWorkerName = Object.keys({ addressDataWorker })[0]
-
-            if (workerName === addressDataWorkerName) {
+            // Special case for the address data worker to schedule the cron job
+            if (workerName === "address-data-worker") {
                 await addressDataQueue.add("cron-address-data", {}, this.addressDataCronOptions)
                 logger.info(`scheduled '${workerName}' to run every ${addressDataConfig.repeatEvery / 1000} second(s)`)
                 logger.info(`address data will be automatically fetched every ${addressDataConfig.fetchEvery} hour(s)`)
