@@ -1,7 +1,7 @@
 import addressDataConfig from "#config/address_data"
 import workersConfig from "#config/workers"
 import { getBitcoinAddressData, getEthereumAddressData } from "#lib/apis/web3"
-import { getBitcoinBytecode, getEthereumBytecode } from "#lib/utils/addresses"
+import { getBitcoinAddressBytecode, getEVMAddressBytecode } from "#lib/utils/addresses"
 import Address from "#models/address"
 import { addressDataQueue } from "#queues/index"
 import logger from "@adonisjs/core/services/logger"
@@ -9,7 +9,8 @@ import { UnrecoverableError, Worker } from "bullmq"
 import { DateTime } from "luxon"
 
 /**
- * An enum containing the different errors.
+ * An enum containing the different possible standardized errors
+ * returned by the worker in order to execute specific actions.
  */
 enum AddressDataError {
     CouldNotFetch = "could-not-fetch",
@@ -21,7 +22,7 @@ enum AddressDataError {
  */
 export async function fetchBitcoinAddressData(address: Address) {
     try {
-        address.bytecode = getBitcoinBytecode(address.hash, address.type)
+        address.bytecode = getBitcoinAddressBytecode(address.hash, address.type)
 
         const addressData = await getBitcoinAddressData(address.hash)
         if (!addressData) return false
@@ -44,9 +45,9 @@ export async function fetchBitcoinAddressData(address: Address) {
  */
 export async function fetchEthereumAddressData(address: Address) {
     try {
-        address.bytecode = getEthereumBytecode(address.hash)
+        address.bytecode = getEVMAddressBytecode(address.hash as `0x${string}`)
 
-        const addressData = await getEthereumAddressData(address.hash)
+        const addressData = await getEthereumAddressData(address.hash as `0x${string}`)
         if (!addressData) return false
 
         address.balance = addressData.balance
@@ -118,7 +119,7 @@ addressDataWorker.on("failed", (job, error) => {
         // Auto-aborted jobs are not considered failures
         if (error.message === "aborted") return
 
-        // Error while fetching already have their own error message
+        // Fetchers already have their own error message
         if (error.message === AddressDataError.CouldNotFetch) return
 
         logger.error(`failed to fetch data for an address (unknown):\n${error}`)

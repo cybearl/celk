@@ -30,7 +30,7 @@ type AutoSwaggerOptions = Parameters<typeof AutoSwagger.default.docs>[1]
 /**
  * The default configuration for `adonis-autoswagger`.
  */
-const autoSwaggerBaseConfig: AutoSwaggerOptions = {
+export const autoSwaggerConfig: AutoSwaggerOptions = {
     path: rootPath + "/",
     tagIndex: 1,
     info: {
@@ -55,11 +55,4 @@ const autoSwaggerBaseConfig: AutoSwaggerOptions = {
     authMiddlewares: ["auth"],
     defaultSecurityScheme: "BearerAuth",
     persistAuthorization: true, // Persist authorization between reloads on the swagger page
-}
-
-/**
- * The configuration for the default version documentation.
- */
-export const autoSwaggerDefaultVersionConfig: AutoSwaggerOptions = {
-    ...autoSwaggerBaseConfig,
 }

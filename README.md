@@ -15,23 +15,24 @@ Benchmark environment:
 - Node.js: v20.15.0.
 
 ### Benchmarking of the generator
-| Version     | Addresses per second (K/s) | Upgrade description                                          |
-|-------------|----------------------------|--------------------------------------------------------------|
-| `v1.1.0`    | N/D                        | **Switching to AdonisJS**                                    |
-| `v1.0.9`    | N/D                        | **A new architecture**                                       |
-| `v1.0.8b`   | N/D                        | **File report system**                                       |
-| `v1.0.8`    | 19.97 kK/s                 | **Reverted back to an Uint8Array**                           |
-| `v1.0.7`    | 19.24 kK/s                 | **Using WASM / JS shared memory space with JS only**         |
-| `v1.0.6`    | 15.42 kK/s                 | **Using SECP256K1 module and WASM / JS shared memory space** |
-| `v1.0.5b`   | N/D                        | **Better benchmarking & reports per second**                 |
-| `v1.0.5`    | 1.25 kK/s                  | **Reverts the address to its RIPEMD-160 hash**               |
-| `v1.0.4b`   | N/D                        | **Allow to use the public key if known**                     |
-| `v1.0.4`    | 1.24 kK/s                  | **Using a single buffer for all operations**                 |
-| `v1.0.3`    | 1.19 kK/s                  | **Better private key generator (str -> bigint)**             |
-| `v1.0.2b`   | 1.18 kK/s                  | **Upgrading Node.js from v16.20.2 to v20.9.0**               |
-| `v1.0.2`    | 850 K/s                    | **Ghost executions + Better benchmark measures**             |
-| `v1.0.1`    | 792 K/s                    | **Improved benchmarking precision**                          |
-| `v1.0.0`    | 396 K/s                    | **Basic algorithm implementations**                          |
+| Version     | Addresses per second (K/s) | Upgrade description                                             |
+|-------------|----------------------------|-----------------------------------------------------------------|
+| `v2024.9.0` | N/D                        | **Switching to versioning with the format: `vYYYY.M.D-<type>`** |
+| `v1.1.0`    | N/D                        | **Switching to AdonisJS**                                       |
+| `v1.0.9`    | N/D                        | **A new architecture**                                          |
+| `v1.0.8b`   | N/D                        | **File report system**                                          |
+| `v1.0.8`    | 19.97 kK/s                 | **Reverted back to an Uint8Array**                              |
+| `v1.0.7`    | 19.24 kK/s                 | **Using WASM / JS shared memory space with JS only**            |
+| `v1.0.6`    | 15.42 kK/s                 | **Using SECP256K1 module and WASM / JS shared memory space**    |
+| `v1.0.5b`   | N/D                        | **Better benchmarking & reports per second**                    |
+| `v1.0.5`    | 1.25 kK/s                  | **Reverts the address to its RIPEMD-160 hash**                  |
+| `v1.0.4b`   | N/D                        | **Allow to use the public key if known**                        |
+| `v1.0.4`    | 1.24 kK/s                  | **Using a single buffer for all operations**                    |
+| `v1.0.3`    | 1.19 kK/s                  | **Better private key generator (str -> bigint)**                |
+| `v1.0.2b`   | 1.18 kK/s                  | **Upgrading Node.js from v16.20.2 to v20.9.0**                  |
+| `v1.0.2`    | 850 K/s                    | **Ghost executions + Better benchmark measures**                |
+| `v1.0.1`    | 792 K/s                    | **Improved benchmarking precision**                             |
+| `v1.0.0`    | 396 K/s                    | **Basic algorithm implementations**                             |
 
 Updates
 -------

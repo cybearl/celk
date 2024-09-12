@@ -1,4 +1,4 @@
-import { autoSwaggerDefaultVersionConfig } from "#config/swagger"
+import { autoSwaggerConfig } from "#config/swagger"
 import { middleware } from "#start/kernel"
 import router from "@adonisjs/core/services/router"
 import AutoSwagger from "adonis-autoswagger"
@@ -19,29 +19,19 @@ router.post("/sign-in", [AuthController, "signIn"])
 // ======================
 //  Documentation routes
 // ======================
-router
-    .group(() => {
-        // Default version
-        router.get("/", async () => {
-            return AutoSwagger.default.docs(router.toJSON(), autoSwaggerDefaultVersionConfig)
-        })
-    })
-    .prefix("/swagger")
+router.get("/swagger", async () => {
+    return AutoSwagger.default.docs(router.toJSON(), autoSwaggerConfig)
+})
 
-router
-    .group(() => {
-        // Default version
-        router.get("/", async () => {
-            return AutoSwagger.default.ui("/swagger", autoSwaggerDefaultVersionConfig)
-            // return AutoSwagger.default.scalar("/swagger")
-            // return AutoSwagger.default.rapidoc("/swagger", "view")
-        })
-    })
-    .prefix("/docs")
+router.get("/docs", async () => {
+    return AutoSwagger.default.ui("/swagger", autoSwaggerConfig)
+    // return AutoSwagger.default.scalar("/swagger")
+    // return AutoSwagger.default.rapidoc("/swagger", "view")
+})
 
-// =====================================================
-//  Default version: Accessible via credentials / token
-// =====================================================
+// ====================================
+//  Accessible via credentials / token
+// ====================================
 router
     .group(() => {
         // Addresses

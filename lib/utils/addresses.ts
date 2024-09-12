@@ -18,7 +18,7 @@ export function getAddressType(address: string): AddressType | null {
     } else if (address.startsWith("3")) {
         return AddressType.P2SH_P2WPKH // Base58
     } else if (address.startsWith("0x")) {
-        return AddressType.ETH // Hex
+        return AddressType.EVM // Hex
     }
 
     return null
@@ -29,7 +29,7 @@ export function getAddressType(address: string): AddressType | null {
  * @param address The address to convert.
  * @returns The bytecode of the address.
  */
-export function getBitcoinBytecode(address: string, type: AddressType) {
+export function getBitcoinAddressBytecode(address: string, type: AddressType) {
     let encoding: "base58" | "bech32" | null = null
 
     if (type === AddressType.P2TR || type === AddressType.P2WPKH) {
@@ -53,11 +53,11 @@ export function getBitcoinBytecode(address: string, type: AddressType) {
 }
 
 /**
- * Convert an Ethereum address to its bytecode.
+ * Convert an EVM (Ethereum Virtual Machine) address to its bytecode.
  * @param address The address to convert.
  * @returns The bytecode of the address.
  */
-export function getEthereumBytecode(address: string) {
+export function getEVMAddressBytecode(address: `0x${string}`) {
     const bytes = address.slice(2).split("")
 
     const byteNumbers = new Uint8Array(bytes.length / 2)

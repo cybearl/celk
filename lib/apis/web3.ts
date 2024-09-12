@@ -81,7 +81,6 @@ type BitcoinAddressData = {
  * @returns The fetched address data.
  */
 export async function getBitcoinAddressData(address: string, limit = 32, offset = 0) {
-    // TODO: Add fallback API
     const url = `https://blockchain.info/rawaddr/${address}?limit=${limit}&offset=${offset}`
 
     try {
@@ -107,7 +106,7 @@ export async function getBitcoinAddressData(address: string, limit = 32, offset 
  * @param offset The number of transactions to display per page (optional, default is 32).
  * @returns The fetched address data.
  */
-export async function getEthereumAddressData(address: string, page = 1, offset = 32) {
+export async function getEthereumAddressData(address: `0x${string}`, page = 1, offset = 32) {
     try {
         const provider = new EthProvider("homestead", env.get("ETHERSCAN_API_KEY"))
         const balance = Number(formatEther(await provider.getBalance(address)))
