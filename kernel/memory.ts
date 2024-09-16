@@ -16,7 +16,7 @@ export type MemorySlot = {
  *
  * Note that the `end` index is exclusive.
  */
-const baseMemoryTable = {
+const baseBtcMemoryTable = {
     // The private key is stored at indexes 0-31
     privateKey: { start: 0, length: 32, end: 32 },
 
@@ -45,7 +45,7 @@ const baseMemoryTable = {
  * More info [here](https://en.bitcoin.it/w/images/en/9/9b/PubKeyToAddr.png).
  */
 export const base58MemoryTable = {
-    ...baseMemoryTable,
+    ...baseBtcMemoryTable,
 
     // The network byte is stored at index 129
     networkByte: { start: 129, length: 1, end: 130 },
@@ -78,7 +78,7 @@ export const base58MemoryTable = {
  * More info [here](https://en.bitcoin.it/wiki/Bech32).
  */
 export const bech32MemoryTable = {
-    ...baseMemoryTable,
+    ...baseBtcMemoryTable,
 
     // The witness version is stored at index 150
     witnessVersion: { start: 150, length: 1, end: 151 },
