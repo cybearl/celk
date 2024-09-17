@@ -10,10 +10,10 @@ export default class Job extends BaseModel {
     declare name: string
 
     @column()
-    declare mode:
+    declare mode: string
 
-    @column()
-    declare attempts: number
+    // @column()
+    // declare attempts: number
 
     // Relationships
     // Belongs to an address
