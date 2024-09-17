@@ -1,5 +1,5 @@
 /**
- * The type definition of an address.
+ * The different types of addresses that can be created.
  *
  * See https://bitbox.swiss/blog/content/images/2021/10/grafik-1.png for more information.
  */
@@ -12,11 +12,33 @@ export enum AddressType {
 }
 
 /**
+ * The different modes of jobs that can be created.
+ * - `FULL_RANDOM`: Generates the private keys completely randomly in the given range.
+ * - `FROM_LOWER_BOUND`: Generates the private keys starting from the lower bound.
+ * - `FROM_UPPER_BOUND`: Generates the private keys starting from the upper bound.
+ */
+export enum JobMode {
+    FULL_RANDOM = "full-random",
+    FROM_LOWER_BOUND = "from-lower-bound",
+    FROM_UPPER_BOUND = "from-upper-bound",
+}
+
+/**
+ * The different statuses a job can have.
+ */
+export enum JobStatus {
+    PENDING = "pending",
+    RUNNING = "running",
+    COMPLETED = "completed",
+    FAILED = "failed",
+}
+
+/**
  * An enum listing all available user roles.
  */
 export enum RoleNames {
-    AdminRole = "admin",
-    UserRole = "user",
+    ADMIN = "admin",
+    USER = "user",
 }
 
 /**

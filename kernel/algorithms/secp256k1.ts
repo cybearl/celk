@@ -6,6 +6,12 @@ import { KernelErrors, fe } from "#lib/constants/errors"
 import { secp256k1 } from "@noble/curves/secp256k1"
 
 /**
+ * The (string) hex number representing the highest possible value for a 256-bit unsigned integer
+ * on the secp256k1 curve, also known as the order of the curve.
+ */
+export const N_STR = "0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364141"
+
+/**
  * The type definition of the public key generation mode:
  * - `compressed`: Compressed 33 bytes public key (with prefix `0x02` or `0x03` depending on the Y coordinate).
  * - `uncompressed`: Uncompressed 65 bytes public key (with prefix `0x04`).

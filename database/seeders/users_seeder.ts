@@ -20,7 +20,7 @@ export default class extends BaseSeeder {
 
         // Link the default administrator to the 'admin' role using the pivot table
         const admin = await User.findBy("email", process.env.DEFAULT_ADMIN_EMAIL)
-        const adminRole = await Role.findBy("name", RoleNames.AdminRole)
+        const adminRole = await Role.findBy("name", RoleNames.ADMIN)
         await admin?.related("roles").attach([adminRole?.id as number])
     }
 }

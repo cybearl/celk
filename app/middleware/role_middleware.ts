@@ -19,7 +19,7 @@ export default class RoleMiddleware {
         next: NextFn,
         options: {
             role: Role["name"]
-        } = { role: RoleNames.AdminRole }
+        } = { role: RoleNames.ADMIN }
     ) {
         if (!ctx.auth.isAuthenticated) {
             return ctx.response.forbidden({

@@ -8,11 +8,11 @@ export default class extends BaseSeeder {
     async run() {
         await Role.createMany([
             {
-                name: RoleNames.AdminRole,
+                name: RoleNames.ADMIN,
                 description: "All permissions are granted to this role.",
             },
             {
-                name: RoleNames.UserRole,
+                name: RoleNames.USER,
                 description: "The default role for all users.",
             },
         ])
