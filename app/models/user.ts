@@ -7,6 +7,7 @@ import { AccessToken, DbAccessTokensProvider } from "@adonisjs/auth/access_token
 import type { HasMany, ManyToMany } from "@adonisjs/lucid/types/relations"
 import Role from "#models/role"
 import Address from "#models/address"
+import Job from "#models/job"
 
 // The AuthFinder mixin is used to authenticate users
 const AuthFinder = withAuthFinder(() => hash.use("scrypt"), {
@@ -49,6 +50,10 @@ export default class User extends compose(BaseModel, AuthFinder) {
     // One-to-many relationship with the `addresses` table
     @hasMany(() => Address)
     declare addresses: HasMany<typeof Address>
+
+    // One-to-many relationship with the `jobs` table
+    @hasMany(() => Job)
+    declare jobs: HasMany<typeof Job>
 
     // Dates
     @column.dateTime({ autoCreate: true })

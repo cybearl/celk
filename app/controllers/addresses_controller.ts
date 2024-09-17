@@ -12,11 +12,7 @@ import { DateTime } from "luxon"
 
 export default class AddressesController extends BaseController {
     /**
-     * @index
-     * @operationId getAddresses
-     * @summary Get all addresses
-     * @description Get all addresses with per-user data isolation and pagination.
-     * @responseBody 200 - <Address[]>
+     * Get all addresses for the current user.
      */
     async index({ auth, bouncer, request }: HttpContext) {
         if (await bouncer.with(AddressPolicy).denies("index")) {
@@ -96,7 +92,7 @@ export default class AddressesController extends BaseController {
     }
 
     /**
-     * Update address data by ID.
+     * Update address (data) by ID.
      */
     async update({ bouncer, params, auth }: HttpContext) {
         const address = await Address.find(params.address_id)

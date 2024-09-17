@@ -24,6 +24,9 @@ export default class extends BaseSchema {
             // Belongs to an address
             table.integer("address_id").unsigned().references("id").inTable("addresses").notNullable()
 
+            // Belongs to a user
+            table.integer("user_id").unsigned().references("id").inTable("users").notNullable()
+
             // Dates
             table.timestamp("created_at").notNullable()
             table.timestamp("updated_at").notNullable()

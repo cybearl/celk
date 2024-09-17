@@ -1,5 +1,6 @@
 import { JobMode, JobStatus } from "#lib/constants/enums"
 import Address from "#models/address"
+import User from "#models/user"
 import { BaseModel, belongsTo, column } from "@adonisjs/lucid/orm"
 import type { BelongsTo } from "@adonisjs/lucid/types/relations"
 import { DateTime } from "luxon"
@@ -41,6 +42,12 @@ export default class Job extends BaseModel {
     declare addressId: number
     @belongsTo(() => Address)
     declare address: BelongsTo<typeof Address>
+
+    // Belongs to a user
+    @column()
+    declare userId: number
+    @belongsTo(() => User)
+    declare user: BelongsTo<typeof User>
 
     // Dates
     @column.dateTime({ autoCreate: true })

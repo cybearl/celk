@@ -59,6 +59,12 @@ export enum TokenAbility {
     // Chains
     CHAIN_READ = "chain:read",
 
+    // Jobs
+    JOB_READ = "job:read",
+    JOB_CREATE = "job:create",
+    JOB_UPDATE = "job:update",
+    JOB_DELETE = "job:delete",
+
     // Roles
     ROLE_READ = "role:read",
 

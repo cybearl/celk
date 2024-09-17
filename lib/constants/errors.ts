@@ -147,22 +147,28 @@ export const AppErrors = {
         message: "The requested address was not found.",
         data: null,
     },
+    JOB_NOT_FOUND: {
+        status: 404,
+        name: "JOB_NOT_FOUND",
+        message: "The requested job was not found.",
+        data: null,
+    },
     ROLE_NOT_FOUND: {
         status: 404,
         name: "ROLE_NOT_FOUND",
         message: "The requested role was not found.",
         data: null,
     },
-    USER_NOT_FOUND: {
-        status: 404,
-        name: "USER_NOT_FOUND",
-        message: "The requested user was not found.",
-        data: null,
-    },
     TOKEN_NOT_FOUND: {
         status: 404,
         name: "TOKEN_NOT_FOUND",
         message: "The requested token was not found.",
+        data: null,
+    },
+    USER_NOT_FOUND: {
+        status: 404,
+        name: "USER_NOT_FOUND",
+        message: "The requested user was not found.",
         data: null,
     },
 

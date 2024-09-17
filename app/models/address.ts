@@ -1,8 +1,9 @@
 import { AddressType } from "#lib/constants/enums"
 import Chain from "#models/chain"
+import Job from "#models/job"
 import User from "#models/user"
-import { BaseModel, belongsTo, column } from "@adonisjs/lucid/orm"
-import type { BelongsTo } from "@adonisjs/lucid/types/relations"
+import { BaseModel, belongsTo, column, hasMany } from "@adonisjs/lucid/orm"
+import type { BelongsTo, HasMany } from "@adonisjs/lucid/types/relations"
 import { DateTime } from "luxon"
 
 /**
@@ -49,6 +50,10 @@ export default class Address extends BaseModel {
     declare userId: number
     @belongsTo(() => User)
     declare user: BelongsTo<typeof User>
+
+    // Has many jobs
+    @hasMany(() => Job)
+    declare jobs: HasMany<typeof Job>
 
     // Dates
     @column.dateTime({ autoCreate: true })
