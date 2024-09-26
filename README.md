@@ -1,5 +1,9 @@
-# celk
-A brute-forcing tool to work with Bitcoin and Ethereum addresses entirely written in Typescript.
+<p align="center">
+  <br />
+  <a href="https://www.cybearl.com" target="_blank"><img width="64px" src="---" /></a>
+  <h2 align="center">Celk</h2>
+  <p align="center">A brute-forcing tool to work with Bitcoin and Ethereum<br />addresses, entirely written in Typescript.</p>
+</p>
 
 The goal that I have, is to build a dual (Xeon | Epyc)-based home server, and to run this project on it for years
 (or decades lol) to see if I can brute-force some addresses, of course, it's almost impossible
