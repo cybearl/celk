@@ -1,7 +1,5 @@
-import { autoSwaggerConfig } from "#config/swagger"
 import { middleware } from "#start/kernel"
 import router from "@adonisjs/core/services/router"
-import AutoSwagger from "adonis-autoswagger"
 
 const AddressesController = () => import("#controllers/addresses_controller")
 const AuthController = () => import("#controllers/auth_controller")
@@ -15,19 +13,6 @@ const UsersController = () => import("#controllers/users_controller")
 // =========================================
 // router.post("/register", [AuthController, "register"])
 router.post("/sign-in", [AuthController, "signIn"])
-
-// ======================
-//  Documentation routes
-// ======================
-router.get("/swagger", async () => {
-    return AutoSwagger.default.docs(router.toJSON(), autoSwaggerConfig)
-})
-
-router.get("/docs", async () => {
-    return AutoSwagger.default.ui("/swagger", autoSwaggerConfig)
-    // return AutoSwagger.default.scalar("/swagger")
-    // return AutoSwagger.default.rapidoc("/swagger", "view")
-})
 
 // ====================================
 //  Accessible via credentials / token

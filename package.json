@@ -53,7 +53,6 @@
         "@adonisjs/lucid": "^21.2.0",
         "@noble/hashes": "^1.5.0",
         "@vinejs/vine": "^2.1.0",
-        "adonis-autoswagger": "^3.63.0",
         "bullmq": "^5.13.0",
         "dedent-js": "^1.0.1",
         "ethers": "^6.13.2",

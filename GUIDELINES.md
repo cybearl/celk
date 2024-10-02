@@ -11,7 +11,6 @@ General
     - `<custom_routes>`
 - All index routes must use the `paginate` method to return the metadata for the pagination.
 - **Throwing function should never be used outside of workers.. (obviously lol).**
-- See [Adonis-AutoSwagger](https://github.com/ad-on-is/adonis-autoswagger) for the Swagger documentation.
 - Commands that are **not** registered into `/commands` and must not start the app can be run with
 `cross-env NO_LIFECYCLE=true` `NO_LIFECYCLE` stands for "No Lifecycle" and will prevent the app from starting.
 
@@ -26,8 +25,6 @@ Kernel: Classes
 - The `Cache` instance where data is read or written should **never**
   be returned by a method.
 - `NO_LIFECYCLE` injected env variable is used to prevent some features of the stack from starting.
-- See [Swagger Parameter Types](https://swagger.io/docs/specification/describing-parameters/) for more information
-on parameter types to use inside the Swagger documentation.
 
 Others
 ------
