@@ -1,16 +1,16 @@
 <p align="center">
   <br />
-  <a href="https://www.cybearl.com" target="_blank"><img width="64px" src="---" /></a>
-  <h2 align="center">Celk</h2>
+  <a href="https://www.cybearl.com" target="_blank"><img width="100px" src="https://cybearl.com/_next/image?url=%2Fimages%2Flogo.webp&w=640&q=75" /></a>
+  <h2 align="center">@cybearl/celk</h2>
   <p align="center">A brute-forcing tool to work with Bitcoin and Ethereum<br />addresses, entirely written in Typescript.</p>
 </p>
 
+### Introduction
 The goal that I have, is to build a dual (Xeon | Epyc)-based home server, and to run this project on it for years
 (or decades lol) to see if I can brute-force some addresses, of course, it's almost impossible
 but who knows, maybe I'll be lucky.
 
-Performances
-------------
+### Performances
 Benchmark environment:
 - CPU: AMD Ryzen 7 5800x (8 cores / 16 threads) @ 3.8 GHz.
 - GPU: NVIDIA GeForce RTX 3070.
@@ -38,16 +38,15 @@ Benchmark environment:
 | `v1.0.1`    | 792 K/s                    | **Improved benchmarking precision**                             |
 | `v1.0.0`    | 396 K/s                    | **Basic algorithm implementations**                             |
 
-Updates
--------
-### Latest update (v2024.9.0-alpha):
+### Updates
+#### Latest update (v2024.9.0-alpha):
   - Switching to versioning with the following format: `vYYYY.M.D-<type>`.
   - Implemented Base58 encoding/decoding for Bitcoin addresses.
   - Deleted PostMan in favor of `adonis-autoswagger` + project-hosted Swagger UI.
   - Replaced basic role-check system with AdonisJS Bouncer middleware & policies.
   - Pagination on all index routes.
 
-### Previous updates
+#### Previous updates
 - **v1.1.0**:
   - Switching from raw `ts-node` to [AdonisJS](https://adonisjs.com/) with the goal of making it a backend API.
   - Implemented [Lucid ORM](https://lucid.adonisjs.com/docs/introduction) for the database (PostgreSQL).
