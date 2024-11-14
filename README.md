@@ -6,9 +6,11 @@
 </p>
 
 ### Introduction
-The goal that I have, is to build a dual (Xeon | Epyc)-based home server, and to run this project on it for years
-(or decades lol) to see if I can brute-force some addresses, of course, it's almost impossible
-but who knows, maybe I'll be lucky.
+This project intends to offer a simple and efficient way to generate Bitcoin and Ethereum addresses with the goal
+of brute-forcing them (after a few thousand years lol).
+
+The goal being to eventually build a dual (Xeon | Epyc)-based home server, and to run this project on it for years
+(or decades lol) to see if luck is on my side.
 
 ### Performances
 Benchmark environment:
