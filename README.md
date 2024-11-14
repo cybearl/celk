@@ -6,6 +6,7 @@
 </p>
 
 ### Introduction
+
 This project intends to offer a simple and efficient way to generate Bitcoin and Ethereum addresses with the goal
 of brute-forcing them (after a few thousand years lol).
 
@@ -13,16 +14,19 @@ The goal being to eventually build a dual (Xeon | Epyc)-based home server, and t
 (or decades lol) to see if luck is on my side.
 
 ### Performances
+
 Benchmark environment:
-- CPU: AMD Ryzen 7 5800x (8 cores / 16 threads) @ 3.8 GHz.
-- GPU: NVIDIA GeForce RTX 3070.
-- RAM: 32 GB DDR4 @ 3200 MHz.
-- OS: Windows 11 64 bits.
-- Node.js: v20.15.0.
+
+-   CPU: AMD Ryzen 7 5800x (8 cores / 16 threads) @ 3.8 GHz.
+-   GPU: NVIDIA GeForce RTX 3070.
+-   RAM: 32 GB DDR4 @ 3200 MHz.
+-   OS: Windows 11 64 bits.
+-   Node.js: v20.15.0.
 
 ### Benchmarking of the generator
+
 | Version     | Addresses per second (K/s) | Upgrade description                                             |
-|-------------|----------------------------|-----------------------------------------------------------------|
+| ----------- | -------------------------- | --------------------------------------------------------------- |
 | `v2024.9.0` | N/D                        | **Switching to versioning with the format: `vYYYY.M.D-<type>`** |
 | `v1.1.0`    | N/D                        | **Switching to AdonisJS**                                       |
 | `v1.0.9`    | N/D                        | **A new architecture**                                          |
@@ -41,39 +45,42 @@ Benchmark environment:
 | `v1.0.0`    | 396 K/s                    | **Basic algorithm implementations**                             |
 
 ### Updates
+
 #### Latest update (v2024.9.0-alpha):
-  - Switching to versioning with the following format: `vYYYY.M.D-<type>`.
-  - Implemented Base58 encoding/decoding for Bitcoin addresses.
-  - Deleted PostMan in favor of `adonis-autoswagger` + project-hosted Swagger UI.
-  - Replaced basic role-check system with AdonisJS Bouncer middleware & policies.
-  - Pagination on all index routes.
+
+-   Switching to versioning with the following format: `vYYYY.M.D-<type>`.
+-   Implemented Base58 encoding/decoding for Bitcoin addresses.
+-   Deleted PostMan in favor of `adonis-autoswagger` + project-hosted Swagger UI.
+-   Replaced basic role-check system with AdonisJS Bouncer middleware & policies.
+-   Pagination on all index routes.
 
 #### Previous updates
-- **v1.1.0**:
-  - Switching from raw `ts-node` to [AdonisJS](https://adonisjs.com/) with the goal of making it a backend API.
-  - Implemented [Lucid ORM](https://lucid.adonisjs.com/docs/introduction) for the database (PostgreSQL).
-  - Implemented [Japa](https://japa.dev/docs/introduction) for the tests.
-  - Implemented [BullMQ](https://docs.bullmq.io/) for the jobs.
-  - Implemented a system that fetches the address data (number of TXs, last TX date, balance, etc..) from the blockchain.
-  - Implemented the `v1.0.9` benchmarking system with slight improvements.
-  - Added `ts-node` to be able to run arbitrary scripts for development/debugging purposes.
-  - Implemented and improved the original `v1.0.9` cache system.
-  - Started working on a Ethereum address generator.
-  - Implemented Bech32 encoding/decoding for Bitcoin addresses.
-- **v1.0.9**: Started working on a new architecture, with Jest, and a new Cache class.
-  - Cancelled in favor of switching to AdonisJS because I wanted to make it a backend API,
-    and also because the code started to be a real mess, really hard to maintain and even more
-    to improve.
-- **v1.0.8b**: Added a file report system, to not loose the results if you close the terminal lol..
-- **v1.0.8**: Reverted back to an Uint8Array.
-- **v1.0.7**: Using WASM / JS shared memory space with JS only.
-- **v1.0.6**: Using SECP256K1 module and WASM / JS shared memory space.
-- **v1.0.5b**: Better benchmarking & reports per second.
-- **v1.0.5**: Reverts the address to its RIPEMD-160 hash.
-- **v1.0.4b**: Allow to use the public key if known.
-- **v1.0.4**: Using a single buffer for all operations.
-- **v1.0.3**: Better private key generator (str -> bigint).
-- **v1.0.2b**: Upgrading Node.js from v16.20.2 to v20.9.0.
-- **v1.0.2**: Ghost executions + Better benchmark measures.
-- **v1.0.1**: Improved benchmarking precision.
-- **v1.0.0**: Basic algorithm implementations.
+
+-   **v1.1.0**:
+    -   Switching from raw `ts-node` to [AdonisJS](https://adonisjs.com/) with the goal of making it a backend API.
+    -   Implemented [Lucid ORM](https://lucid.adonisjs.com/docs/introduction) for the database (PostgreSQL).
+    -   Implemented [Japa](https://japa.dev/docs/introduction) for the tests.
+    -   Implemented [BullMQ](https://docs.bullmq.io/) for the jobs.
+    -   Implemented a system that fetches the address data (number of TXs, last TX date, balance, etc..) from the blockchain.
+    -   Implemented the `v1.0.9` benchmarking system with slight improvements.
+    -   Added `ts-node` to be able to run arbitrary scripts for development/debugging purposes.
+    -   Implemented and improved the original `v1.0.9` cache system.
+    -   Started working on a Ethereum address generator.
+    -   Implemented Bech32 encoding/decoding for Bitcoin addresses.
+-   **v1.0.9**: Started working on a new architecture, with Jest, and a new Cache class.
+    -   Cancelled in favor of switching to AdonisJS because I wanted to make it a backend API,
+        and also because the code started to be a real mess, really hard to maintain and even more
+        to improve.
+-   **v1.0.8b**: Added a file report system, to not loose the results if you close the terminal lol..
+-   **v1.0.8**: Reverted back to an Uint8Array.
+-   **v1.0.7**: Using WASM / JS shared memory space with JS only.
+-   **v1.0.6**: Using SECP256K1 module and WASM / JS shared memory space.
+-   **v1.0.5b**: Better benchmarking & reports per second.
+-   **v1.0.5**: Reverts the address to its RIPEMD-160 hash.
+-   **v1.0.4b**: Allow to use the public key if known.
+-   **v1.0.4**: Using a single buffer for all operations.
+-   **v1.0.3**: Better private key generator (str -> bigint).
+-   **v1.0.2b**: Upgrading Node.js from v16.20.2 to v20.9.0.
+-   **v1.0.2**: Ghost executions + Better benchmark measures.
+-   **v1.0.1**: Improved benchmarking precision.
+-   **v1.0.0**: Basic algorithm implementations.

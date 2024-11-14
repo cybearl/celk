@@ -10,7 +10,6 @@ export const TokenScopeAbilities: Record<TokenScope, TokenAbility[]> = {
     "api-secret": [TokenAbility.ROLE_READ, TokenAbility.USER_READ, TokenAbility.USER_WRITE],
 }
 
-
 /**
  * Check if a user's token has a specific ability, returns true for any ability if `*` (unrestricted).
  * @param user The user to check (null if no user).

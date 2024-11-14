@@ -9,7 +9,7 @@ export type MemorySlot = {
 }
 
 /**
- * The base memory table indexes the data stored in a single Cache instance (= Uint8Array)
+ * The base BTC memory table indexes the data stored in a single Cache instance (= Uint8Array)
  * for the initial private key -> RIPEMD-160 hash transformation.
  *
  * This base table is compatible for both legacy and SegWit addresses.
@@ -86,4 +86,29 @@ export const bech32MemoryTable = {
     // Converts the RIPEMD-160 hash into a 'squashed' format of 5-bit integers
     // The squashed format is stored at indexes 151-183
     squashed: { start: 151, length: 32, end: 183 },
+}
+
+/**
+ * The EVM memory table indexes the data stored in a single Cache instance (= Uint8Array)
+ * for the EVM address generation.
+ *
+ * This table is compatible with all EVM addresses.
+ *
+ * Note that the `end` index is exclusive.
+ *
+ * More info [here](https://ethereum.stackexchange.com/questions/3542/how-are-ethereum-addresses-generated).
+ */
+export const evmMemoryTable = {
+    // The private key is stored at indexes 0-31
+    privateKey: { start: 0, length: 32, end: 32 },
+
+    // The public key is stored at indexes 32-95
+    publicKey: { start: 32, length: 64, end: 96 },
+
+    // The Keccak-256 hash of the public key is stored at indexes 96-128
+    keccak256: { start: 96, length: 32, end: 128 },
+
+    // NOT for writing, only for reading the data that will be
+    // read as the final EVM address
+    address: { start: 108, length: 20, end: 128 },
 }

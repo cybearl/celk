@@ -5,5 +5,5 @@ export default {
     singleQuote: false,
     useTabs: false,
     tabWidth: 4,
- printWidth: 120,
+    printWidth: 120,
 }

@@ -68,7 +68,8 @@ export default class UsersController extends BaseController {
         // Non-isolated
         // Both email and username are unique, so we need to check if the user already exists.
         if (email && (await User.findBy("email", email))) return this.errorResponse(AppErrors.EMAIL_ALREADY_EXISTS)
-        if (username && (await User.findBy("username", username))) return this.errorResponse(AppErrors.USERNAME_ALREADY_EXISTS)
+        if (username && (await User.findBy("username", username)))
+            return this.errorResponse(AppErrors.USERNAME_ALREADY_EXISTS)
 
         user.email = email || user.email
         user.username = username || user.username

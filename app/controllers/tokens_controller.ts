@@ -77,7 +77,8 @@ export default class TokensController extends BaseController {
         }
 
         // Validate the scope
-        if (scope && !Object.values(TokenScope).includes(scope)) return this.errorResponse(AppErrors.INVALID_TOKEN_SCOPE)
+        if (scope && !Object.values(TokenScope).includes(scope))
+            return this.errorResponse(AppErrors.INVALID_TOKEN_SCOPE)
 
         // Fallback to unrestricted scope in case no specific scope was provided
         const token = await User.tokens.create(user, TokenScopeAbilities[scope ?? TokenScope.UNRESTRICTED], {

@@ -26,7 +26,8 @@ export default class AuthController extends BaseController {
         // Non-isolated
         // Both email and username are unique, so we need to check if the user already exists.
         if (email && (await User.findBy("email", email))) return this.errorResponse(AppErrors.EMAIL_ALREADY_EXISTS)
-        if (username && (await User.findBy("username", username))) return this.errorResponse(AppErrors.USERNAME_ALREADY_EXISTS)
+        if (username && (await User.findBy("username", username)))
+            return this.errorResponse(AppErrors.USERNAME_ALREADY_EXISTS)
 
         const user = await User.create(obj)
 
@@ -55,7 +56,11 @@ export default class AuthController extends BaseController {
 
         if (user.isLocked) {
             logger.info(userLog(user, "tried to sign in but their account is locked"))
-            return this.errorResponse(AppErrors.LOCKED, null, "Your account is locked. Please contact an administrator.")
+            return this.errorResponse(
+                AppErrors.LOCKED,
+                null,
+                "Your account is locked. Please contact an administrator."
+            )
         }
 
         const token = await User.tokens.create(user, TokenScopeAbilities.unrestricted, {
