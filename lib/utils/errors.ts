@@ -125,5 +125,71 @@ export const AppErrors = {
  * Contains all the available errors for the kernel.
  */
 export const KernelErrors = {
-    //...
+    //=====//
+    // 400 //
+    //=====//
+    INVALID_BECH32_CHARACTER: {
+        status: 400,
+        name: "INVALID_BECH32_CHARACTER",
+        message: "The Bech32 string contains an invalid character.",
+        data: null,
+    },
+    INVALID_BECH32_CASE: {
+        status: 400,
+        name: "INVALID_BECH32_CASE",
+        message: "The Bech32 string contains both upper and lower case characters.",
+        data: null,
+    },
+    INVALID_BECH32_LENGTH: {
+        status: 400,
+        name: "INVALID_BECH32_LENGTH",
+        message: "The Bech32 string has an invalid length.",
+        data: null,
+    },
+    INVALID_BECH32_CHECKSUM: {
+        status: 400,
+        name: "INVALID_BECH32_CHECKSUM",
+        message:
+            "The Bech32 string has an invalid checksum, either because of a typo, or because it is the wrong encoding.",
+        data: null,
+    },
+    EMPTY_BECH32_HRP: {
+        status: 400,
+        name: "INVALID_BECH32_PREFIX",
+        message: "The Bech32 string has no prefix.",
+        data: null,
+    },
+    INVALID_BECH32_DATA: {
+        status: 400,
+        name: "INVALID_BECH32_DATA",
+        message: "The Bech32 string contains invalid data.",
+        data: null,
+    },
+    INVALID_CACHE_LENGTH: {
+        status: 400,
+        name: "INVALID_CACHE_LENGTH",
+        message: "The cache length is invalid.",
+        data: null,
+    },
+    INVALID_PRIVATE_KEY_LENGTH: {
+        status: 400,
+        name: "INVALID_PRIVATE_KEY_LENGTH",
+        message: "The private key has an invalid length (must be 32 bytes).",
+        data: null,
+    },
+    INVALID_BASE58_CHARACTER: {
+        status: 400,
+        name: "INVALID_BASE58_CHARACTER",
+        message: "The Base58 string contains an invalid character.",
+        data: null,
+    },
+    //=====//
+    // 404 //
+    //=====//
+    BECH32_SEPARATOR_NOT_FOUND: {
+        status: 404,
+        name: "INVALID_BECH32_SEPARATOR",
+        message: "The Bech32 string does not contain a separator.",
+        data: null,
+    },
 }
