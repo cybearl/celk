@@ -118,6 +118,10 @@ export const evmMemoryTable = {
     address: { start: 108, length: 20, end: 128 },
 }
 
+export const testMemoryTable = {
+    privateKey: { start: 0, length: 32, end: 32 },
+}
+
 /**
  * A mapping of the different available memory tables.
  */
@@ -125,6 +129,7 @@ export const memoryTables = {
     base58: base58MemoryTable,
     bech32: bech32MemoryTable,
     evm: evmMemoryTable,
+    test: testMemoryTable,
 }
 
 /**
@@ -132,10 +137,10 @@ export const memoryTables = {
  * on a memory table.
  */
 export type MemoryTableOperation =
-    | keyof typeof baseBtcMemoryTable
     | keyof typeof base58MemoryTable
     | keyof typeof bech32MemoryTable
     | keyof typeof evmMemoryTable
+    | keyof typeof testMemoryTable
 
 /**
  * Returns the length of the cache needed to store the data in a specific memory table.

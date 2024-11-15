@@ -40,12 +40,17 @@ export default class Generator {
     }
 
     /**
-     * Maps every operation in the memory table to a specific action.
+     * Executes the corresponding operation of a slot in a memory table.
+     * @param operation The operation to execute.
+     * @returns The result of the operation.
      */
-    private mapOperationToAction(operation: MemoryTableOperation) {
+    private executeMemorySlotOperation(operation: MemoryTableOperation) {
+        const memorySlot = this.memoryTable[operation]
         switch (operation) {
             case "privateKey":
-                return this.randomBytesPool.read(32)
+                this.cache.writeUint8Array(this.randomBytesPool.pool, memorySlot.start, memorySlot.length)
+                this.randomBytesPool.increment(memorySlot.length)
+                break
             case "publicKey":
                 return
             case "sha256":

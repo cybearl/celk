@@ -12,7 +12,7 @@ export default class RandomBytesPool {
     /**
      * The pool of random bytes.
      */
-    private pool: Cache
+    pool: Cache
 
     /**
      * The size of the pool.
@@ -45,24 +45,19 @@ export default class RandomBytesPool {
     }
 
     /**
-     * Reads a certain amount of random bytes from the pool
-     * and returns the `MemorySlot` pointing to the read data.
-     * @param length The amount of bytes to read.
-     * @returns The `MemorySlot` pointing to the read data.
+     * Increments the position in the pool by a certain amount and returns the
+     * corresponding memory slot.
+     * @param amount The amount of bytes to increment the position by.
+     * @returns The memory slot pointing to the requested bytes.
      */
-    read(length: number): MemorySlot {
-        if (this.position + length > this.size) {
-            this.refill()
-        }
+    increment(amount: number): MemorySlot {
+        if (this.position + amount > this.size) this.refill()
+        this.position += amount
 
-        const slot = {
+        return {
             start: this.position,
-            length,
-            end: this.position + length,
+            length: amount,
+            end: this.position + amount,
         }
-
-        this.position += length
-
-        return slot
     }
 }
