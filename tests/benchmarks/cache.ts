@@ -172,7 +172,7 @@ export default function executeCacheBenchmark(benchmarkInputSize: number, benchm
     bench.benchmark(() => cache.copy(0, benchmarkInputSize), "copy")
     bench.benchmark(() => cache.subarray(0, benchmarkInputSize), "subarray")
     bench.benchmark(() => cache.swap(0, benchmarkInputSize), "swap")
-    bench.benchmark(() => cache.partialReverse(0, benchmarkInputSize / 2), "partialReverse")
+    bench.benchmark(() => cache.partialReverse(0, benchmarkInputSize / 2), `partialReverse(${benchmarkInputSize / 2})`)
     bench.benchmark(() => cache.reverse(), "reverse")
     bench.benchmark(() => cache.rotateLeft(), "rotateLeft")
     bench.benchmark(() => cache.rotateRight(), "rotateRight")

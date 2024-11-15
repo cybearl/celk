@@ -9,6 +9,11 @@ export type MemorySlot = {
 }
 
 /**
+ * The type of a memory table, a mapping of memory slots.
+ */
+export type MemoryTable = { [key: string]: MemorySlot }
+
+/**
  * The base BTC memory table indexes the data stored in a single Cache instance (= Uint8Array)
  * for the initial private key -> RIPEMD-160 hash transformation.
  *
@@ -111,4 +116,35 @@ export const evmMemoryTable = {
     // NOT for writing, only for reading the data that will be
     // read as the final EVM address
     address: { start: 108, length: 20, end: 128 },
+}
+
+/**
+ * A mapping of the different available memory tables.
+ */
+export const memoryTables = {
+    base58: base58MemoryTable,
+    bech32: bech32MemoryTable,
+    evm: evmMemoryTable,
+}
+
+/**
+ * A type containing a list of all the operations (=keys) that can be performed
+ * on a memory table.
+ */
+export type MemoryTableOperation =
+    | keyof typeof baseBtcMemoryTable
+    | keyof typeof base58MemoryTable
+    | keyof typeof bech32MemoryTable
+    | keyof typeof evmMemoryTable
+
+/**
+ * Returns the length of the cache needed to store the data in a specific memory table.
+ */
+export const getMemoryTableLength = (table: MemoryTable): number => {
+    let maxLength = 0
+    for (const slot of Object.values(table)) {
+        if (slot.end > maxLength) maxLength = slot.end
+    }
+
+    return maxLength
 }

@@ -183,6 +183,12 @@ export const KernelErrors = {
         message: "The Base58 string contains an invalid character.",
         data: null,
     },
+    UNSUPPORTED_MEMORY_TABLE_OPERATION: {
+        status: 400,
+        name: "UNSUPPORTED_MEMORY_TABLE_OPERATION",
+        message: "This memory table operation is not supported.",
+        data: null,
+    },
     //=====//
     // 404 //
     //=====//
