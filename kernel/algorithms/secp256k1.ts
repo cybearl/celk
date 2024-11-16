@@ -3,6 +3,7 @@ import { MemorySlot } from "#kernel/utils/instructions"
 import { KernelErrors } from "#lib/utils/errors"
 import { cyGeneral } from "@cybearl/cypack"
 
+// TODO: Replace this library by a better one..
 import { secp256k1 } from "@noble/curves/secp256k1"
 
 /**

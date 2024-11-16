@@ -33,13 +33,13 @@ export default class RandomBytesPool {
         this.size = size
         this.position = 0
 
-        this.refill()
+        this._refill()
     }
 
     /**
      * Refills the pool with new random bytes.
      */
-    private refill(): void {
+    private _refill(): void {
         this.pool.randomFill()
         this.position = 0
     }
@@ -51,7 +51,7 @@ export default class RandomBytesPool {
      * @returns The memory slot pointing to the requested bytes.
      */
     increment(amount: number): MemorySlot {
-        if (this.position + amount > this.size) this.refill()
+        if (this.position + amount > this.size) this._refill()
         this.position += amount
 
         return {

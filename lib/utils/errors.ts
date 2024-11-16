@@ -183,6 +183,12 @@ export const KernelErrors = {
         message: "The Base58 string contains an invalid character.",
         data: null,
     },
+    UNSUPPORTED_PUBLIC_KEY_LENGTH: {
+        status: 400,
+        name: "UNSUPPORTED_PUBLIC_KEY_LENGTH",
+        message: "The public key length is not supported.",
+        data: null,
+    },
     //=====//
     // 404 //
     //=====//

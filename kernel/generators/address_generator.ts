@@ -1,17 +1,36 @@
 import Keccak256Algorithm from "#kernel/algorithms/keccak256"
 import Ripemd160Algorithm from "#kernel/algorithms/ripemd160"
-import Secp256k1Algorithm, { PublicKeyGenerationMode } from "#kernel/algorithms/secp256k1"
+import Secp256k1Algorithm from "#kernel/algorithms/secp256k1"
 import Sha256Algorithm from "#kernel/algorithms/sha256"
 import Cache from "#kernel/utils/cache"
 import Base58Encoder from "#kernel/encoders/base58"
 import Bech32Encoder from "#kernel/encoders/bech32"
-import { MemorySlot } from "#kernel/utils/instructions"
+import {
+    Instruction,
+    InstructionSetName,
+    MemorySlot,
+    Operation,
+    getInstructionSet,
+    getInstructionSetCacheLength,
+} from "#kernel/utils/instructions"
 import RandomBytesPool from "#kernel/generators/random_bytes_pool"
 import { KernelErrors } from "#lib/utils/errors"
 import { cyGeneral } from "@cybearl/cypack"
 
-export type GeneratorParameters = {
-    memoryTable: keyof typeof memoryTables
+/**
+ * The type definition of the public key generation mode.
+ */
+export enum PublicKeyGenerationMode {
+    Compressed = "compressed",
+    Uncompressed = "uncompressed",
+    Evm = "evm",
+}
+
+/**
+ * The type definition of the address generator parameters.
+ */
+export type AddressGeneratorParameters = {
+    instructionSetName: InstructionSetName
     randomBytesPoolSize?: number
 }
 
@@ -21,7 +40,8 @@ export type GeneratorParameters = {
  */
 export default class AddressGenerator {
     // Memory
-    private memoryTable: MemoryTable
+    private instructionSet: Instruction[]
+    private publicKeyGenerationMode: PublicKeyGenerationMode
     private cache: Cache
 
     // Generators
@@ -41,10 +61,11 @@ export default class AddressGenerator {
      *
      * @param param0
      */
-    constructor({ memoryTable, randomBytesPoolSize = 128 }: GeneratorParameters) {
+    constructor({ instructionSetName, randomBytesPoolSize = 128 }: AddressGeneratorParameters) {
         // Memory
-        this.memoryTable = memoryTables[memoryTable]
-        this.cache = new Cache(getMemoryTableLength(this.memoryTable))
+        this.instructionSet = getInstructionSet(instructionSetName)
+        this.publicKeyGenerationMode = this._getPublicKeyGenerationMode(this.instructionSet[1].outputSlot)
+        this.cache = new Cache(getInstructionSetCacheLength(this.instructionSet))
 
         // Generators
         this.randomBytesPool = new RandomBytesPool(randomBytesPoolSize)
@@ -61,70 +82,61 @@ export default class AddressGenerator {
     }
 
     /**
-     * Executes the corresponding operation of a slot in a memory table.
-     * @param operation The operation to execute.
-     * @param inputSlot The input slot to read the data from (optional, defaults to the operation slot).
-     * @param outputSlot The output slot to write the data to (optional, defaults to the operation slot).
-     * @param inputData The data to write to the input slot (optional, if needed for specific operations).
-     * @returns The result of the operation.
+     * Gets the public key generation mode based on the memory slot length.
+     * @param publicKeySlot The memory slot containing the public key.
+     * @returns The public key generation mode.
      */
-    // private executeMemorySlotOperation(
-    //     operation: MemoryTableOperation,
-    //     inputSlot = this.memoryTable[operation],
-    //     outputSlot = this.memoryTable[operation],
-    //     inputData?: Uint8Array
-    // ) {
-    //     switch (operation) {
-    //         case "privateKey":
-    //             this.cache.writeUint8Array(this.randomBytesPool.pool, outputSlot.start, outputSlot.length)
-    //             this.randomBytesPool.increment(outputSlot.length)
-    //             break
-    //         case "publicKey":
-    //             this.secp256k1Algorithm.generate(this.publicKeyGenerationMode, this.cache, inputSlot, outputSlot)
-    //             break
-    //         case "sha256":
-    //             this.sha256Algorithm.hash(this.cache, inputSlot, outputSlot)
-    //             break
-    //         case "doubleSha256":
-    //             this.sha256Algorithm.hash(this.cache, inputSlot, outputSlot)
-    //             this.sha256Algorithm.hash(this.cache, outputSlot, outputSlot)
-    //             break
-    //         case "ripemd160":
-    //             this.ripemd160Algorithm.hash(this.cache, inputSlot, outputSlot)
-    //             break
-    //         case "keccak256":
-    //             this.keccak256Algorithm.hash(this.cache, inputSlot, outputSlot)
-    //             break
-    //         case "base58_networkByte":
-    //             // Writes the first byte of the input data as the network byte
-    //             this.cache.writeUint8(inputData?.[0] ?? 0x00, outputSlot.start)
-    //             break
-    //         case "base58_checksum":
-    //             // Double SHA-256 hash already ends up with its first 4 bytes at the checksum
-    //             // position, so, no need for any additional operation here
-    //             break
-    //         case "base58_address":
-    //             // TODO
-    //             break
-    //         case "bech32_witnessVersion":
-    //             // Writes the first byte of the input data as the witness version
-    //             this.cache.writeUint8(inputData?.[0] ?? 0x00, outputSlot.start)
-    //             break
-    //         case "bech32_address":
-    //             // TODO
-    //             break
-    //         case "evm_publicKey":
-    //             // TODO
-    //             break
-    //         case "evm_address":
-    //             // TODO
-    //             break
-    //         default:
-    //             throw new Error(
-    //                 cyGeneral.errors.stringifyError(KernelErrors.UNSUPPORTED_MEMORY_TABLE_OPERATION, undefined, {
-    //                     operation,
-    //                 })
-    //             )
-    //     }
-    // }
+    private _getPublicKeyGenerationMode(publicKeySlot: MemorySlot): PublicKeyGenerationMode {
+        switch (publicKeySlot.length) {
+            case 33:
+                return PublicKeyGenerationMode.Compressed
+            case 64:
+                return PublicKeyGenerationMode.Evm
+            case 65:
+                return PublicKeyGenerationMode.Uncompressed
+            default:
+                throw new Error(
+                    cyGeneral.errors.stringifyError(KernelErrors.UNSUPPORTED_PUBLIC_KEY_LENGTH, undefined, {
+                        length: publicKeySlot.length,
+                    })
+                )
+        }
+    }
+
+    /**
+     * Reads from an input memory slot, executes the corresponding operation based on the `Operation`
+     * enum and writes the result to an output memory slot.
+     * @param operation The operation to execute.
+     * @param inputSlot The input memory slot to read the data from.
+     * @param outputSlot The output memory slot to write the result to.
+     */
+    private _executeOperation(operation: Operation, inputSlot: MemorySlot, outputSlot: MemorySlot) {
+        switch (operation) {
+            case Operation.PrivateKey:
+                this.cache.writeUint8Array(this.randomBytesPool.pool, outputSlot.start, outputSlot.length)
+                this.randomBytesPool.increment(outputSlot.length)
+                break
+            case Operation.PublicKey:
+                this.secp256k1Algorithm.generate(
+                    this.publicKeyGenerationMode === PublicKeyGenerationMode.Compressed ? "compressed" : "uncompressed",
+                    this.cache,
+                    inputSlot,
+                    outputSlot
+                )
+                break
+            case Operation.Sha256:
+                this.sha256Algorithm.hash(this.cache, inputSlot, outputSlot)
+                break
+            case Operation.DoubleSha256:
+                this.sha256Algorithm.hash(this.cache, inputSlot, outputSlot)
+                this.sha256Algorithm.hash(this.cache, outputSlot, outputSlot)
+                break
+            case Operation.Ripemd160:
+                this.ripemd160Algorithm.hash(this.cache, inputSlot, outputSlot)
+                break
+            case Operation.Keccak256:
+                this.keccak256Algorithm.hash(this.cache, inputSlot, outputSlot)
+                break
+        }
+    }
 }

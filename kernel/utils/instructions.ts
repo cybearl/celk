@@ -14,10 +14,8 @@ export type MemorySlot = {
  * An enum containing all the available generic operations for the instruction sets.
  */
 export enum Operation {
-    // Private-public key generation
     PrivateKey = "private-key",
     PublicKey = "public-key",
-    // Algorithms
     Sha256 = "sha-256",
     DoubleSha256 = "double-sha-256",
     Ripemd160 = "ripemd-160",
@@ -120,4 +118,12 @@ export function getInstructionSet(instructionSetName: InstructionSetName): Instr
                 })
             )
     }
+}
+
+/**
+ * Gets the needed cache length for a given instruction set,
+ * by finding the maximum end of the memory slots.
+ */
+export function getInstructionSetCacheLength(instructionSet: Instruction[]): number {
+    return Math.max(...instructionSet.map((instruction) => instruction.outputSlot.end))
 }
