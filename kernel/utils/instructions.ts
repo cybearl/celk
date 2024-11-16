@@ -11,7 +11,8 @@ export type MemorySlot = {
 }
 
 /**
- * An enum containing all the available generic operations for the instruction sets.
+ * An enum containing all the available generic operations for the instruction sets,
+ * such as hashing, encoding, etc.
  */
 export enum Operation {
     PrivateKey = "private-key",
@@ -23,12 +24,14 @@ export enum Operation {
 }
 
 /**
- * The type definition of an instruction, based on a generic / custom operation
- * and a output memory slot.
+ * The type definition of an instruction, based on a generic / custom operation, its input slot
+ * to read the data from, and its output slot to write the result to.
  */
 export type Instruction = {
-    outputSlot: MemorySlot
+    inputSlot: MemorySlot | null
+    outputSlot: MemorySlot | null
     operation: Operation | string
+    isStandardOperation: boolean
 }
 
 /**
@@ -50,67 +53,69 @@ export type InstructionSetName =
  * @returns The instruction set.
  */
 export function getInstructionSet(instructionSetName: InstructionSetName): Instruction[] {
+    let instructionSet: Omit<Instruction, "isStandardOperation">[]
+
     switch (instructionSetName) {
-        // https://en.bitcoin.it/w/images/en/9/9b/PubKeyToAddr.png
         case "BTC_BASE58_UNCOMPRESSED":
+            // https://en.bitcoin.it/w/images/en/9/9b/PubKeyToAddr.png
             // prettier-ignore
-            return [
-                { outputSlot: { start:   0, end:  32, length: 32 }, operation: Operation.PrivateKey },
-                { outputSlot: { start:  32, end:  97, length: 65 }, operation: Operation.PublicKey },
-                { outputSlot: { start:  97, end: 129, length: 32 }, operation: Operation.Sha256 },
-                { outputSlot: { start: 129, end: 130, length:  1 }, operation: "base58-network-byte" },
-                { outputSlot: { start: 130, end: 150, length: 20 }, operation: Operation.Ripemd160 },
-                { outputSlot: { start: 150, end: 182, length: 32 }, operation: Operation.DoubleSha256 },
-                // Final address slot
-                { outputSlot: { start: 129, end: 154, length: 25 }, operation: "base58-address" },
+            instructionSet = [
+                { inputSlot:                                 null, outputSlot: { start:   0, end:  32, length: 32 }, operation: Operation.PrivateKey },
+                { inputSlot: { start:   0, end:  32, length: 32 }, outputSlot: { start:  32, end:  97, length: 65 }, operation: Operation.PublicKey },
+                { inputSlot: { start:  32, end:  97, length: 65 }, outputSlot: { start:  97, end: 129, length: 32 }, operation: Operation.Sha256 },
+                { inputSlot:                                 null, outputSlot: { start: 129, end: 130, length:  1 }, operation: "base58-network-byte" },
+                { inputSlot: { start:  97, end: 129, length: 32 }, outputSlot: { start: 130, end: 150, length: 20 }, operation: Operation.Ripemd160 },
+                { inputSlot: { start: 129, end: 150, length: 21 }, outputSlot: { start: 150, end: 182, length: 32 }, operation: Operation.DoubleSha256 },
+                { inputSlot: { start: 129, end: 154, length: 25 }, outputSlot:                                 null, operation: "base58-address" },
             ]
-        // https://en.bitcoin.it/w/images/en/9/9b/PubKeyToAddr.png
+            break
         case "BTC_BASE58_COMPRESSED":
+            // https://en.bitcoin.it/w/images/en/9/9b/PubKeyToAddr.png
             // prettier-ignore
-            return [
-                { outputSlot: { start:   0, end:  32, length: 32 }, operation: Operation.PrivateKey },
-                { outputSlot: { start:  32, end:  65, length: 33 }, operation: Operation.PublicKey },
-                { outputSlot: { start:  65, end:  97, length: 32 }, operation: Operation.Sha256 },
-                { outputSlot: { start:  97, end:  98, length:  1 }, operation: "base58-network-byte" },
-                { outputSlot: { start:  98, end: 118, length: 20 }, operation: Operation.Ripemd160 },
-                { outputSlot: { start: 118, end: 150, length: 32 }, operation: Operation.DoubleSha256 },
-                // Final address slot
-                { outputSlot: { start:  97, end: 122, length: 25 }, operation: "base58-address" },
+            instructionSet = [
+                { inputSlot:                                 null, outputSlot: { start:   0, end:  32, length: 32 }, operation: Operation.PrivateKey },
+                { inputSlot: { start:   0, end:  32, length: 32 }, outputSlot: { start:  32, end:  65, length: 33 }, operation: Operation.PublicKey },
+                { inputSlot: { start:  32, end:  65, length: 33 }, outputSlot: { start:  65, end:  97, length: 32 }, operation: Operation.Sha256 },
+                { inputSlot:                                 null, outputSlot: { start:  97, end:  98, length:  1 }, operation: "base58-network-byte" },
+                { inputSlot: { start:  65, end:  97, length: 32 }, outputSlot: { start:  98, end: 118, length: 20 }, operation: Operation.Ripemd160 },
+                { inputSlot: { start:  97, end: 118, length: 21 }, outputSlot: { start: 118, end: 150, length: 32 }, operation: Operation.DoubleSha256 },
+                { inputSlot: { start:  97, end: 122, length: 25 }, outputSlot:                                 null, operation: "base58-address" },
             ]
-        // https://en.bitcoin.it/wiki/Bech32
+            break
         case "BTC_BECH32_UNCOMPRESSED":
+            // https://en.bitcoin.it/wiki/Bech32
             // prettier-ignore
-            return [
-                { outputSlot: { start:   0, end:  32, length: 32 }, operation: Operation.PrivateKey },
-                { outputSlot: { start:  32, end:  97, length: 65 }, operation: Operation.PublicKey },
-                { outputSlot: { start:  97, end: 129, length: 32 }, operation: Operation.Sha256 },
-                { outputSlot: { start: 130, end: 150, length: 20 }, operation: Operation.Ripemd160 },
-                { outputSlot: { start: 150, end: 151, length:  1 }, operation: "bech32-witness-version" },
-                // Final address slot
-                { outputSlot: { start: 151, end: 183, length: 32 }, operation: "bech32-address" },
+            instructionSet = [
+                { inputSlot:                                 null, outputSlot: { start:   0, end:  32, length: 32 }, operation: Operation.PrivateKey },
+                { inputSlot: { start:   0, end:  32, length: 32 }, outputSlot: { start:  32, end:  97, length: 65 }, operation: Operation.PublicKey },
+                { inputSlot: { start:  32, end:  97, length: 65 }, outputSlot: { start:  97, end: 129, length: 32 }, operation: Operation.Sha256 },
+                { inputSlot: { start:  97, end: 129, length: 32 }, outputSlot: { start: 130, end: 150, length: 20 }, operation: Operation.Ripemd160 },
+                { inputSlot:                                 null, outputSlot: { start: 150, end: 151, length:  1 }, operation: "bech32-witness-version" },
+                { inputSlot: { start: 151, end: 183, length: 32 }, outputSlot:                                 null, operation: "bech32-address" },
             ]
-        // https://en.bitcoin.it/wiki/Bech32
+            break
         case "BTC_BECH32_COMPRESSED":
+            // https://en.bitcoin.it/wiki/Bech32
             // prettier-ignore
-            return [
-                { outputSlot: { start:   0, end:  32, length: 32 }, operation: Operation.PrivateKey },
-                { outputSlot: { start:  32, end:  65, length: 33 }, operation: Operation.PublicKey },
-                { outputSlot: { start:  65, end:  97, length: 32 }, operation: Operation.Sha256 },
-                { outputSlot: { start:  97, end: 117, length: 20 }, operation: Operation.Ripemd160 },
-                { outputSlot: { start: 117, end: 118, length:  1 }, operation: "bech32-witness-version" },
-                // Final address slot
-                { outputSlot: { start: 118, end: 150, length: 32 }, operation: "bech32-address" },
+            instructionSet = [
+                { inputSlot:                                 null, outputSlot: { start:   0, end:  32, length: 32 }, operation: Operation.PrivateKey },
+                { inputSlot: { start:   0, end:  32, length: 32 }, outputSlot: { start:  32, end:  65, length: 33 }, operation: Operation.PublicKey },
+                { inputSlot: { start:  32, end:  65, length: 33 }, outputSlot: { start:  65, end:  97, length: 32 }, operation: Operation.Sha256 },
+                { inputSlot: { start:  65, end:  97, length: 32 }, outputSlot: { start:  97, end: 117, length: 20 }, operation: Operation.Ripemd160 },
+                { inputSlot:                                 null, outputSlot: { start: 117, end: 118, length:  1 }, operation: "bech32-witness-version" },
+                { inputSlot: { start: 118, end: 150, length: 32 }, outputSlot:                                 null, operation: "bech32-address" },
             ]
-        // https://ethereum.stackexchange.com/questions/3542/how-are-ethereum-addresses-generated
+            break
         case "EVM":
+            // https://ethereum.stackexchange.com/questions/3542/how-are-ethereum-addresses-generated
             // prettier-ignore
-            return [
-                { outputSlot: { start:   0, end:  32, length: 32 }, operation: Operation.PrivateKey },
-                { outputSlot: { start:  32, end:  96, length: 64 }, operation: Operation.PublicKey },
-                { outputSlot: { start:  96, end: 128, length: 32 }, operation: Operation.Keccak256 },
-                // Final address slot
-                { outputSlot: { start: 108, end: 128, length: 20 }, operation: "evm-address" },
+            instructionSet = [
+                { inputSlot:                                 null, outputSlot: { start:   0, end:  32, length: 32 }, operation: Operation.PrivateKey },
+                { inputSlot: { start:   0, end:  32, length: 32 }, outputSlot: { start:  32, end:  96, length: 64 }, operation: Operation.PublicKey },
+                { inputSlot: { start:  32, end:  96, length: 64 }, outputSlot: { start:  96, end: 128, length: 32 }, operation: Operation.Keccak256 },
+                { inputSlot: { start: 108, end: 128, length: 20 }, outputSlot:                                 null, operation: "evm-address" },
             ]
+            break
         default:
             throw new Error(
                 cyGeneral.errors.stringifyError(KernelErrors.INSTRUCTION_SET_NOT_FOUND, undefined, {
@@ -118,6 +123,13 @@ export function getInstructionSet(instructionSetName: InstructionSetName): Instr
                 })
             )
     }
+
+    // Travel through the instruction set and add the `isStandardOperation` flag based on
+    // whether the operation is from the `Operation` enum or not.
+    return instructionSet.map((instruction) => ({
+        ...instruction,
+        isStandardOperation: Object.values(Operation).includes(instruction.operation as Operation),
+    }))
 }
 
 /**
@@ -125,5 +137,5 @@ export function getInstructionSet(instructionSetName: InstructionSetName): Instr
  * by finding the maximum end of the memory slots.
  */
 export function getInstructionSetCacheLength(instructionSet: Instruction[]): number {
-    return Math.max(...instructionSet.map((instruction) => instruction.outputSlot.end))
+    return Math.max(...instructionSet.map((instruction) => instruction.outputSlot?.end ?? 0))
 }
