@@ -1,6 +1,6 @@
 import Ripemd160Algorithm from "#kernel/algorithms/ripemd160"
-import Cache from "#kernel/cache"
-import { MemorySlot } from "#kernel/memory"
+import Cache from "#kernel/utils/cache"
+import { MemorySlot } from "#kernel/utils/instructions"
 import Bench from "#lib/utils/benchmark"
 import externalLogger from "#lib/utils/external_logger"
 

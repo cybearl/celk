@@ -1,4 +1,4 @@
-import Cache from "#kernel/cache"
+import Cache from "#kernel/utils/cache"
 import Base58Encoder from "#kernel/encoders/base58"
 import Bench from "#lib/utils/benchmark"
 import externalLogger from "#lib/utils/external_logger"

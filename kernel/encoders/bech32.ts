@@ -1,5 +1,5 @@
-import Cache from "#kernel/cache"
-import { MemorySlot } from "#kernel/memory"
+import Cache from "#kernel/utils/cache"
+import { MemorySlot } from "#kernel/utils/instructions"
 import { KernelErrors } from "#lib/utils/errors"
 import { cyGeneral } from "@cybearl/cypack"
 

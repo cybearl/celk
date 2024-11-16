@@ -183,19 +183,19 @@ export const KernelErrors = {
         message: "The Base58 string contains an invalid character.",
         data: null,
     },
-    UNSUPPORTED_MEMORY_TABLE_OPERATION: {
-        status: 400,
-        name: "UNSUPPORTED_MEMORY_TABLE_OPERATION",
-        message: "This memory table operation is not supported.",
-        data: null,
-    },
     //=====//
     // 404 //
     //=====//
     BECH32_SEPARATOR_NOT_FOUND: {
         status: 404,
-        name: "INVALID_BECH32_SEPARATOR",
-        message: "The Bech32 string does not contain a separator.",
+        name: "BECH32_SEPARATOR_NOT_FOUND",
+        message: "The Bech32 string separator was not found.",
+        data: null,
+    },
+    INSTRUCTION_SET_NOT_FOUND: {
+        status: 404,
+        name: "INSTRUCTION_SET_NOT_FOUND",
+        message: "This instruction could not be found.",
         data: null,
     },
 }

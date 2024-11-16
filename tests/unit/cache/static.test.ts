@@ -1,4 +1,4 @@
-import Cache, { Bit } from "#kernel/cache"
+import Cache, { Bit } from "#kernel/utils/cache"
 import { test } from "@japa/runner"
 
 test.group("cache / static / alloc", (group) => {

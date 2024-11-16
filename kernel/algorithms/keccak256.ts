@@ -1,5 +1,5 @@
-import Cache from "#kernel/cache"
-import { MemorySlot } from "#kernel/memory"
+import Cache from "#kernel/utils/cache"
+import { MemorySlot } from "#kernel/utils/instructions"
 
 // TODO: Implement keccak256
 import { keccak_256 } from "@noble/hashes/sha3"

@@ -1,5 +1,5 @@
-import Cache from "#kernel/cache"
-import { MemorySlot } from "#kernel/memory"
+import Cache from "#kernel/utils/cache"
+import { MemorySlot } from "#kernel/utils/instructions"
 
 /**
  * The `RandomBytesPool` class is used to generate a pool of random bytes used for different generation

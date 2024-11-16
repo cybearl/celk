@@ -1,4 +1,4 @@
-import Cache, { Bit } from "#kernel/cache"
+import Cache, { Bit } from "#kernel/utils/cache"
 import Bench from "#lib/utils/benchmark"
 import externalLogger from "#lib/utils/external_logger"
 

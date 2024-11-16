@@ -1,4 +1,4 @@
-import Cache from "#kernel/cache"
+import Cache from "#kernel/utils/cache"
 import { test } from "@japa/runner"
 
 test.group("cache / iterate / symbol", (group) => {

@@ -1,6 +1,6 @@
 import Keccak256Algorithm from "#kernel/algorithms/keccak256"
-import Cache from "#kernel/cache"
-import { MemorySlot } from "#kernel/memory"
+import Cache from "#kernel/utils/cache"
+import { MemorySlot } from "#kernel/utils/instructions"
 import Bench from "#lib/utils/benchmark"
 import externalLogger from "#lib/utils/external_logger"
 

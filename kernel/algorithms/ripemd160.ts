@@ -1,6 +1,6 @@
-import { rotl32, safeAdd32, safeAdd32x3, safeAdd32x4 } from "#kernel/bitwise"
-import Cache from "#kernel/cache"
-import { MemorySlot } from "#kernel/memory"
+import { rotl32, safeAdd32, safeAdd32x3, safeAdd32x4 } from "#kernel/utils/bitwise"
+import Cache from "#kernel/utils/cache"
+import { MemorySlot } from "#kernel/utils/instructions"
 
 /**
  * The `Ripemd160Algorithm` class is used to hash data coming from a

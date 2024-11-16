@@ -1,4 +1,4 @@
-import Cache from "#kernel/cache"
+import Cache from "#kernel/utils/cache"
 import { test } from "@japa/runner"
 import Base58Encoder from "#kernel/encoders/base58"
 
