@@ -469,7 +469,7 @@ export default class Cache extends Uint8Array {
      * Writes a single 16-bit value to the cache.
      * @param value The value to write.
      * @param offset The offset to write to (optional, defaults to 0).
-     * @param endianness The endianness to use (optional, defaults to the platform's endianness).*
+     * @param endianness The endianness to use (optional, defaults to the platform's endianness).
      * @param verifyAlignment Whether to verify that the offset is aligned to 2 bytes (optional, defaults to `true`).
      * @param check Whether to enable the overall check (optional, defaults to `true`).
      * @returns The cache instance.

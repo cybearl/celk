@@ -2,6 +2,7 @@ import Cache from "#kernel/utils/cache"
 import { MemorySlot } from "#kernel/utils/instructions"
 import { KernelErrors } from "#lib/utils/errors"
 import { cyGeneral } from "@cybearl/cypack"
+import os from "node:os"
 
 /**
  * The type definition of the options for the `PrivateKeyGenerator` class.
@@ -47,6 +48,11 @@ export default class PrivateKeyGenerator {
     readonly _upperBound: Cache
 
     /**
+     * The number of bytes needed to represent the upper bound of the private key.
+     */
+    private readonly _upperBoundSize: number
+
+    /**
      * The current position in the pool.
      */
     private _position = 0
@@ -63,13 +69,15 @@ export default class PrivateKeyGenerator {
      */
     constructor(options?: Options) {
         this._pool = new Cache(options?.poolSize ?? 1024)
-
         this._privateKeySize = options?.privateKeySize ?? 32
         this._maxValue = 2n ** BigInt(this._privateKeySize * 8) - 1n
-        ;[this._lowerBound, this._upperBound] = this._getBounds(options?.lowerBound, options?.upperBound)
+        ;[this._lowerBound, this._upperBound, this._upperBoundSize] = this._getBounds(
+            options?.lowerBound,
+            options?.upperBound
+        )
 
-        console.log(this._lowerBound.toHexString())
-        console.log(this._upperBound.toHexString())
+        console.log("LOWER:", this._lowerBound.toHexString())
+        console.log("UPPER:", this._upperBound.toHexString())
 
         this._refill()
     }
@@ -89,12 +97,13 @@ export default class PrivateKeyGenerator {
      * Converts both the lower and upper bounds of the private key to two `Cache` instances.
      * @param lowerBound The lower bound of the private key to generate.
      * @param upperBound The upper bound of the private key to generate.
-     * @returns The lower and upper bounds of the private key as `Cache` instances.
+     * @returns The lower and upper bounds of the private key as `Cache` instances, and the
+     * needed length for the upper bound in bytes.
      */
     private _getBounds(
         lowerBound: bigint | number | undefined,
         upperBound: bigint | number | undefined
-    ): [Cache, Cache] {
+    ): [Cache, Cache, number] {
         if (lowerBound && lowerBound < 0n) {
             throw new Error(
                 cyGeneral.errors.stringifyError(
@@ -135,28 +144,39 @@ export default class PrivateKeyGenerator {
         const lowerHex = lowerBound ? BigInt(lowerBound).toString(16) : "00"
         const upperHex = upperBound ? BigInt(upperBound).toString(16) : this._maxValue.toString(16)
 
+        // Converts hex strings to `Cache` instances
         return [
             Cache.fromHexString(lowerHex.padStart(this._privateKeySize * 2, "0")),
             Cache.fromHexString(upperHex.padStart(this._privateKeySize * 2, "0")),
+            Math.ceil(upperHex.length / 2),
         ]
     }
 
     /**
-     * Refills the pool with new random bytes while padding it with 0s to respect the bounds of
-     * the private key.
-     * @param mode Whether to fill the left or right side of the pool first, and pad the
-     * other side with 0s (optional, defaults to `right`).
+     * Refills the pool with new random bytes based on the private key bounds.
+     * @param endianness The endianness to use (optional, defaults to the platform's endianness).
      */
-    private _refill(mode: "left" | "right" = "right"): void {
+    private _refill(endianness = os.endianness()): void {
         for (let i = 0; i < this._pool.length; i += this._privateKeySize) {
             for (let j = 0; j < this._privateKeySize; j++) {
-                if (mode === "right" && i + j >= this._pool.length) break
+                const lowerByte = this._lowerBound[j]
+                const upperByte = this._upperBound[j]
 
-                if (this._position + j >= this._lowerBound.length && this._position + j <= this._upperBound.length) {
-                    this._pool[i + j] = this._lowerBound[i + j]
-                } else {
-                    this._pool[i + j] = cyGeneral.crypto.randomBytes(1)[0]
-                }
+                console.log("LOWER:", lowerByte)
+                console.log("UPPER:", upperByte)
+
+                // let byte = 0
+
+                // if (j < this._upperBoundSize - 1) {
+                //     console.log("LOWER:", this._lowerBound[j])
+                //     console.log("UPPER:", this._upperBound[j])
+                //     //
+                // } else if (j === this._upperBoundSize - 1) {
+                //     //
+                // }
+
+                // if (endianness === "BE") this._pool[i + j] = byte
+                // else this._pool[i + this._privateKeySize - j - 1] = byte
             }
         }
 
@@ -171,7 +191,11 @@ export default class PrivateKeyGenerator {
         this._position += this._privateKeySize
         if (this._position + this._privateKeySize > this._pool.length) this._refill()
 
-        console.log(this._pool.toHexString())
+        // print the pool with a space every this._privateKeySize * 2 characters
+        // console.log(
+        //     "RES:  ",
+        //     this._pool.toHexString().replace(new RegExp(`.{${this._privateKeySize * 2}}`, "g"), "$& ")
+        // )
 
         return this.memorySlot
     }

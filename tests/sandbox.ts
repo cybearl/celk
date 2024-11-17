@@ -13,10 +13,10 @@ import PrivateKeyGenerator from "#kernel/generators/private_key_generator"
 // bench.print("address_generator")
 
 const privateKeyGenerator = new PrivateKeyGenerator({
-    privateKeySize: 2,
-    lowerBound: 0,
-    upperBound: 255,
-    poolSize: 16,
+    privateKeySize: 3,
+    lowerBound: 7,
+    upperBound: 65536,
+    poolSize: 3,
 })
 
-// const privateKey = privateKeyGenerator.generate()
+privateKeyGenerator.generate()
