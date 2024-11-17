@@ -29,8 +29,14 @@ export default function executeSecp256k1AlgorithmBenchmark(_: any, benchmarkDura
     // Benchmark
     const bench = new Bench(benchmarkDuration)
 
-    bench.benchmark(() => secp256k1.generate("compressed", cache, inputSlot, outputSlot), "hash(c32)")
-    bench.benchmark(() => secp256k1.generate("uncompressed", cache, inputSlot, outputSlot), "hash(u32)")
+    bench.benchmark(
+        () => secp256k1.generate("compressed", { cache, ...inputSlot }, { cache, ...outputSlot }),
+        "hash(c32)"
+    )
+    bench.benchmark(
+        () => secp256k1.generate("uncompressed", { cache, ...inputSlot }, { cache, ...outputSlot }),
+        "hash(u32)"
+    )
 
     bench.print()
 }

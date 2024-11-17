@@ -12,8 +12,8 @@ import { keccak_256 } from "@noble/hashes/sha3"
  */
 export default class Keccak256Algorithm {
     /**
-     * Hashes the data in the attached cache at a certain position, and writes the hash back to the same
-     * or another cache at another position.
+     * Hashes the data of a `Cache` instance at a certain position given by an input `MemorySlot`,
+     * and writes the hash to the same or another `Cache` instance at a position given by an output `MemorySlot`.
      *
      * Output Length: 32 bytes.
      * @param inputSlotWithCache The position of the data to read in the attached cache (optional, defaults to 0 => length),

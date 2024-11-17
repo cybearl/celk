@@ -1,4 +1,5 @@
 import Cache from "#kernel/utils/cache"
+import { MemorySlot } from "#kernel/utils/instructions"
 
 /**
  * The `RandomBytesPool` class is used to generate a pool of random bytes used for different generation
@@ -11,22 +12,22 @@ export default class RandomBytesPool {
     /**
      * The pool of random bytes.
      */
-    pool: Cache
+    readonly pool: Cache
 
     /**
      * The size of the pool.
      */
-    size: number
+    private readonly _size: number
 
     /**
      * The current position in the pool.
      */
-    position: number
+    private _position: number
 
     /**
      * The latest amount of bytes requested from the pool.
      */
-    latestAmount: number
+    private _latestAmount: number
 
     /**
      * Creates a new `RandomBytesPool` instance with a certain size.
@@ -34,9 +35,9 @@ export default class RandomBytesPool {
      */
     constructor(size: number) {
         this.pool = new Cache(size)
-        this.size = size
-        this.position = 0
-        this.latestAmount = 0
+        this._size = size
+        this._position = 0
+        this._latestAmount = 0
 
         this._refill()
     }
@@ -45,8 +46,8 @@ export default class RandomBytesPool {
      * Refills the pool with new random bytes.
      */
     _refill(): void {
-        this.pool.randomFill()
-        this.position = 0
+        this.pool.safeRandomFill()
+        this._position = 0
     }
 
     /**
@@ -54,9 +55,19 @@ export default class RandomBytesPool {
      * @param amount The amount of bytes to increment the position by.
      */
     increment(amount: number) {
-        this.position += amount
-        this.latestAmount = amount
+        this._position += amount
+        this._latestAmount = amount
+        if (this._position + amount > this._size) this._refill()
+    }
 
-        if (this.position + amount > this.size) this._refill()
+    /**
+     * The memory slot that points to the currently requested bytes in the pool.
+     */
+    get memorySlot(): MemorySlot {
+        return {
+            start: this._position,
+            length: this._latestAmount,
+            end: this._position + this._latestAmount,
+        }
     }
 }

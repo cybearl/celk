@@ -1,5 +1,4 @@
-import Cache from "#kernel/utils/cache"
-import { MemorySlot } from "#kernel/utils/instructions"
+import { MemorySlotWithCache } from "#kernel/utils/instructions"
 import { KernelErrors } from "#lib/utils/errors"
 import { cyGeneral } from "@cybearl/cypack"
 
@@ -30,9 +29,9 @@ export type PublicKeyGenerationMode = "compressed" | "uncompressed"
  */
 export default class Secp256k1Algorithm {
     /**
-     * Generates a public key from a private key stored inside a `Cache` instance
-     * at a certain position, and writes the public key back to the `Cache` instance
-     * at another position.
+     * Generates a public key from a private key stored inside a `Cache` instance at a certain position
+     * given by an input `MemorySlot`, and writes the key to the same or another `Cache` instance
+     * at a position given by an output `MemorySlot`.
      *
      * Output Length: 33 bytes (uncompressed) or 65 bytes (compressed).
      * @param mode The public key generation mode (`compressed` or `uncompressed`).
@@ -40,39 +39,46 @@ export default class Secp256k1Algorithm {
      * @param inputSlot The position of the data to read in the cache (optional, defaults to 0 => length).
      * @param outputSlot The position to write the hash to in the cache (optional, defaults to 0 => data length).
      */
-    generate(mode: PublicKeyGenerationMode, cache: Cache, inputSlot?: MemorySlot, outputSlot?: MemorySlot): void {
+    generate(
+        mode: PublicKeyGenerationMode,
+        inputSlotWithCache: MemorySlotWithCache,
+        outputSlotWithCache: MemorySlotWithCache
+    ): void {
         if (mode === "compressed") {
-            if (cache.length < 33) {
+            if (outputSlotWithCache.cache.length < 33) {
                 throw new Error(
                     cyGeneral.errors.stringifyError(KernelErrors.INVALID_CACHE_LENGTH, undefined, {
-                        length: cache.length,
+                        length: outputSlotWithCache.cache.length,
                         expected: 33,
                     })
                 )
             }
         } else {
-            if (cache.length < 65) {
+            if (outputSlotWithCache.cache.length < 65) {
                 throw new Error(
                     cyGeneral.errors.stringifyError(KernelErrors.INVALID_CACHE_LENGTH, undefined, {
-                        length: cache.length,
+                        length: outputSlotWithCache.cache.length,
                         expected: 65,
                     })
                 )
             }
         }
 
-        if (inputSlot && inputSlot.length !== 32) {
+        if (inputSlotWithCache.length !== 32) {
             throw new Error(
                 cyGeneral.errors.stringifyError(KernelErrors.INVALID_PRIVATE_KEY_LENGTH, undefined, {
-                    length: inputSlot.length,
+                    length: inputSlotWithCache.length,
                     expected: 32,
                 })
             )
         }
 
-        cache.writeUint8Array(
-            secp256k1.getPublicKey(cache.subarray(inputSlot?.start, inputSlot?.end), mode === "compressed"),
-            outputSlot?.start
+        outputSlotWithCache.cache.writeUint8Array(
+            secp256k1.getPublicKey(
+                inputSlotWithCache.cache.copy(inputSlotWithCache?.start, inputSlotWithCache?.length),
+                mode === "compressed"
+            ),
+            outputSlotWithCache?.start
         )
     }
 }

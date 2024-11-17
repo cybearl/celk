@@ -1129,18 +1129,8 @@ export default class Cache extends Uint8Array {
     randomFill = (offset = 0, length = this.length - offset) => {
         this.check(offset, length)
 
-        for (let i = 0; i < length; i += 8) {
-            const randomValue = Math.random() * 0x100000000
-            const offsetIndex = i + offset
-
-            this[offsetIndex] = randomValue & 0xff
-            this[offsetIndex + 1] = (randomValue >> 8) & 0xff
-            this[offsetIndex + 2] = (randomValue >> 16) & 0xff
-            this[offsetIndex + 3] = (randomValue >> 24) & 0xff
-            this[offsetIndex + 4] = (randomValue >> 32) & 0xff
-            this[offsetIndex + 5] = (randomValue >> 40) & 0xff
-            this[offsetIndex + 6] = (randomValue >> 48) & 0xff
-            this[offsetIndex + 7] = (randomValue >> 56) & 0xff
+        for (let i = 0; i < length; i++) {
+            this[offset + i] = Math.floor(Math.random() * 256)
         }
     }
 

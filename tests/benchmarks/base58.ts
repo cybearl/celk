@@ -36,7 +36,6 @@ export default function executeBase58EncoderBenchmark(_: any, benchmarkDuration:
         () => base58Encoder.decode(base58OutputUtf8, base58OutputCache, { start: 0, length: 25, end: 25 }),
         `decode(${base58OutputUtf8.length})`
     )
-
     bench.benchmark(
         () => base58Encoder.encode(base58InputAddressCache),
         `encode(${base58InputAddress.length / 2} - address)`
@@ -45,6 +44,5 @@ export default function executeBase58EncoderBenchmark(_: any, benchmarkDuration:
         () => base58Encoder.decode(base58OutputAddress, base58OutputCache, { start: 0, length: 34, end: 34 }),
         `decode(${base58OutputAddress.length} - address)`
     )
-
     bench.print("base58")
 }

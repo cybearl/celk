@@ -17,6 +17,7 @@ import {
 import RandomBytesPool from "#kernel/generators/random_bytes_pool"
 import { KernelErrors } from "#lib/utils/errors"
 import { cyGeneral } from "@cybearl/cypack"
+import externalLogger from "#lib/utils/external_logger"
 
 /**
  * The type definition of the public key generation mode.
@@ -69,6 +70,7 @@ export default class AddressGenerator {
 
     // Memory
     private _cache: Cache
+    private _latestPrivateKeySlot: MemorySlot | null = null
 
     // Generators
     private _randomBytesPool: RandomBytesPool
@@ -89,12 +91,12 @@ export default class AddressGenerator {
      * @param addressSpecificParameters The address specific parameters to use (optional, only
      * for instruction sets that actually generates either a base58 or a Bech32 address,
      * defaults to `DEFAULT_ADDRESS_SPECIFIC_PARAMETERS`).
-     * @param randomBytesPoolSize The size of the random bytes pool.
+     * @param randomBytesPoolSize The size of the random bytes pool (optional, defaults to 1,024 bytes).
      */
     constructor({
         instructionSetName,
         addressSpecificParameters,
-        randomBytesPoolSize = 128,
+        randomBytesPoolSize = 1024,
     }: AddressGeneratorParameters) {
         // Instructions
         this._instructionSet = getInstructionSet(instructionSetName)
@@ -163,6 +165,7 @@ export default class AddressGenerator {
         switch (operation) {
             case GenericOperation.PrivateKey:
                 this._randomBytesPool.increment(outputSlot.length)
+                this._latestPrivateKeySlot = this._randomBytesPool.memorySlot
                 break
             case GenericOperation.PublicKey:
                 // TODO: Implement a better algorithm that supports 64 bytes public keys.
@@ -170,23 +173,38 @@ export default class AddressGenerator {
                     this._publicKeyGenerationMode === PublicKeyGenerationMode.Compressed
                         ? "compressed"
                         : "uncompressed",
-                    this._cache,
-                    inputSlot as MemorySlot,
-                    outputSlot
+                    {
+                        cache: this._randomBytesPool.pool,
+                        ...this._randomBytesPool.memorySlot,
+                    },
+                    { cache: this._cache, ...outputSlot }
                 )
                 break
             case GenericOperation.Sha256:
-                this._sha256Algorithm.hash(this._cache, inputSlot as MemorySlot, outputSlot)
+                this._sha256Algorithm.hash({ cache: this._cache, ...inputSlot }, { cache: this._cache, ...outputSlot })
                 break
             case GenericOperation.Ripemd160:
-                this._ripemd160Algorithm.hash(this._cache, inputSlot as MemorySlot, outputSlot)
+                this._ripemd160Algorithm.hash(
+                    { cache: this._cache, ...inputSlot },
+                    { cache: this._cache, ...outputSlot }
+                )
                 break
             case GenericOperation.Keccak256:
-                this._keccak256Algorithm.hash(this._cache, inputSlot as MemorySlot, outputSlot)
+                this._keccak256Algorithm.hash(
+                    { cache: this._cache, ...inputSlot },
+                    { cache: this._cache, ...outputSlot }
+                )
                 break
         }
     }
 
+    /**
+     * Executes an address operation based on the `AddressOperation` enum.
+     * @param operation The address operation to execute.
+     * @param inputSlot The input memory slot to read the data from.
+     * @param outputSlot The output memory slot to write the result to.
+     * @returns The address string if the operation is an address generation operation, `undefined` otherwise.
+     */
     private _executeAddressOperation(
         operation: AddressOperation,
         inputSlot: MemorySlot | null,
@@ -198,8 +216,8 @@ export default class AddressGenerator {
                 this._cache.writeUint8(this._addressSpecificParameters.base58NetworkByte, outputSlot?.start)
                 break
             case AddressOperation.Base58DoubleSha256:
-                this._sha256Algorithm.hash(this._cache, inputSlot as MemorySlot, outputSlot as MemorySlot)
-                this._sha256Algorithm.hash(this._cache, outputSlot as MemorySlot, outputSlot as MemorySlot)
+                this._sha256Algorithm.hash({ cache: this._cache, ...inputSlot }, { cache: this._cache, ...outputSlot })
+                this._sha256Algorithm.hash({ cache: this._cache, ...outputSlot }, { cache: this._cache, ...outputSlot })
                 break
             case AddressOperation.Bech32WitnessVersion:
                 this._cache.writeUint8(this._addressSpecificParameters.bech32WitnessVersion, outputSlot?.start)
@@ -220,7 +238,13 @@ export default class AddressGenerator {
         }
     }
 
-    executeInstructions(): MemorySlot | string | null {
+    /**
+     * Executes the instructions in the instruction set.
+     * @param verbose Whether to log the execution of each instruction (optional, defaults to `false`).
+     * @returns The address string if the instruction set is not raw, the latest private key slot if it is raw,
+     * or `null` if the instruction set could not run but did not throw an error.
+     */
+    executeInstructions(verbose = false): MemorySlot | string | null {
         let result: MemorySlot | string | null = null
 
         for (const instruction of this._instructionSet) {
@@ -247,8 +271,25 @@ export default class AddressGenerator {
                     break
                 }
             }
+
+            if (verbose) {
+                externalLogger.info(
+                    `Instruction: ${instruction.operation} | Result: ${this._cache.readHexString(
+                        instruction.outputSlot?.start,
+                        instruction.outputSlot?.length
+                    )}`
+                )
+            }
         }
 
         return result
+    }
+
+    /**
+     * Gets the latest private key slot.
+     * @returns The latest private key slot.
+     */
+    get latestPrivateKeySlot(): MemorySlot | null {
+        return this._latestPrivateKeySlot
     }
 }
