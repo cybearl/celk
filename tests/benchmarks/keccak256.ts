@@ -36,7 +36,13 @@ export default function executeKeccak256AlgorithmBenchmark(benchmarkInputSize: n
     // Benchmark
     const bench = new Bench(benchmarkDuration)
 
-    bench.benchmark(() => keccak256.hash(cache, inputSlot, outputSlot), `hash(${benchmarkInputSize})`)
-    bench.benchmark(() => keccak256.hash(cacheX1, X1InputSlot, X1OutputSlot), `hash(1)`)
+    bench.benchmark(
+        () => keccak256.hash({ cache, ...inputSlot }, { cache, ...outputSlot }),
+        `hash(${benchmarkInputSize})`
+    )
+    bench.benchmark(
+        () => keccak256.hash({ cache: cacheX1, ...X1InputSlot }, { cache: cacheX1, ...X1OutputSlot }),
+        `hash(1)`
+    )
     bench.print()
 }

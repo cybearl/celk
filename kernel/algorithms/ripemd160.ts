@@ -1,12 +1,11 @@
 import { rotl32, safeAdd32, safeAdd32x3, safeAdd32x4 } from "#kernel/utils/bitwise"
 import Cache from "#kernel/utils/cache"
-import { MemorySlot } from "#kernel/utils/instructions"
+import { MemorySlotWithCache } from "#kernel/utils/instructions"
 
 /**
- * The `Ripemd160Algorithm` class is used to hash data coming from a
- * `Cache` instance at a certain position given by an input `MemorySlot`,
- * and rewrite the hash back to the `Cache` instance at another
- * position given by an output `MemorySlot`.
+ * The `Ripemd160Algorithm` class is used to hash data coming from a `Cache` instance at a certain position given by an
+ * input `MemorySlot`, and rewrite the hash back to the same or another `Cache` instance at a position given
+ * by an output `MemorySlot`.
  *
  * Sources:
  * - [Wikipedia](https://en.wikipedia.org/wiki/RIPEMD).
@@ -125,8 +124,9 @@ export default class Ripemd160Algorithm {
      * RIPEMD-160 internal hash computation.
      * @param cache The cache to write to.
      * @param offset The offset to write to.
+     * @param verifyAlignment Whether to verify that the offset is aligned to 4 bytes (optional).
      */
-    private _ripemd160 = (cache: Cache, offset: number): void => {
+    private _ripemd160 = (cache: Cache, offset: number, verifyAlignment?: boolean): void => {
         // Set the initial hash values
         this._hash = this._H.slice()
 
@@ -185,7 +185,7 @@ export default class Ripemd160Algorithm {
 
         // Write to cache at offset
         for (let i = 0; i < 5; i++) {
-            cache.writeUint32LE(this._hash[i], offset + i * 4, false)
+            cache.writeUint32LE(this._hash[i], offset + i * 4, verifyAlignment)
         }
     }
 
@@ -195,11 +195,11 @@ export default class Ripemd160Algorithm {
      *
      * The optimization strategy here, is to reuse the same array if the input data length is the same,
      * so, no need to allocate a new array every time so the algorithm becomes faster for same length inputs.
-     * @param cache The cache to read the data from.
-     * @param inputSlot The position of the data to read in the cache (optional, defaults to 0 => length).
+     * @param inputSlotWithCache The position of the data to read in the attached cache (optional, defaults to 0 => length),
+     * @param verifyAlignment Whether to verify that the offset is aligned to 4 bytes (optional).
      */
-    private _manageBlocks = (cache: Cache, inputSlot?: MemorySlot): void => {
-        const length = inputSlot?.length || cache.length
+    private _manageBlocks = (inputSlotWithCache: MemorySlotWithCache, verifyAlignment?: boolean): void => {
+        const length = inputSlotWithCache?.length || inputSlotWithCache.cache.length
         const bitLength = length * 8
 
         // Allocate a new array ONLY if the input data length is different
@@ -215,7 +215,7 @@ export default class Ripemd160Algorithm {
 
         // Copy the input data to the input array
         for (let i = 0; i < length; i += 4) {
-            const value = cache.readUint32LE((inputSlot?.start || 0) + i)
+            const value = inputSlotWithCache.cache.readUint32LE((inputSlotWithCache?.start || 0) + i, verifyAlignment)
 
             if (i + 4 <= length) {
                 this._block[i >> 2] = value
@@ -236,16 +236,20 @@ export default class Ripemd160Algorithm {
     }
 
     /**
-     * Hashes the data in the cache using the RIPEMD-160 algorithm,
-     * rewriting the hash back to the cache at the specified offset.
-     * - Output Length: 20 bytes.
-     * - Supports only data with a length that is a multiple of 4 bytes.
-     * @param cache The `Cache` instance to read the data from and write the hash to.
-     * @param inputSlot The position of the data to read in the cache (optional, defaults to 0 => length).
-     * @param outputSlot The position to write the hash to in the cache (optional, defaults to 0 => data length).
+     * Hashes the data in the attached cache at a certain position, and writes the hash back to the same
+     * or another cache at another position.
+     *
+     * Output Length: 20 bytes.
+     * @param inputSlotWithCache The position of the data to read in the attached cache (optional, defaults to 0 => length),
+     * @param outputSlotWithCache The position to write the hash to in the attached cache (optional, defaults to 0 => data length).
+     * @param verifyAlignment Whether to verify that the offset is aligned to 4 bytes (optional, defaults to `false`).
      */
-    hash(cache: Cache, inputSlot?: MemorySlot, outputSlot?: MemorySlot): void {
-        this._manageBlocks(cache, inputSlot)
-        this._ripemd160(cache, outputSlot?.start || 0)
+    hash(
+        inputSlotWithCache: MemorySlotWithCache,
+        outputSlotWithCache: MemorySlotWithCache,
+        verifyAlignment = false
+    ): void {
+        this._manageBlocks(inputSlotWithCache, verifyAlignment)
+        this._ripemd160(outputSlotWithCache.cache, outputSlotWithCache?.start || 0, verifyAlignment)
     }
 }

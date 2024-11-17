@@ -1,5 +1,4 @@
 import Cache from "#kernel/utils/cache"
-import { MemorySlot } from "#kernel/utils/instructions"
 
 /**
  * The `RandomBytesPool` class is used to generate a pool of random bytes used for different generation
@@ -17,12 +16,17 @@ export default class RandomBytesPool {
     /**
      * The size of the pool.
      */
-    private size: number
+    size: number
 
     /**
      * The current position in the pool.
      */
-    private position: number
+    position: number
+
+    /**
+     * The latest amount of bytes requested from the pool.
+     */
+    latestAmount: number
 
     /**
      * Creates a new `RandomBytesPool` instance with a certain size.
@@ -32,6 +36,7 @@ export default class RandomBytesPool {
         this.pool = new Cache(size)
         this.size = size
         this.position = 0
+        this.latestAmount = 0
 
         this._refill()
     }
@@ -39,25 +44,19 @@ export default class RandomBytesPool {
     /**
      * Refills the pool with new random bytes.
      */
-    private _refill(): void {
+    _refill(): void {
         this.pool.randomFill()
         this.position = 0
     }
 
     /**
-     * Increments the position in the pool by a certain amount and returns the
-     * corresponding memory slot.
+     * Increments the position in the pool by a certain amount.
      * @param amount The amount of bytes to increment the position by.
-     * @returns The memory slot pointing to the requested bytes.
      */
-    increment(amount: number): MemorySlot {
-        if (this.position + amount > this.size) this._refill()
+    increment(amount: number) {
         this.position += amount
+        this.latestAmount = amount
 
-        return {
-            start: this.position,
-            length: amount,
-            end: this.position + amount,
-        }
+        if (this.position + amount > this.size) this._refill()
     }
 }

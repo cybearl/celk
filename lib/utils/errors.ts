@@ -189,6 +189,18 @@ export const KernelErrors = {
         message: "The public key length is not supported.",
         data: null,
     },
+    UNSUPPORTED_OPERATION: {
+        status: 400,
+        name: "UNSUPPORTED_OPERATION",
+        message: "This operation is not supported.",
+        data: null,
+    },
+    MISSING_ADDRESS_SPECIFIC_PARAMETERS: {
+        status: 400,
+        name: "MISSING_ADDRESS_SPECIFIC_PARAMETERS",
+        message: "Missing address specific parameters for the given instruction set.",
+        data: null,
+    },
     //=====//
     // 404 //
     //=====//

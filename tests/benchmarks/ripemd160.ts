@@ -44,9 +44,23 @@ export default function executeRipemd160AlgorithmBenchmark(benchmarkInputSize: n
     // Benchmark
     const bench = new Bench(benchmarkDuration)
 
-    bench.benchmark(() => ripemd160.hash(cache4Bytes, inputSlot4Bytes, outputSlot4Bytes), `hash(4)`)
-    bench.benchmark(() => ripemd160.hash(cache20Bytes, inputSlot20Bytes, outputSlot20Bytes), `hash(20)`)
-    bench.benchmark(() => ripemd160.hash(cache32Bytes, inputSlot32Bytes, outputSlot32Bytes), `hash(32)`)
-    bench.benchmark(() => ripemd160.hash(cache, inputSlot, outputSlot), `hash(${benchmarkInputSize})`)
+    bench.benchmark(
+        () => ripemd160.hash({ cache: cache4Bytes, ...inputSlot4Bytes }, { cache: cache4Bytes, ...outputSlot4Bytes }),
+        `hash(4)`
+    )
+    bench.benchmark(
+        () =>
+            ripemd160.hash({ cache: cache20Bytes, ...inputSlot20Bytes }, { cache: cache20Bytes, ...outputSlot20Bytes }),
+        `hash(20)`
+    )
+    bench.benchmark(
+        () =>
+            ripemd160.hash({ cache: cache32Bytes, ...inputSlot32Bytes }, { cache: cache32Bytes, ...outputSlot32Bytes }),
+        `hash(32)`
+    )
+    bench.benchmark(
+        () => ripemd160.hash({ cache, ...inputSlot }, { cache, ...outputSlot }),
+        `hash(${benchmarkInputSize})`
+    )
     bench.print()
 }

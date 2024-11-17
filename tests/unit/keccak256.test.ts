@@ -19,7 +19,7 @@ test.group("keccak256 / hash", (group) => {
         const outputSlot = { start: 32, length: 32, end: 64 }
 
         cache.writeHexString(input, inputSlot.start)
-        keccak256Algorithm.hash(cache, inputSlot, outputSlot)
+        keccak256Algorithm.hash({ cache, ...inputSlot }, { cache, ...outputSlot })
 
         expect(cache.readHexString(outputSlot.start, outputSlot.length)).toBe(output)
     })
@@ -30,10 +30,10 @@ test.group("keccak256 / hash", (group) => {
 
         cache.writeHexString(input, inputSlot.start)
 
-        keccak256Algorithm.hash(cache, inputSlot, outputSlot)
+        keccak256Algorithm.hash({ cache, ...inputSlot }, { cache, ...outputSlot })
         const firstHash = cache.readHexString(outputSlot.start, outputSlot.length)
 
-        keccak256Algorithm.hash(cache, inputSlot, outputSlot)
+        keccak256Algorithm.hash({ cache, ...inputSlot }, { cache, ...outputSlot })
         const secondHash = cache.readHexString(outputSlot.start, outputSlot.length)
 
         expect(firstHash).toBe(output)
@@ -50,10 +50,10 @@ test.group("keccak256 / hash", (group) => {
         cache1.writeHexString(input, inputSlot.start)
         cache2.writeHexString(input, inputSlot.start)
 
-        keccak256Algorithm.hash(cache1, inputSlot, outputSlot)
+        keccak256Algorithm.hash({ cache: cache1, ...inputSlot }, { cache: cache1, ...outputSlot })
         const firstHash = cache1.readHexString(outputSlot.start, outputSlot.length)
 
-        keccak256Algorithm.hash(cache2, inputSlot, outputSlot)
+        keccak256Algorithm.hash({ cache: cache2, ...inputSlot }, { cache: cache2, ...outputSlot })
         const secondHash = cache2.readHexString(outputSlot.start, outputSlot.length)
 
         expect(firstHash).toBe(output)
@@ -70,10 +70,13 @@ test.group("keccak256 / hash", (group) => {
 
         cache.writeHexString(testInput, inputSlot.start)
 
-        keccak256Algorithm.hash(cache, inputSlot, outputSlot)
+        // keccak256Algorithm.hash(cache, inputSlot, outputSlot)
+
+        keccak256Algorithm.hash({ cache, ...inputSlot }, { cache, ...outputSlot })
+
         const firstHash = cache.readHexString(outputSlot.start, outputSlot.length)
 
-        keccak256Algorithm.hash(cache, inputSlot, outputSlot)
+        keccak256Algorithm.hash({ cache, ...inputSlot }, { cache, ...outputSlot })
         const secondHash = cache.readHexString(outputSlot.start, outputSlot.length)
 
         expect(firstHash).toBe(testOutput)

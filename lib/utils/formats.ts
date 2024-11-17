@@ -6,7 +6,7 @@
  * @param unit The unit to use (optional, defaults to "Op").
  * @param timeUnit The time unit to use (optional, defaults to "s").
  * @param padding The padding to use (optional, defaults to 12).
- * @param addSpaceBeforeUnit Whether to add a space before the unit (optional, defaults to true).
+ * @param addSpaceBeforeUnit Whether to add a space before the unit (optional, defaults to `true`).
  * @returns The formatted string.
  */
 export function formatUnit(

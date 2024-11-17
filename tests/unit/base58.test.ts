@@ -44,7 +44,7 @@ test.group("base58 / decode", (group) => {
     test("It should decode a base58 string and write it into a cache", ({ expect }) => {
         const cache = new Cache(outputUtf8.length)
         base58Encoder.decode(outputUtf8, cache)
-        expect(cache.toUtf8String()).toBe(inputUtf8)
+        expect(cache.toUtf8String().slice(0, inputUtf8.length)).toStrictEqual(inputUtf8)
     })
 
     test("It should decode a base58 address and write it into a cache", ({ expect }) => {

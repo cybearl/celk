@@ -19,7 +19,7 @@ test.group("ripemd160 / hash", (group) => {
         const outputSlot = { start: 20, length: 20, end: 40 }
 
         cache.writeHexString(input, inputSlot.start)
-        ripemd160Algorithm.hash(cache, inputSlot, outputSlot)
+        ripemd160Algorithm.hash({ cache, ...inputSlot }, { cache, ...outputSlot })
 
         expect(cache.readHexString(outputSlot.start, outputSlot.length)).toBe(output)
     })
@@ -30,10 +30,10 @@ test.group("ripemd160 / hash", (group) => {
 
         cache.writeHexString(input, inputSlot.start)
 
-        ripemd160Algorithm.hash(cache, inputSlot, outputSlot)
+        ripemd160Algorithm.hash({ cache, ...inputSlot }, { cache, ...outputSlot })
         const firstHash = cache.readHexString(outputSlot.start, outputSlot.length)
 
-        ripemd160Algorithm.hash(cache, inputSlot, outputSlot)
+        ripemd160Algorithm.hash({ cache, ...inputSlot }, { cache, ...outputSlot })
         const secondHash = cache.readHexString(outputSlot.start, outputSlot.length)
 
         expect(firstHash).toBe(output)
@@ -50,10 +50,10 @@ test.group("ripemd160 / hash", (group) => {
         cache1.writeHexString(input, inputSlot.start)
         cache2.writeHexString(input, inputSlot.start)
 
-        ripemd160Algorithm.hash(cache1, inputSlot, outputSlot)
+        ripemd160Algorithm.hash({ cache: cache1, ...inputSlot }, { cache: cache1, ...outputSlot })
         const firstHash = cache1.readHexString(outputSlot.start, outputSlot.length)
 
-        ripemd160Algorithm.hash(cache2, inputSlot, outputSlot)
+        ripemd160Algorithm.hash({ cache: cache2, ...inputSlot }, { cache: cache2, ...outputSlot })
         const secondHash = cache2.readHexString(outputSlot.start, outputSlot.length)
 
         expect(firstHash).toBe(output)
@@ -70,10 +70,10 @@ test.group("ripemd160 / hash", (group) => {
 
         cache.writeHexString(testInput, inputSlot.start)
 
-        ripemd160Algorithm.hash(cache, inputSlot, outputSlot)
+        ripemd160Algorithm.hash({ cache, ...inputSlot }, { cache, ...outputSlot })
         const firstHash = cache.readHexString(outputSlot.start, outputSlot.length)
 
-        ripemd160Algorithm.hash(cache, inputSlot, outputSlot)
+        ripemd160Algorithm.hash({ cache, ...inputSlot }, { cache, ...outputSlot })
         const secondHash = cache.readHexString(outputSlot.start, outputSlot.length)
 
         expect(firstHash).toBe(testOutput)
