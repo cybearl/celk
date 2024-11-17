@@ -201,6 +201,12 @@ export const KernelErrors = {
         message: "Missing address specific parameters for the given instruction set.",
         data: null,
     },
+    INVALID_PRIVATE_KEY_RANGE: {
+        status: 400,
+        name: "INVALID_PRIVATE_KEY_RANGE",
+        message: "The private key range is invalid. it must be >= 0 & < Infinity.",
+        data: null,
+    },
     //=====//
     // 404 //
     //=====//

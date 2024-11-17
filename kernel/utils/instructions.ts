@@ -33,9 +33,11 @@ export enum GenericOperation {
  * such as base58 encoding, bech32 encoding, etc.
  */
 export enum AddressOperation {
-    // I/O operations
+    // Base58 encoding
     Base58NetworkByte = "base58-network-byte",
     Base58DoubleSha256 = "base58-double-sha",
+
+    // Bech32 encoding
     Bech32WitnessVersion = "bech32-witness-version",
 
     // Address generation
@@ -66,13 +68,13 @@ export type InstructionWithFlags = Instruction & {
  * The type definition of the available instruction sets.
  */
 export type InstructionSetName =
-    | "RAW_BTC_UNCOMPRESSED"
-    | "RAW_BTC_COMPRESSED"
-    | "RAW_EVM"
-    | "BTC_BASE58_UNCOMPRESSED"
-    | "BTC_BASE58_COMPRESSED"
-    | "BTC_BECH32_UNCOMPRESSED"
-    | "BTC_BECH32_COMPRESSED"
+    | "MEMORY_SLOT::BTC"
+    | "MEMORY_SLOT::SEGWIT_BTC"
+    | "MEMORY_SLOT::EVM"
+    | "BTC_P2PKH"
+    | "BTC_P2SH"
+    | "BTC_P2WPKH"
+    | "BTC_P2WSH"
     | "EVM"
 
 /**
@@ -87,97 +89,6 @@ export function getInstructionSet(instructionSetName: InstructionSetName): Instr
     let instructionSet: Instruction[]
 
     switch (instructionSetName) {
-        case "RAW_BTC_UNCOMPRESSED":
-            // https://en.bitcoin.it/w/images/en/9/9b/PubKeyToAddr.png
-            // https://en.bitcoin.it/wiki/Bech32
-            // prettier-ignore
-            instructionSet = [
-                { inputSlot:                                 null, outputSlot: { start:   0, end:  32, length: 32 }, operation: GenericOperation.PrivateKey },
-                { inputSlot: { start:   0, end:  32, length: 32 }, outputSlot: { start:  32, end:  97, length: 65 }, operation: GenericOperation.PublicKey },
-                { inputSlot: { start:  32, end:  97, length: 65 }, outputSlot: { start:  97, end: 129, length: 32 }, operation: GenericOperation.Sha256 },
-                { inputSlot: { start:  97, end: 129, length: 32 }, outputSlot: { start: 129, end: 149, length: 20 }, operation: GenericOperation.Ripemd160 },
-            ]
-            break
-        case "RAW_BTC_COMPRESSED":
-            // https://en.bitcoin.it/w/images/en/9/9b/PubKeyToAddr.png
-            // https://en.bitcoin.it/wiki/Bech32
-            // prettier-ignore
-            instructionSet = [
-                { inputSlot:                                 null, outputSlot: { start:  0, end:  32, length: 32 }, operation: GenericOperation.PrivateKey },
-                { inputSlot: { start:   0, end:  32, length: 32 }, outputSlot: { start: 32, end:  65, length: 33 }, operation: GenericOperation.PublicKey },
-                { inputSlot: { start:  32, end:  65, length: 33 }, outputSlot: { start: 65, end:  97, length: 32 }, operation: GenericOperation.Sha256 },
-                { inputSlot: { start:  65, end:  97, length: 32 }, outputSlot: { start: 97, end: 117, length: 20 }, operation: GenericOperation.Ripemd160 },
-            ]
-            break
-        case "RAW_EVM":
-            // https://ethereum.stackexchange.com/questions/3542/how-are-ethereum-addresses-generated
-            // prettier-ignore
-            instructionSet = [
-                { inputSlot:                                 null, outputSlot: { start:   0, end:  32, length: 32 }, operation: GenericOperation.PrivateKey },
-                { inputSlot: { start:   0, end:  32, length: 32 }, outputSlot: { start:  32, end:  96, length: 64 }, operation: GenericOperation.PublicKey },
-                { inputSlot: { start:  32, end:  96, length: 64 }, outputSlot: { start:  96, end: 128, length: 32 }, operation: GenericOperation.Keccak256 },
-            ]
-            break
-        case "BTC_BASE58_UNCOMPRESSED":
-            // https://en.bitcoin.it/w/images/en/9/9b/PubKeyToAddr.png
-            // prettier-ignore
-            instructionSet = [
-                { inputSlot:                                 null, outputSlot: { start:   0, end:  32, length: 32 }, operation: GenericOperation.PrivateKey },
-                { inputSlot: { start:   0, end:  32, length: 32 }, outputSlot: { start:  32, end:  97, length: 65 }, operation: GenericOperation.PublicKey },
-                { inputSlot: { start:  32, end:  97, length: 65 }, outputSlot: { start:  97, end: 129, length: 32 }, operation: GenericOperation.Sha256 },
-                { inputSlot:                                 null, outputSlot: { start: 129, end: 130, length:  1 }, operation: AddressOperation.Base58NetworkByte },
-                { inputSlot: { start:  97, end: 129, length: 32 }, outputSlot: { start: 130, end: 150, length: 20 }, operation: GenericOperation.Ripemd160 },
-                { inputSlot: { start: 129, end: 150, length: 21 }, outputSlot: { start: 150, end: 182, length: 32 }, operation: AddressOperation.Base58DoubleSha256 },
-                { inputSlot: { start: 129, end: 154, length: 25 }, outputSlot:                                 null, operation: AddressOperation.Base58Address },
-            ]
-            break
-        case "BTC_BASE58_COMPRESSED":
-            // https://en.bitcoin.it/w/images/en/9/9b/PubKeyToAddr.png
-            // prettier-ignore
-            instructionSet = [
-                { inputSlot:                                 null, outputSlot: { start:   0, end:  32, length: 32 }, operation: GenericOperation.PrivateKey },
-                { inputSlot: { start:   0, end:  32, length: 32 }, outputSlot: { start:  32, end:  65, length: 33 }, operation: GenericOperation.PublicKey },
-                { inputSlot: { start:  32, end:  65, length: 33 }, outputSlot: { start:  65, end:  97, length: 32 }, operation: GenericOperation.Sha256 },
-                { inputSlot:                                 null, outputSlot: { start:  97, end:  98, length:  1 }, operation: AddressOperation.Base58NetworkByte },
-                { inputSlot: { start:  65, end:  97, length: 32 }, outputSlot: { start:  98, end: 118, length: 20 }, operation: GenericOperation.Ripemd160 },
-                { inputSlot: { start:  97, end: 118, length: 21 }, outputSlot: { start: 118, end: 150, length: 32 }, operation: AddressOperation.Base58DoubleSha256 },
-                { inputSlot: { start:  97, end: 122, length: 25 }, outputSlot:                                 null, operation: AddressOperation.Base58Address },
-            ]
-            break
-        case "BTC_BECH32_UNCOMPRESSED":
-            // https://en.bitcoin.it/wiki/Bech32
-            // prettier-ignore
-            instructionSet = [
-                { inputSlot:                                 null, outputSlot: { start:   0, end:  32, length: 32 }, operation: GenericOperation.PrivateKey },
-                { inputSlot: { start:   0, end:  32, length: 32 }, outputSlot: { start:  32, end:  97, length: 65 }, operation: GenericOperation.PublicKey },
-                { inputSlot: { start:  32, end:  97, length: 65 }, outputSlot: { start:  97, end: 129, length: 32 }, operation: GenericOperation.Sha256 },
-                { inputSlot: { start:  97, end: 129, length: 32 }, outputSlot: { start: 130, end: 150, length: 20 }, operation: GenericOperation.Ripemd160 },
-                { inputSlot:                                 null, outputSlot: { start: 150, end: 151, length:  1 }, operation: AddressOperation.Bech32WitnessVersion },
-                { inputSlot: { start: 151, end: 183, length: 32 }, outputSlot:                                 null, operation: AddressOperation.Bech32Address },
-            ]
-            break
-        case "BTC_BECH32_COMPRESSED":
-            // https://en.bitcoin.it/wiki/Bech32
-            // prettier-ignore
-            instructionSet = [
-                { inputSlot:                                 null, outputSlot: { start:   0, end:  32, length: 32 }, operation: GenericOperation.PrivateKey },
-                { inputSlot: { start:   0, end:  32, length: 32 }, outputSlot: { start:  32, end:  65, length: 33 }, operation: GenericOperation.PublicKey },
-                { inputSlot: { start:  32, end:  65, length: 33 }, outputSlot: { start:  65, end:  97, length: 32 }, operation: GenericOperation.Sha256 },
-                { inputSlot: { start:  65, end:  97, length: 32 }, outputSlot: { start:  97, end: 117, length: 20 }, operation: GenericOperation.Ripemd160 },
-                { inputSlot:                                 null, outputSlot: { start: 117, end: 118, length:  1 }, operation: AddressOperation.Bech32WitnessVersion },
-                { inputSlot: { start: 118, end: 150, length: 32 }, outputSlot:                                 null, operation: AddressOperation.Bech32Address },
-            ]
-            break
-        case "EVM":
-            // https://ethereum.stackexchange.com/questions/3542/how-are-ethereum-addresses-generated
-            // prettier-ignore
-            instructionSet = [
-                { inputSlot:                                 null, outputSlot: { start:   0, end:  32, length: 32 }, operation: GenericOperation.PrivateKey },
-                { inputSlot: { start:   0, end:  32, length: 32 }, outputSlot: { start:  32, end:  96, length: 64 }, operation: GenericOperation.PublicKey },
-                { inputSlot: { start:  32, end:  96, length: 64 }, outputSlot: { start:  96, end: 128, length: 32 }, operation: GenericOperation.Keccak256 },
-                { inputSlot: { start: 108, end: 128, length: 20 }, outputSlot:                                 null, operation: AddressOperation.EvmAddress },
-            ]
-            break
         default:
             throw new Error(
                 cyGeneral.errors.stringifyError(KernelErrors.INSTRUCTION_SET_NOT_FOUND, undefined, {
@@ -206,3 +117,57 @@ export function getInstructionSetCacheLength(instructionSet: Instruction[]): num
         ...instructionSet.map((instruction) => instruction.outputSlot?.end || 0)
     )
 }
+
+// case "RAW_BTC":
+//     // prettier-ignore
+//     instructionSet = [
+//         { inputSlot:                                 null, outputSlot: { start:   0, end:  32, length: 32 }, operation: GenericOperation.PrivateKey },
+//         { inputSlot: { start:   0, end:  32, length: 32 }, outputSlot: { start:  32, end:  97, length: 65 }, operation: GenericOperation.PublicKey },
+//         { inputSlot: { start:  32, end:  97, length: 65 }, outputSlot: { start:  97, end: 129, length: 32 }, operation: GenericOperation.Sha256 },
+//         { inputSlot: { start:  97, end: 129, length: 32 }, outputSlot: { start: 129, end: 149, length: 20 }, operation: GenericOperation.Ripemd160 },
+//     ]
+//     break
+// case "RAW_EVM":
+//     // https://ethereum.stackexchange.com/questions/3542/how-are-ethereum-addresses-generated
+//     // prettier-ignore
+//     instructionSet = [
+//         { inputSlot:                                 null, outputSlot: { start:   0, end:  32, length: 32 }, operation: GenericOperation.PrivateKey },
+//         { inputSlot: { start:   0, end:  32, length: 32 }, outputSlot: { start:  32, end:  96, length: 64 }, operation: GenericOperation.PublicKey },
+//         { inputSlot: { start:  32, end:  96, length: 64 }, outputSlot: { start:  96, end: 128, length: 32 }, operation: GenericOperation.Keccak256 },
+//     ]
+//     break
+// case "BTC_P2PKH_UNCOMPRESSED":
+//     // https://en.bitcoin.it/w/images/en/9/9b/PubKeyToAddr.png
+//     // prettier-ignore
+//     instructionSet = [
+//         { inputSlot:                                 null, outputSlot: { start:   0, end:  32, length: 32 }, operation: GenericOperation.PrivateKey },
+//         { inputSlot: { start:   0, end:  32, length: 32 }, outputSlot: { start:  32, end:  97, length: 65 }, operation: GenericOperation.PublicKey },
+//         { inputSlot: { start:  32, end:  97, length: 65 }, outputSlot: { start:  97, end: 129, length: 32 }, operation: GenericOperation.Sha256 },
+//         { inputSlot:                                 null, outputSlot: { start: 129, end: 130, length:  1 }, operation: AddressOperation.Base58NetworkByte },
+//         { inputSlot: { start:  97, end: 129, length: 32 }, outputSlot: { start: 130, end: 150, length: 20 }, operation: GenericOperation.Ripemd160 },
+//         { inputSlot: { start: 129, end: 150, length: 21 }, outputSlot: { start: 150, end: 182, length: 32 }, operation: AddressOperation.Base58DoubleSha256 },
+//         { inputSlot: { start: 129, end: 154, length: 25 }, outputSlot:                                 null, operation: AddressOperation.Base58Address },
+//     ]
+//     break
+// case "BTC_BECH32_UNCOMPRESSED":
+//     // https://en.bitcoin.it/wiki/Bech32
+//     // prettier-ignore
+//     instructionSet = [
+//         { inputSlot:                                 null, outputSlot: { start:   0, end:  32, length: 32 }, operation: GenericOperation.PrivateKey },
+//         { inputSlot: { start:   0, end:  32, length: 32 }, outputSlot: { start:  32, end:  97, length: 65 }, operation: GenericOperation.PublicKey },
+//         { inputSlot: { start:  32, end:  97, length: 65 }, outputSlot: { start:  97, end: 129, length: 32 }, operation: GenericOperation.Sha256 },
+//         { inputSlot: { start:  97, end: 129, length: 32 }, outputSlot: { start: 130, end: 150, length: 20 }, operation: GenericOperation.Ripemd160 },
+//         { inputSlot:                                 null, outputSlot: { start: 150, end: 151, length:  1 }, operation: AddressOperation.Bech32WitnessVersion },
+//         { inputSlot: { start: 151, end: 183, length: 32 }, outputSlot:                                 null, operation: AddressOperation.Bech32Address },
+//     ]
+//     break
+// case "EVM":
+//     // https://ethereum.stackexchange.com/questions/3542/how-are-ethereum-addresses-generated
+//     // prettier-ignore
+//     instructionSet = [
+//         { inputSlot:                                 null, outputSlot: { start:   0, end:  32, length: 32 }, operation: GenericOperation.PrivateKey },
+//         { inputSlot: { start:   0, end:  32, length: 32 }, outputSlot: { start:  32, end:  96, length: 64 }, operation: GenericOperation.PublicKey },
+//         { inputSlot: { start:  32, end:  96, length: 64 }, outputSlot: { start:  96, end: 128, length: 32 }, operation: GenericOperation.Keccak256 },
+//         { inputSlot: { start: 108, end: 128, length: 20 }, outputSlot:                                 null, operation: AddressOperation.EvmAddress },
+//     ]
+//     break

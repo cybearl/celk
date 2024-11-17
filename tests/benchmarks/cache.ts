@@ -5,7 +5,7 @@ import externalLogger from "#lib/utils/external_logger"
 /**
  * The benchmark for the `Cache` class.
  * @param benchmarkInputSize The size of the input for the benchmark.
- * @param benchmarkDuration The duration of the benchmark.
+ * @param benchmarkDuration The duration of the benchmark in milliseconds.
  */
 export default function executeCacheBenchmark(benchmarkInputSize: number, benchmarkDuration: number) {
     externalLogger.info("Starting benchmarking of the cache...")

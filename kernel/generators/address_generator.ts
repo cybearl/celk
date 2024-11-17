@@ -13,6 +13,7 @@ import {
     getInstructionSetCacheLength,
     InstructionWithFlags,
     AddressOperation,
+    MemorySlotWithCache,
 } from "#kernel/utils/instructions"
 import RandomBytesPool from "#kernel/generators/random_bytes_pool"
 import { KernelErrors } from "#lib/utils/errors"
@@ -22,37 +23,37 @@ import externalLogger from "#lib/utils/external_logger"
 /**
  * The type definition of the public key generation mode.
  */
-export enum PublicKeyGenerationMode {
-    Compressed = "compressed",
-    Uncompressed = "uncompressed",
-    Evm = "evm",
-}
+export type PublicKeyGenerationMode = "compressed" | "uncompressed" | "evm"
 
 /**
- * The type definition of the address specific parameters.
+ * The type definition of the address generator options.
+ * @param base58NetworkByte The base58 network byte (only for base58 addresses, defaults to 0x00).
+ * @param bech32Hrp The bech32 human-readable part (only for bech32 addresses, defaults to "bc").
+ * @param bech32WitnessVersion The bech32 witness version (only for bech32 addresses, from 0 to 16, defaults to 0).
+ * @param randomBytesPoolSize The random bytes pool size (defaults to 1,024).
+ * @param enableDebugging Whether to enable debugging (defaults to `false`).
+ * @param fixedPrivateKeyInputCache A fixed private key to use formatted as a cache instance,
+ * mostly for testing purposes (should be a 32-byte Cache, defaults to `null`).
  */
-export type AddressSpecificParameters = {
+export type Options = {
     base58NetworkByte?: number
-    bech32Hrp?: "bc" | "tb"
+    bech32Hrp?: string
     bech32WitnessVersion?: number
+    randomBytesPoolSize?: number
+    enableDebugging?: boolean
+    fixedPrivateKeyInputCache?: Cache | null
 }
 
 /**
- * The default address specific parameters.
+ * The default address generator options.
  */
-export const DEFAULT_ADDRESS_SPECIFIC_PARAMETERS: Required<AddressSpecificParameters> = {
+export const DEFAULT_OPTIONS: Required<Options> = {
     base58NetworkByte: 0x00,
     bech32Hrp: "bc",
     bech32WitnessVersion: 0x00,
-}
-
-/**
- * The type definition of the address generator parameters.
- */
-export type AddressGeneratorParameters = {
-    instructionSetName: InstructionSetName
-    randomBytesPoolSize?: number
-    addressSpecificParameters?: AddressSpecificParameters
+    randomBytesPoolSize: 1024,
+    enableDebugging: false,
+    fixedPrivateKeyInputCache: null,
 }
 
 /**
@@ -64,13 +65,15 @@ export default class AddressGenerator {
     private _instructionSet: InstructionWithFlags[]
 
     // Parameters
+    private _options: Required<Options>
+
+    // Pre-computed flags
     private _isRawInstructionSet: boolean
-    private _addressSpecificParameters: Required<AddressSpecificParameters>
-    private _publicKeyGenerationMode: PublicKeyGenerationMode
+    private _publicKeySlot: MemorySlot
 
     // Memory
     private _cache: Cache
-    private _latestPrivateKeySlot: MemorySlot | null = null
+    private _latestPrivateKeySlot: MemorySlot | null
 
     // Generators
     private _randomBytesPool: RandomBytesPool
@@ -88,34 +91,30 @@ export default class AddressGenerator {
     /**
      * Initializes the `AddressGenerator` instance with the given parameters.
      * @param instructionSetName The name of the instruction set to use.
-     * @param addressSpecificParameters The address specific parameters to use (optional, only
-     * for instruction sets that actually generates either a base58 or a Bech32 address,
-     * defaults to `DEFAULT_ADDRESS_SPECIFIC_PARAMETERS`).
-     * @param randomBytesPoolSize The size of the random bytes pool (optional, defaults to 1,024 bytes).
+     * @param publicKeyGenerationMode The public key generation mode (compressed (33 bytes), uncompressed (65 bytes), or EVM (64 bytes)).
+     * @param options The address generator options.
      */
-    constructor({
-        instructionSetName,
-        addressSpecificParameters,
-        randomBytesPoolSize = 1024,
-    }: AddressGeneratorParameters) {
+    constructor(
+        instructionSetName: InstructionSetName,
+        publicKeyGenerationMode: PublicKeyGenerationMode,
+        options?: Options
+    ) {
         // Instructions
         this._instructionSet = getInstructionSet(instructionSetName)
 
         // Parameters
+        this._options = { ...DEFAULT_OPTIONS, ...options }
+
+        // Pre-computed flags
         this._isRawInstructionSet = instructionSetName.includes("RAW")
-        this._addressSpecificParameters = {
-            ...DEFAULT_ADDRESS_SPECIFIC_PARAMETERS,
-            ...addressSpecificParameters,
-        }
-        this._publicKeyGenerationMode = this._getPublicKeyGenerationMode(
-            this._instructionSet[1].outputSlot as MemorySlot
-        )
+        this._publicKeySlot = this._getPublicKeySlot(publicKeyGenerationMode)
 
         // Memory
         this._cache = new Cache(getInstructionSetCacheLength(this._instructionSet))
+        this._latestPrivateKeySlot = null
 
         // Generators
-        this._randomBytesPool = new RandomBytesPool(randomBytesPoolSize)
+        this._randomBytesPool = new RandomBytesPool(this._options.randomBytesPoolSize)
 
         // Algorithms
         this._secp256k1Algorithm = new Secp256k1Algorithm()
@@ -129,25 +128,49 @@ export default class AddressGenerator {
     }
 
     /**
-     * Gets the public key generation mode based on the memory slot length.
-     * @param publicKeySlot The memory slot containing the public key.
-     * @returns The public key generation mode.
+     * Gets the public key slot based on the public key generation mode.
+     * @param publicKeyGenerationMode The public key generation mode (compressed (33 bytes), uncompressed (65 bytes), or EVM (64 bytes)).
+     * @returns The public key slot.
      */
-    private _getPublicKeyGenerationMode(publicKeySlot: MemorySlot): PublicKeyGenerationMode {
-        switch (publicKeySlot.length) {
-            case 33:
-                return PublicKeyGenerationMode.Compressed
-            case 64:
-                return PublicKeyGenerationMode.Evm
-            case 65:
-                return PublicKeyGenerationMode.Uncompressed
-            default:
-                throw new Error(
-                    cyGeneral.errors.stringifyError(KernelErrors.UNSUPPORTED_PUBLIC_KEY_LENGTH, undefined, {
-                        length: publicKeySlot.length,
-                    })
-                )
+    private _getPublicKeySlot(publicKeyGenerationMode: PublicKeyGenerationMode): MemorySlot {
+        switch (publicKeyGenerationMode) {
+            case "compressed":
+                return { start: 32, end: 65, length: 33 }
+            case "uncompressed":
+                return { start: 32, end: 97, length: 65 }
+            case "evm":
+                return { start: 32, end: 96, length: 64 }
         }
+    }
+
+    /**
+     * Logs the instruction and its result to the console.
+     * @param instruction The instruction to log.
+     * @param result The result of the instruction, if any.
+     */
+    private _logInstruction(instruction: InstructionWithFlags, result: MemorySlot | string | null): void {
+        let toLog: string
+
+        if (!this._isRawInstructionSet && instruction.isEnd && result) {
+            toLog = result as string
+        } else {
+            switch (instruction.operation) {
+                case GenericOperation.PrivateKey:
+                    toLog = this._randomBytesPool.pool.readHexString(
+                        this._randomBytesPool.memorySlot.start as number,
+                        this._randomBytesPool.memorySlot.length
+                    )
+
+                    break
+                default:
+                    toLog = this._cache.readHexString(
+                        instruction.outputSlot?.start as number,
+                        instruction.outputSlot?.length
+                    )
+            }
+        }
+
+        externalLogger.info(`Instruction: ${instruction.operation} | Result: ${toLog}`)
     }
 
     /**
@@ -168,15 +191,15 @@ export default class AddressGenerator {
                 this._latestPrivateKeySlot = this._randomBytesPool.memorySlot
                 break
             case GenericOperation.PublicKey:
-                // TODO: Implement a better algorithm that supports 64 bytes public keys.
+                const internalInputSlot: MemorySlotWithCache = this._options.fixedPrivateKeyInputCache
+                    ? { cache: this._options.fixedPrivateKeyInputCache, ...inputSlot }
+                    : { cache: this._randomBytesPool.pool, ...inputSlot }
+
                 this._secp256k1Algorithm.generate(
                     this._publicKeyGenerationMode === PublicKeyGenerationMode.Compressed
                         ? "compressed"
                         : "uncompressed",
-                    {
-                        cache: this._randomBytesPool.pool,
-                        ...this._randomBytesPool.memorySlot,
-                    },
+                    internalInputSlot,
                     { cache: this._cache, ...outputSlot }
                 )
                 break
@@ -211,16 +234,18 @@ export default class AddressGenerator {
         outputSlot: MemorySlot | null
     ): string | undefined {
         switch (operation) {
-            // I/O operations
+            // Base58 encoding
             case AddressOperation.Base58NetworkByte:
-                this._cache.writeUint8(this._addressSpecificParameters.base58NetworkByte, outputSlot?.start)
+                this._cache.writeUint8(this._options.base58NetworkByte, outputSlot?.start)
                 break
             case AddressOperation.Base58DoubleSha256:
                 this._sha256Algorithm.hash({ cache: this._cache, ...inputSlot }, { cache: this._cache, ...outputSlot })
                 this._sha256Algorithm.hash({ cache: this._cache, ...outputSlot }, { cache: this._cache, ...outputSlot })
                 break
+
+            // Bech32 encoding
             case AddressOperation.Bech32WitnessVersion:
-                this._cache.writeUint8(this._addressSpecificParameters.bech32WitnessVersion, outputSlot?.start)
+                this._cache.writeUint8(this._options.bech32WitnessVersion, outputSlot?.start)
                 break
 
             // Address generation
@@ -228,8 +253,8 @@ export default class AddressGenerator {
                 return this._base58Encoder.encode(this._cache, inputSlot as MemorySlot)
             case AddressOperation.Bech32Address:
                 return this._bech32Encoder.encode(
-                    this._addressSpecificParameters.bech32WitnessVersion,
-                    this._addressSpecificParameters.bech32Hrp,
+                    this._options.bech32WitnessVersion,
+                    this._options.bech32Hrp,
                     this._cache,
                     inputSlot as MemorySlot
                 )
@@ -240,11 +265,10 @@ export default class AddressGenerator {
 
     /**
      * Executes the instructions in the instruction set.
-     * @param verbose Whether to log the execution of each instruction (optional, defaults to `false`).
      * @returns The address string if the instruction set is not raw, the latest private key slot if it is raw,
      * or `null` if the instruction set could not run but did not throw an error.
      */
-    executeInstructions(verbose = false): MemorySlot | string | null {
+    executeInstructions(): MemorySlot | string | null {
         let result: MemorySlot | string | null = null
 
         for (const instruction of this._instructionSet) {
@@ -257,7 +281,6 @@ export default class AddressGenerator {
 
                 if (this._isRawInstructionSet && instruction.isEnd) {
                     result = instruction.outputSlot as MemorySlot
-                    break
                 }
             } else {
                 const address = this._executeAddressOperation(
@@ -268,18 +291,10 @@ export default class AddressGenerator {
 
                 if (!this._isRawInstructionSet && instruction.isEnd && address) {
                     result = address
-                    break
                 }
             }
 
-            if (verbose) {
-                externalLogger.info(
-                    `Instruction: ${instruction.operation} | Result: ${this._cache.readHexString(
-                        instruction.outputSlot?.start,
-                        instruction.outputSlot?.length
-                    )}`
-                )
-            }
+            if (this._options.enableDebugging) this._logInstruction(instruction, result)
         }
 
         return result

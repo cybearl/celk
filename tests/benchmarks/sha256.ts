@@ -7,7 +7,7 @@ import externalLogger from "#lib/utils/external_logger"
 /**
  * The benchmark for the `Sha256Algorithm` class.
  * @param benchmarkInputSize The size of the input for the benchmark.
- * @param benchmarkDuration The duration of the benchmark.
+ * @param benchmarkDuration The duration of the benchmark in milliseconds.
  */
 export default function executeSha256AlgorithmBenchmark(benchmarkInputSize: number, benchmarkDuration: number) {
     externalLogger.info("Starting benchmarking of the SHA-256 algorithm...")

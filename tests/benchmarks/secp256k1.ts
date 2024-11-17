@@ -7,7 +7,7 @@ import externalLogger from "#lib/utils/external_logger"
 /**
  * The benchmark for the `Secp256k1Algorithm` class.
  * @param _ Placeholder for the benchmark input size (unused here, always 32 bytes).
- * @param benchmarkDuration The duration of the benchmark.
+ * @param benchmarkDuration The duration of the benchmark in milliseconds.
  */
 export default function executeSecp256k1AlgorithmBenchmark(_: any, benchmarkDuration: number) {
     externalLogger.info("Starting benchmarking of the SECP256K1 algorithm...")

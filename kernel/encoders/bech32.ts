@@ -183,7 +183,7 @@ export default class Bech32Encoder {
      * @param slot The position of the data in the cache (optional, defaults to 0 => length).
      * @returns The encoded Bech32 string.
      */
-    encode(version: number, hrp: "bc" | "tb", cache: Cache, slot?: MemorySlot): string {
+    encode(version: number, hrp: string, cache: Cache, slot?: MemorySlot): string {
         // Start with the witness version and concatenate the data converted to a 5-bit array
         const data = [version].concat(this._convertTo5BitArray(cache, slot))
 
