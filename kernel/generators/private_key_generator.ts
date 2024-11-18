@@ -76,9 +76,6 @@ export default class PrivateKeyGenerator {
             options?.upperBound
         )
 
-        console.log("LOWER:", this._lowerBound.toHexString())
-        console.log("UPPER:", this._upperBound.toHexString())
-
         this._refill()
     }
 
@@ -157,13 +154,16 @@ export default class PrivateKeyGenerator {
      * @param endianness The endianness to use (optional, defaults to the platform's endianness).
      */
     private _refill(endianness = os.endianness()): void {
+        console.log(this._lowerBound.readHexString())
+        console.log(this._upperBound.readHexString())
+
         for (let i = 0; i < this._pool.length; i += this._privateKeySize) {
             for (let j = 0; j < this._privateKeySize; j++) {
                 const lowerByte = this._lowerBound[j]
                 const upperByte = this._upperBound[j]
 
-                console.log("LOWER:", lowerByte)
-                console.log("UPPER:", upperByte)
+                // console.log("LOWER:", lowerByte)
+                // console.log("UPPER:", upperByte)
 
                 // let byte = 0
 
@@ -189,7 +189,7 @@ export default class PrivateKeyGenerator {
      */
     generate(): MemorySlot {
         this._position += this._privateKeySize
-        if (this._position + this._privateKeySize > this._pool.length) this._refill()
+        // if (this._position + this._privateKeySize > this._pool.length) this._refill()
 
         // print the pool with a space every this._privateKeySize * 2 characters
         // console.log(
