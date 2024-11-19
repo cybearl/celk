@@ -287,6 +287,22 @@ export default class Cache extends Uint8Array {
     }
 
     /**
+     * Creates a new Cache object from a big integer.
+     * @param value The big integer to create the cache from.
+     * @param length The length of the cache (optional, defaults to the value byte length).
+     * @param endianness The endianness to use (optional, defaults to the platform's endianness).
+     * @returns A new Cache object.
+     */
+    static fromBigInt = (value: bigint, length?: number, endianness?: "LE" | "BE"): Cache => {
+        if (value < 0n) throw new RangeError(`[Cache - fromBigInt] Invalid big integer: '${value}'.`)
+
+        const byteLength = length ?? Math.ceil(value.toString(16).length / 2)
+        const cache = new Cache(byteLength)
+        cache.writeBigInt(value, 0, byteLength, endianness)
+        return cache
+    }
+
+    /**
      * ===============
      *  WRITE METHODS
      * ===============
@@ -767,11 +783,15 @@ export default class Cache extends Uint8Array {
      * Reads a part of the cache and returns it as an hexadecimal string (always uppercase).
      * @param offset The offset to start reading from (optional, defaults to 0).
      * @param length The length to read (optional, defaults to the cache length - offset).
+     * @param endianness The endianness to use (optional, defaults to the platform's endianness).
      * @returns The hexadecimal string.
      */
-    readHexString = (offset = 0, length = this.length - offset): string => {
+    readHexString = (offset = 0, length = this.length - offset, endianness = this.platformEndianness): string => {
         this.check(offset, length)
-        return Buffer.from(this.buffer, offset, length).toString("hex").toUpperCase()
+        const hexString = Buffer.from(this.buffer, offset, length).toString("hex").toUpperCase()
+
+        if (this.normalizeEndianness(endianness) === "LE") return hexString.match(/.{2}/g)!.reverse().join("")
+        return hexString
     }
 
     /**
@@ -1021,11 +1041,16 @@ export default class Cache extends Uint8Array {
     /**
      * Converts the cache into an hexadecimal string (always uppercase).
      * @param prefix Whether to prefix the hexadecimal string with `0x` (optional, defaults to `false`).
-     * @param littleEndian Whether to read the value in Little Endian (optional, defaults to `false`).
+     * @param endianness The endianness to use (optional, defaults to the platform's endianness).
      * @returns The hexadecimal string.
      */
-    toHexString = (prefix = false): string => {
-        const hexString = Buffer.from(this.buffer).toString("hex").toUpperCase()
+    toHexString = (prefix = false, endianness = this.platformEndianness): string => {
+        let hexString = Buffer.from(this.buffer).toString("hex").toUpperCase()
+
+        if (this.normalizeEndianness(endianness) === "LE") {
+            hexString = hexString.match(/.{2}/g)?.reverse().join("") ?? ""
+        }
+
         if (prefix) return `0x${hexString}`
         return hexString
     }
