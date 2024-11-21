@@ -2,6 +2,7 @@
 // import Bench from "#lib/utils/benchmark"
 
 import PrivateKeyGenerator from "#kernel/generators/private_key_generator"
+import { MemorySlot } from "#kernel/utils/instructions"
 
 // const addressGenerator = new AddressGenerator("BTC_BASE58_UNCOMPRESSED", {
 //     enableDebugging: false,
@@ -12,14 +13,25 @@ import PrivateKeyGenerator from "#kernel/generators/private_key_generator"
 // bench.benchmark(() => addressGenerator.executeInstructions(), "generate()")
 // bench.print("address_generator")
 
+const lowerBound = 257n
+const upperBound = 0xc174eeeccbaeb8f5cd775be3f071f00056ffcf5f145151a859ba5c1b3899e485n
+
 const privateKeyGenerator = new PrivateKeyGenerator({
-    privateKeySize: 2,
-    lowerBound: 0n,
-    upperBound: 256n,
-    poolSize: 2,
+    privateKeySize: 32,
+    lowerBound: lowerBound,
+    upperBound: upperBound,
+    poolSize: 32,
 })
 
-privateKeyGenerator.generate()
-const privateKeySlot = privateKeyGenerator.generate()
-const privateKey = privateKeyGenerator.pool.readBigInt(privateKeySlot.start, privateKeySlot.length)
-console.log(privateKey.toString(16), privateKey.toString(10))
+let privateKeySlot: MemorySlot
+let privateKey: bigint
+
+for (let i = 0; i < 10000000; i++) {
+    privateKeySlot = privateKeyGenerator.generate()
+    privateKey = privateKeyGenerator.pool.readBigInt(privateKeySlot.start, privateKeySlot.length)
+
+    if (privateKey < lowerBound || privateKey > upperBound) {
+        console.log(privateKey.toString())
+        break
+    }
+}

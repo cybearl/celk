@@ -1002,7 +1002,7 @@ export default class Cache extends Uint8Array {
      */
     readBigIntLE = (offset = 0, length = this.length - offset): bigint => {
         this.check(offset, length)
-        return BigInt(`0x${Buffer.from(this.buffer, offset, length).toString("hex")}`)
+        return BigInt(`0x${Buffer.from(this.buffer, offset, length).reverse().toString("hex")}`)
     }
 
     /**
@@ -1015,7 +1015,7 @@ export default class Cache extends Uint8Array {
      */
     readBigIntBE = (offset = 0, length = this.length - offset): bigint => {
         this.check(offset, length)
-        return BigInt(`0x${Buffer.from(this.buffer, offset, length).reverse().toString("hex")}`)
+        return BigInt(`0x${Buffer.from(this.buffer, offset, length).toString("hex")}`)
     }
 
     /**
@@ -1047,7 +1047,7 @@ export default class Cache extends Uint8Array {
     toHexString = (prefix = false, endianness = this.platformEndianness): string => {
         let hexString = Buffer.from(this.buffer).toString("hex").toUpperCase()
 
-        if (this.normalizeEndianness(endianness) === "LE") {
+        if (this.normalizeEndianness(endianness) === "BE") {
             hexString = hexString.match(/.{2}/g)?.reverse().join("") ?? ""
         }
 

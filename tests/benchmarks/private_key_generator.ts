@@ -34,7 +34,7 @@ export default function executePrivateKeyGeneratorBenchmark(benchmarkDuration: n
         `generate(${options.privateKeySize} - poolSize: ${options.poolSize?.toLocaleString("en-US")})`
     )
 
-    options = { privateKeySize: 32, lowerBound: 0n, upperBound: 2n ** 256n - 1n, poolSize: 8192 }
+    options = { privateKeySize: 32, lowerBound: 0n, upperBound: 2n ** 256n - 1n, poolSize: 16384 }
     privateKeyGenerator.setOptions(options)
     bench.benchmark(
         () => privateKeyGenerator.generate(),

@@ -2,7 +2,6 @@ import Cache from "#kernel/utils/cache"
 import { MemorySlot } from "#kernel/utils/instructions"
 import { KernelErrors } from "#lib/utils/errors"
 import externalLogger from "#lib/utils/external_logger"
-import logger from "@adonisjs/core/services/logger"
 import { cyGeneral } from "@cybearl/cypack"
 import os from "node:os"
 
@@ -60,6 +59,11 @@ export default class PrivateKeyGenerator {
      * The upper bound of the private key to generate, represented in bytes.
      */
     private _upperBound!: Cache
+
+    /**
+     * The bytes length of the two bounds (always padded to the largest bytes length).
+     */
+    private _boundsBytesLength!: number
 
     /**
      * The current position in the pool.
@@ -144,7 +148,16 @@ export default class PrivateKeyGenerator {
             )
         }
 
-        return { lowerBound: Cache.fromBigInt(lowerBound), upperBound: Cache.fromBigInt(upperBound) }
+        // Pad the shortest length to the largest length
+        // Example: 0x1 and 0x1000 => 0x0001 and 0x1000
+        this._boundsBytesLength = Math.ceil(
+            Math.max(lowerBound.toString(16).length / 2, upperBound.toString(16).length / 2)
+        )
+
+        return {
+            lowerBound: Cache.fromBigInt(lowerBound, this._boundsBytesLength),
+            upperBound: Cache.fromBigInt(upperBound, this._boundsBytesLength),
+        }
     }
 
     /**
@@ -197,26 +210,39 @@ export default class PrivateKeyGenerator {
     refill(endianness = os.endianness()): void {
         this.pool.clear()
 
+        const isLittleEndian = endianness === "LE"
         for (let i = 0; i < this.pool.length; i += this._privateKeySize) {
-            let lowerLimit = this._lowerBound[endianness === "LE" ? this._upperBound.length - 1 : 0] ?? 0x00
-            let upperLimit = this._upperBound[endianness === "LE" ? this._upperBound.length - 1 : 0] ?? 0xff
+            let lowerLimit = this._lowerBound[isLittleEndian ? this._boundsBytesLength - 1 : 0] ?? 0x00
+            let upperLimit = this._upperBound[isLittleEndian ? this._boundsBytesLength - 1 : 0] ?? 0xff
+            // console.log("LL0", lowerLimit.toString(16))
+            // console.log("UL0", upperLimit.toString(16))
 
-            for (let j = 0; j < this._upperBound.length; j++) {
-                const randomByte = Math.floor(Math.random() * (upperLimit - lowerLimit + 1) + lowerLimit)
+            for (let j = 0; j < this._boundsBytesLength; j++) {
+                // console.log("--------------------")
+                // console.log("I", i)
+                // console.log("J", j)
 
-                if (endianness === "LE") this.pool[i + j] = randomByte
-                else this.pool[i + this._privateKeySize - j - 1] = randomByte
+                const randomByte = Math.round(Math.random() * (upperLimit - lowerLimit) + lowerLimit)
+                // console.log("RDB", randomByte)
+
+                if (endianness === "LE") this.pool[i + this._boundsBytesLength - j - 1] = randomByte
+                else this.pool[i + j] = randomByte
 
                 if (randomByte > lowerLimit) lowerLimit = 0x00
-                else lowerLimit = this._lowerBound[endianness === "LE" ? this._upperBound.length - j - 1 : j] ?? 0x00
+                else lowerLimit = this._lowerBound[isLittleEndian ? this._boundsBytesLength - j - 2 : j - 1] ?? 0x00
 
                 if (randomByte < upperLimit) upperLimit = 0xff
-                else upperLimit = this._upperBound[endianness === "LE" ? this._upperBound.length - j - 1 : j] ?? 0xff
+                else upperLimit = this._upperBound[isLittleEndian ? this._boundsBytesLength - j - 2 : j - 1] ?? 0xff
+
+                // console.log("LL>", lowerLimit.toString(16))
+                // console.log("UL>", upperLimit.toString(16))
             }
         }
 
         this._position = 0
-        this.print(endianness)
+
+        // console.log("--------------------")
+        // this.printPool(endianness)
     }
 
     /**
@@ -231,10 +257,10 @@ export default class PrivateKeyGenerator {
     }
 
     /**
-     * A debugging method that prints the pool of random bytes.
+     * A debugging method that prints the content of the random bytes pool.
      * @param endianness The endianness to use (optional, defaults to the platform's endianness).
      */
-    print(endianness = os.endianness()): void {
+    printPool(endianness = os.endianness()): void {
         const poolHex = this.pool
             .toHexString(undefined, endianness)
             .replace(new RegExp(`.{${this._privateKeySize * 2}}`, "g"), "$& ")

@@ -29,60 +29,29 @@ test.group("private_key_generator", (group) => {
     })
 
     test("It should never generate a private key outside the bounds", ({ expect }) => {
-        privateKeyGenerator.setOptions({
-            privateKeySize: 1,
-            lowerBound: 0n,
-            upperBound: 1n,
-            poolSize: 256,
-        })
+        const testBounds: [bigint, bigint][] = [
+            [0n, 1n],
+            [0n, 255n],
+            [0n, 256n],
+            [0n, 1024n],
+            [10n, 11n],
+            [257n, 0xc174ee4cba4eb8f5cd775be3f071f00056fff5f145151a859a5c1b3899e485n],
+        ]
 
-        for (let i = 0; i < 4096; i++) {
-            const privateKeySlot = privateKeyGenerator.generate()
-            const privateKey = privateKeyGenerator.pool.readBigInt(privateKeySlot.start, privateKeySlot.length)
-            expect(privateKey).toBeGreaterThanOrEqual(0n)
-            expect(privateKey).toBeLessThanOrEqual(1n)
-        }
+        for (const bounds of testBounds) {
+            privateKeyGenerator.setOptions({
+                privateKeySize: 64,
+                lowerBound: bounds[0],
+                upperBound: bounds[1],
+                poolSize: 512,
+            })
 
-        privateKeyGenerator.setOptions({
-            privateKeySize: 2,
-            lowerBound: 0n,
-            upperBound: 255n,
-            poolSize: 256,
-        })
-
-        for (let i = 0; i < 4096; i++) {
-            const privateKeySlot = privateKeyGenerator.generate()
-            const privateKey = privateKeyGenerator.pool.readBigInt(privateKeySlot.start, privateKeySlot.length)
-            expect(privateKey).toBeGreaterThanOrEqual(0n)
-            expect(privateKey).toBeLessThanOrEqual(255n)
-        }
-
-        privateKeyGenerator.setOptions({
-            privateKeySize: 2,
-            lowerBound: 0n,
-            upperBound: 256n,
-            poolSize: 256,
-        })
-
-        for (let i = 0; i < 4096; i++) {
-            const privateKeySlot = privateKeyGenerator.generate()
-            const privateKey = privateKeyGenerator.pool.readBigInt(privateKeySlot.start, privateKeySlot.length)
-            expect(privateKey).toBeGreaterThanOrEqual(0n)
-            expect(privateKey).toBeLessThanOrEqual(256n)
-        }
-
-        privateKeyGenerator.setOptions({
-            privateKeySize: 2,
-            lowerBound: 128n,
-            upperBound: 129n,
-            poolSize: 256,
-        })
-
-        for (let i = 0; i < 4096; i++) {
-            const privateKeySlot = privateKeyGenerator.generate()
-            const privateKey = privateKeyGenerator.pool.readBigInt(privateKeySlot.start, privateKeySlot.length)
-            expect(privateKey).toBeGreaterThanOrEqual(128n)
-            expect(privateKey).toBeLessThanOrEqual(129n)
+            for (let i = 0; i < 4096; i++) {
+                const privateKeySlot = privateKeyGenerator.generate()
+                const privateKey = privateKeyGenerator.pool.readBigInt(privateKeySlot.start, privateKeySlot.length)
+                expect(privateKey).toBeGreaterThanOrEqual(bounds[0])
+                expect(privateKey).toBeLessThanOrEqual(bounds[1])
+            }
         }
     })
 })
