@@ -23,7 +23,7 @@ const defaultOptions: Required<PrivateKeyGeneratorOptions> = {
     privateKeySize: 32,
     lowerBound: 0n,
     upperBound: 2n ** 256n - 1n,
-    poolSize: 1024,
+    poolSize: 0, // Unused, replaced by the private key size multiplied by 32
     endianness: os.endianness(),
 }
 
@@ -36,7 +36,7 @@ const defaultOptions: Required<PrivateKeyGeneratorOptions> = {
  */
 export default class PrivateKeyGenerator {
     /**
-     * The pool of random bytes.
+     * The pool of private keys.
      */
     pool!: Cache
 
@@ -68,7 +68,17 @@ export default class PrivateKeyGenerator {
     /**
      * The current position in the pool.
      */
-    private _position = 0
+    private _poolPosition = 0
+
+    /**
+     * The pool of random bytes.
+     */
+    randomBytesPool!: Cache
+
+    /**
+     * The current position in the random bytes pool.
+     */
+    private _randomBytesPoolPosition = 0
 
     /**
      * Creates a new `PrivateKeyGenerator` instance.
@@ -86,13 +96,25 @@ export default class PrivateKeyGenerator {
     }
 
     /**
+     * Get a random byte from the random bytes pool, increases its position and triggers a refill if necessary.
+     */
+    getRandomByte(): number {
+        if (this._randomBytesPoolPosition >= this.randomBytesPool.length) {
+            this._randomBytesPoolPosition = 0
+            this.randomBytesPool.safeRandomFill()
+        }
+
+        return this.randomBytesPool[this._randomBytesPoolPosition++]
+    }
+
+    /**
      * The memory slot that points to the currently requested bytes in the pool.
      */
     get memorySlot(): MemorySlot {
         return {
-            start: this._position,
+            start: this._poolPosition,
             length: this._privateKeySize,
-            end: this._position + this._privateKeySize,
+            end: this._poolPosition + this._privateKeySize,
         }
     }
 
@@ -168,7 +190,8 @@ export default class PrivateKeyGenerator {
      *   the nearest byte (optional, defaults to 0).
      * - upperBound The upper bound of the private key to generate rounded to
      *   the nearest byte (optional, defaults to 2^256 - 1).
-     * - poolSize The size of the pool, must be a multiple of the private key size (optional, defaults to 1,024).
+     * - poolSize The size of the pool, must be a multiple of the private key size (optional, defaults to the
+     *   private key size multiplied by 32).
      * - endianness The endianness to use (optional, defaults to the platform's endianness).
      */
     setOptions(options: PrivateKeyGeneratorOptions = defaultOptions): void {
@@ -197,14 +220,15 @@ export default class PrivateKeyGenerator {
         this._lowerBound = bounds.lowerBound
         this._upperBound = bounds.upperBound
 
-        this.pool = new Cache(options.poolSize ?? 1024)
+        const poolSize = !options.poolSize || options.poolSize === 0 ? this._privateKeySize * 32 : options.poolSize
+        this.pool = new Cache(poolSize)
+        this.randomBytesPool = new Cache(poolSize)
+
         this.refill(options.endianness)
     }
 
     /**
-     * Refills the pool with new random bytes based on the private key bounds,
-     * not that, while this method is really fast, it does not guarantee that the
-     * private key will be within the bounds, but it is highly probable.
+     * Refills the pool with new private keys based on their bounds.
      * @param endianness The endianness to use (optional, defaults to the platform's endianness).
      */
     refill(endianness = os.endianness()): void {
@@ -214,16 +238,9 @@ export default class PrivateKeyGenerator {
         for (let i = 0; i < this.pool.length; i += this._privateKeySize) {
             let lowerLimit = this._lowerBound[isLittleEndian ? this._boundsBytesLength - 1 : 0] ?? 0x00
             let upperLimit = this._upperBound[isLittleEndian ? this._boundsBytesLength - 1 : 0] ?? 0xff
-            // console.log("LL0", lowerLimit.toString(16))
-            // console.log("UL0", upperLimit.toString(16))
 
             for (let j = 0; j < this._boundsBytesLength; j++) {
-                // console.log("--------------------")
-                // console.log("I", i)
-                // console.log("J", j)
-
                 const randomByte = Math.round(Math.random() * (upperLimit - lowerLimit) + lowerLimit)
-                // console.log("RDB", randomByte)
 
                 if (endianness === "LE") this.pool[i + this._boundsBytesLength - j - 1] = randomByte
                 else this.pool[i + j] = randomByte
@@ -233,16 +250,10 @@ export default class PrivateKeyGenerator {
 
                 if (randomByte < upperLimit) upperLimit = 0xff
                 else upperLimit = this._upperBound[isLittleEndian ? this._boundsBytesLength - j - 2 : j - 1] ?? 0xff
-
-                // console.log("LL>", lowerLimit.toString(16))
-                // console.log("UL>", upperLimit.toString(16))
             }
         }
 
-        this._position = 0
-
-        // console.log("--------------------")
-        // this.printPool(endianness)
+        this._poolPosition = 0
     }
 
     /**
@@ -250,14 +261,14 @@ export default class PrivateKeyGenerator {
      * @returns The memory slot pointing to the generated private key.
      */
     generate(): MemorySlot {
-        this._position += this._privateKeySize
-        if (this._position + this._privateKeySize > this.pool.length) this.refill()
+        this._poolPosition += this._privateKeySize
+        if (this._poolPosition + this._privateKeySize > this.pool.length) this.refill()
 
         return this.memorySlot
     }
 
     /**
-     * A debugging method that prints the content of the random bytes pool.
+     * A debugging method that prints the content of the private key pool.
      * @param endianness The endianness to use (optional, defaults to the platform's endianness).
      */
     printPool(endianness = os.endianness()): void {

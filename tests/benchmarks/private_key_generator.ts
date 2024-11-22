@@ -20,25 +20,32 @@ export default function executePrivateKeyGeneratorBenchmark(benchmarkDuration: n
 
     let options: PrivateKeyGeneratorOptions
 
-    options = { privateKeySize: 1, lowerBound: 0n, upperBound: 255n, poolSize: 512 }
+    options = { privateKeySize: 1, lowerBound: 0n, upperBound: 255n }
     privateKeyGenerator.setOptions(options)
     bench.benchmark(
         () => privateKeyGenerator.generate(),
-        `generate(${options.privateKeySize} - poolSize: ${options.poolSize?.toLocaleString("en-US")})`
+        `generate(${options.privateKeySize} - poolSize: ${privateKeyGenerator.pool.length.toLocaleString("en-US")})`
     )
 
-    options = { privateKeySize: 8, lowerBound: 0n, upperBound: 2n ** 64n - 1n, poolSize: 2048 }
+    options = { privateKeySize: 8, lowerBound: 0n, upperBound: 2n ** 64n - 1n }
     privateKeyGenerator.setOptions(options)
     bench.benchmark(
         () => privateKeyGenerator.generate(),
-        `generate(${options.privateKeySize} - poolSize: ${options.poolSize?.toLocaleString("en-US")})`
+        `generate(${options.privateKeySize} - poolSize: ${privateKeyGenerator.pool.length.toLocaleString("en-US")})`
     )
 
-    options = { privateKeySize: 32, lowerBound: 0n, upperBound: 2n ** 256n - 1n, poolSize: 16384 }
+    options = { privateKeySize: 32, lowerBound: 0n, upperBound: 2n ** 256n - 1n }
     privateKeyGenerator.setOptions(options)
     bench.benchmark(
         () => privateKeyGenerator.generate(),
-        `generate(${options.privateKeySize} - poolSize: ${options.poolSize?.toLocaleString("en-US")})`
+        `generate(${options.privateKeySize} - poolSize: ${privateKeyGenerator.pool.length.toLocaleString("en-US")})`
+    )
+
+    options = { privateKeySize: 32, lowerBound: 0n, upperBound: 2n ** 256n - 1n }
+    privateKeyGenerator.setOptions(options)
+    bench.benchmark(
+        () => privateKeyGenerator.generate(),
+        `generate(${options.privateKeySize} - poolSize: ${privateKeyGenerator.pool.length?.toLocaleString("en-US")})`
     )
 
     bench.print("private_key_generator")
