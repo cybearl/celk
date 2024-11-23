@@ -994,8 +994,6 @@ export default class Cache extends Uint8Array {
 
     /**
      * **[LITTLE ENDIAN]** Reads a certain amount of bytes from the cache and converts it into a big integer.
-     *
-     * **No alignment is required, the length is automatically calculated.**
      * @param offset The offset to start reading from (optional, defaults to 0).
      * @param length The length to read (optional, defaults to the cache length - offset).
      * @returns The big integer.
@@ -1003,18 +1001,17 @@ export default class Cache extends Uint8Array {
     readBigIntLE = (offset = 0, length = this.length - offset): bigint => {
         this.check(offset, length)
 
-        console.log("A", `0x${Buffer.from(this.buffer, offset, length).toString("hex")}`)
-        console.log("B", BigInt(`0x${Buffer.from(this.buffer, offset, length).toString("hex")}`))
-        console.log("C", `0x${Buffer.from(this.buffer, offset, length).reverse().toString("hex")}`)
-        console.log("D", BigInt(`0x${Buffer.from(this.buffer, offset, length).reverse().toString("hex")}`))
+        let result = 0n
 
-        return BigInt(`0x${Buffer.from(this.buffer, offset, length).reverse().toString("hex")}`)
+        for (let i = length - 1; i >= 0; i--) {
+            result = (result << 8n) | BigInt(this[offset + i])
+        }
+
+        return result
     }
 
     /**
      * **[BIG ENDIAN]** Reads a certain amount of bytes from the cache and converts it into a big integer.
-     *
-     * **No alignment is required, the length is automatically calculated.**
      * @param offset The offset to start reading from (optional, defaults to 0).
      * @param length The length to read (optional, defaults to the cache length - offset).
      * @returns The big integer.
@@ -1022,15 +1019,17 @@ export default class Cache extends Uint8Array {
     readBigIntBE = (offset = 0, length = this.length - offset): bigint => {
         this.check(offset, length)
 
-        console.log(`0x${Buffer.from(this.buffer, offset, length).toString("hex")}`)
+        let result = 0n
 
-        return BigInt(`0x${Buffer.from(this.buffer, offset, length).toString("hex")}`)
+        for (let i = 0; i < length; i++) {
+            result = (result << 8n) | BigInt(this[offset + i])
+        }
+
+        return result
     }
 
     /**
      * Reads a certain amount of bytes from the cache and converts it into a big integer.
-     *
-     * **No alignment is required, the length is automatically calculated.**
      * @param offset The offset to start reading from (optional, defaults to 0).
      * @param length The length to read (optional, defaults to the cache length - offset).
      * @param endianness Whether to read the value in Little Endian (optional, defaults to `false`).

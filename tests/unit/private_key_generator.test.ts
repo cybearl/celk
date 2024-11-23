@@ -22,12 +22,12 @@ test.group("private_key_generator", (group) => {
     test("It should never generate a private key outside the bounds", ({ expect }) => {
         const listOfTestBounds: [bigint, bigint][] = [
             [0n, 255n],
-            // [0n, 1024n],
-            // [0x225n, 0xc174ee4cba4eb8f5cd775be3f071f00056fff5f145151a859a5c1b3899e500n],
-            // [
-            //     0xc174ee4cba4eb8f5cd775be3f071f00056fff5f145151a859a5c1b3899e300n,
-            //     0xc174ee4cba4eb8f5cd775be3f071f00056fff5f145151a859a5c1b3899e500n,
-            // ],
+            [0n, 1024n],
+            [0x225n, 0xc174ee4cba4eb8f5cd775be3f071f00056fff5f145151a859a5c1b3899e500n],
+            [
+                0xc174ee4cba4eb8f5cd775be3f071f00056fff5f145151a859a5c1b3899e300n,
+                0xc174ee4cba4eb8f5cd775be3f071f00056fff5f145151a859a5c1b3899e500n,
+            ],
         ]
 
         for (const testBounds of listOfTestBounds) {
@@ -37,14 +37,14 @@ test.group("private_key_generator", (group) => {
                 upperBound: testBounds[1],
             })
 
-            for (let i = 0; i < 2; i++) {
+            for (let i = 0; i < 8192; i++) {
                 const privateKeySlot = privateKeyGenerator.generate()
-                console.log("privateKey", privateKeyGenerator.privateKey.toHexString())
                 const privateKey = privateKeyGenerator.privateKey.readBigInt(
                     privateKeySlot.start,
                     privateKeySlot.length,
                     "LE"
                 )
+
                 expect(privateKey).toBeGreaterThanOrEqual(testBounds[0])
                 expect(privateKey).toBeLessThanOrEqual(testBounds[1])
             }

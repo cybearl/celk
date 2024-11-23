@@ -3,7 +3,6 @@ import { MemorySlot } from "#kernel/utils/instructions"
 import { KernelErrors } from "#lib/utils/errors"
 import externalLogger from "#lib/utils/external_logger"
 import { cyGeneral } from "@cybearl/cypack"
-import dedent from "dedent-js"
 import os from "node:os"
 
 /**
@@ -15,6 +14,7 @@ export type PrivateKeyGeneratorOptions = {
     upperBound?: bigint
     endianness?: "BE" | "LE"
     maxRejections?: number
+    throwOnMaxRejections?: boolean
 }
 
 /**
@@ -26,6 +26,7 @@ const defaultOptions: Required<PrivateKeyGeneratorOptions> = {
     upperBound: 2n ** 256n - 1n,
     endianness: os.endianness(),
     maxRejections: 1_000_000,
+    throwOnMaxRejections: true,
 }
 
 /**
@@ -70,6 +71,11 @@ export default class PrivateKeyGenerator {
     private _endianness!: "BE" | "LE"
 
     /**
+     * Whether to throw an error when the maximum number of rejections is reached.
+     */
+    private _throwOnMaxRejections!: boolean
+
+    /**
      * Creates a new `PrivateKeyGenerator` instance.
      * @param options The available options:
      * - privateKeySize The size of the private key to generate (optional, defaults to 32).
@@ -79,6 +85,8 @@ export default class PrivateKeyGenerator {
      *   the nearest byte (optional, defaults to 2^256 - 1).
      * - endianness The endianness to use (optional, defaults to the platform's endianness).
      * - maxRejections The maximum number of bounds rejections before throwing an error (optional, defaults to 1,000,000).
+     * - throwOnMaxRejections A flag indicating if an error should be thrown when the maximum number of rejections is
+     *   reached, if not, it will just return the private key outside the bounds (optional, defaults to true).
      */
     constructor(options?: PrivateKeyGeneratorOptions) {
         this.setOptions(options)
@@ -105,6 +113,8 @@ export default class PrivateKeyGenerator {
      *   the nearest byte (optional, defaults to 2^256 - 1).
      * - endianness The endianness to use (optional, defaults to the platform's endianness).
      * - maxRejections The maximum number of bounds rejections before throwing an error (optional, defaults to 1,000,000).
+     * - throwOnMaxRejections A flag indicating if an error should be thrown when the maximum number of rejections is
+     *   reached, if not, it will just return the private key outside the bounds (optional, defaults to true).
      */
     setOptions(options: PrivateKeyGeneratorOptions = defaultOptions): void {
         if (options?.privateKeySize && options.privateKeySize <= 0) {
@@ -118,6 +128,7 @@ export default class PrivateKeyGenerator {
 
         this.privateKey = new Cache(options?.privateKeySize ?? defaultOptions.privateKeySize)
         this._maxValue = 2n ** BigInt(this.privateKey.length * 8) - 1n
+        this._throwOnMaxRejections = options.throwOnMaxRejections ?? defaultOptions.throwOnMaxRejections
 
         const lowerBound = options.lowerBound ?? 0n
         const upperBound = options.upperBound ?? this._maxValue
@@ -167,14 +178,6 @@ export default class PrivateKeyGenerator {
             )
         }
 
-        if (upperBound < lowerBound + 255n) {
-            externalLogger.warn(dedent`
-                The range of the private key is less than 256, which may lead to a performance decrease because of the
-                rejection sampling algorithm. Consider increasing the range to at least 256, note that if the number of
-                rejections exceeds the maximum number of rejections (${defaultOptions.maxRejections.toLocaleString("en-US")}), an error will be thrown.
-            `)
-        }
-
         const lowerBoundBytesLength = Math.ceil(lowerBound.toString(16).length / 2)
         this._lowerBound = {
             value: Cache.fromBigInt(lowerBound, lowerBoundBytesLength),
@@ -208,13 +211,11 @@ export default class PrivateKeyGenerator {
                 if (randomByte < lowerBoundByte) {
                     isWithinBounds = false
                     break
-                } else if (randomByte > lowerBoundByte) {
-                    // Improve performance by breaking the loop if the random private key
-                    // is strictly greater than the lower bound
-                    break
                 }
             }
-        } else if (randomBytesLength === this._upperBound.bytesLength) {
+        }
+
+        if (randomBytesLength === this._upperBound.bytesLength) {
             // Compare each byte of the random private key with the upper bound with a flag
             // indicating if the random private key is less than the upper bound
             for (let i = 0; i < this._upperBound.bytesLength; i++) {
@@ -223,10 +224,6 @@ export default class PrivateKeyGenerator {
 
                 if (randomByte > upperBoundByte) {
                     isWithinBounds = false
-                    break
-                } else if (randomByte < upperBoundByte) {
-                    // Improve performance by breaking the loop if the random private key
-                    // is strictly less than the upper bound
                     break
                 }
             }
@@ -239,7 +236,6 @@ export default class PrivateKeyGenerator {
      * Generates a new private key following the bounds set in the options, using the
      * principle of rejection sampling based on a random number of bytes between the needed
      * number of bytes for the lower and upper bounds.
-     * @param mode The generation mode to use (safe or fast).
      */
     generate(): MemorySlot {
         // Generate a random number of bytes that will represent the random private key
@@ -253,12 +249,16 @@ export default class PrivateKeyGenerator {
         // Generate the private key until it is within the bounds
         while (!isWithinBounds) {
             if (rejections >= defaultOptions.maxRejections) {
-                throw new Error(
-                    cyGeneral.errors.stringifyError(
-                        KernelErrors.PRIVATE_KEY_GENERATION_FAILED,
-                        "The private key generation failed due to too many rejections."
+                if (this._throwOnMaxRejections) {
+                    throw new Error(
+                        cyGeneral.errors.stringifyError(
+                            KernelErrors.PRIVATE_KEY_GENERATION_FAILED,
+                            "The private key generation failed due to too many rejections."
+                        )
                     )
-                )
+                } else {
+                    return this.memorySlot
+                }
             }
 
             // Clean and refill the private key with random bytes
