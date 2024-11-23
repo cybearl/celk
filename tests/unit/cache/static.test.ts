@@ -1,5 +1,6 @@
 import Cache, { Bit } from "#kernel/utils/cache"
 import { test } from "@japa/runner"
+import os from "node:os"
 
 test.group("cache / static / alloc", (group) => {
     let cache: Cache
@@ -119,6 +120,92 @@ test.group("cache / static / fromUint8Array", (group) => {
     test("It should create a cache with the correct values", ({ expect }) => {
         for (let i = 0; i < cache.length; i++) {
             expect(cache.readUint8(i)).toBe(uint8Array[i])
+        }
+    })
+})
+
+test.group("cache / static / fromUint16Array", (group) => {
+    let cache: Cache
+
+    const uint16Array = new Uint16Array([0xff11, 0x11ff])
+    const uint16ArrayByteValuesLE = [0x11, 0xff, 0xff, 0x11]
+    const uint16ArrayByteValuesBE = [0xff, 0x11, 0x11, 0xff]
+
+    group.each.setup(() => {
+        cache = Cache.fromUint16Array(uint16Array)
+    })
+
+    test("It should create a cache from a Uint16Array", ({ expect }) => {
+        expect(cache).toBeInstanceOf(Cache)
+    })
+
+    test("It should create a cache with the correct length", ({ expect }) => {
+        expect(cache.length).toBe(uint16Array.length * 2)
+    })
+
+    test("It should create a cache with the correct values", ({ expect }) => {
+        for (let i = 0; i < cache.length; i++) {
+            if (os.endianness() === "LE") {
+                expect(cache.readUint8(i)).toBe(uint16ArrayByteValuesLE[i])
+            } else {
+                expect(cache.readUint8(i)).toBe(uint16ArrayByteValuesBE[i])
+            }
+        }
+    })
+})
+
+test.group("cache / static / fromUint32Array", (group) => {
+    let cache: Cache
+
+    const uint32Array = new Uint32Array([0xff11ff11, 0x11ff11ff])
+    const uint32ArrayByteValuesLE = [0x11, 0xff, 0x11, 0xff, 0xff, 0x11, 0xff, 0x11]
+    const uint32ArrayByteValuesBE = [0xff, 0x11, 0xff, 0x11, 0x11, 0xff, 0x11, 0xff]
+
+    group.each.setup(() => {
+        cache = Cache.fromUint32Array(uint32Array)
+    })
+
+    test("It should create a cache from a Uint32Array", ({ expect }) => {
+        expect(cache).toBeInstanceOf(Cache)
+    })
+
+    test("It should create a cache with the correct length", ({ expect }) => {
+        expect(cache.length).toBe(uint32Array.length * 4)
+    })
+
+    test("It should create a cache with the correct values", ({ expect }) => {
+        console.log(cache.toHexString())
+        for (let i = 0; i < cache.length; i++) {
+            if (os.endianness() === "LE") {
+                expect(cache.readUint8(i)).toBe(uint32ArrayByteValuesLE[i])
+            } else {
+                expect(cache.readUint8(i)).toBe(uint32ArrayByteValuesBE[i])
+            }
+        }
+    })
+})
+
+test.group("cache / static / fromBigInt", (group) => {
+    let cache: Cache
+
+    const bigInt = BigInt(0xff11ff11ff11)
+    const bigIntByteValues = [0x11, 0xff, 0x11, 0xff, 0x11, 0xff, 0x00, 0x00]
+
+    group.each.setup(() => {
+        cache = Cache.fromBigInt(bigInt)
+    })
+
+    test("It should create a cache from a BigInt", ({ expect }) => {
+        expect(cache).toBeInstanceOf(Cache)
+    })
+
+    test("It should create a cache with the correct length", ({ expect }) => {
+        expect(cache.length).toBe(Math.ceil(bigInt.toString(16).length / 2))
+    })
+
+    test("It should create a cache with the correct values", ({ expect }) => {
+        for (let i = 0; i < cache.length; i++) {
+            expect(cache.readUint8(i)).toBe(bigIntByteValues[i])
         }
     })
 })

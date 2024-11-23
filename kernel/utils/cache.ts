@@ -259,8 +259,8 @@ export default class Cache extends Uint8Array {
      * @returns A new Cache object.
      */
     static fromUint8Array = (array: Uint8Array): Cache => {
-        const cache = new Cache(array.length)
-        cache.writeUint8Array(array, 0, array.length)
+        const cache = new Cache(array.byteLength)
+        cache.writeUint8Array(array, 0, array.byteLength)
         return cache
     }
 
@@ -270,8 +270,8 @@ export default class Cache extends Uint8Array {
      * @returns A new Cache object.
      */
     static fromUint16Array = (array: Uint16Array): Cache => {
-        const cache = new Cache(array.length * 2)
-        cache.writeUint16Array(array, 0, array.length)
+        const cache = new Cache(array.byteLength)
+        cache.writeUint16Array(array, 0, array.byteLength)
         return cache
     }
 
@@ -281,8 +281,8 @@ export default class Cache extends Uint8Array {
      * @returns A new Cache object.
      */
     static fromUint32Array = (array: Uint32Array): Cache => {
-        const cache = new Cache(array.length * 4)
-        cache.writeUint32Array(array, 0, array.length)
+        const cache = new Cache(array.byteLength)
+        cache.writeUint32Array(array, 0, array.byteLength)
         return cache
     }
 
@@ -790,8 +790,8 @@ export default class Cache extends Uint8Array {
         this.check(offset, length)
         const hexString = Buffer.from(this.buffer, offset, length).toString("hex").toUpperCase()
 
-        if (this.normalizeEndianness(endianness) === "LE") return hexString.match(/.{2}/g)!.reverse().join("")
-        return hexString
+        if (this.normalizeEndianness(endianness) === "LE") return hexString
+        return hexString.match(/.{2}/g)!.reverse().join("")
     }
 
     /**
@@ -1002,7 +1002,7 @@ export default class Cache extends Uint8Array {
      */
     readBigIntLE = (offset = 0, length = this.length - offset): bigint => {
         this.check(offset, length)
-        return BigInt(`0x${Buffer.from(this.buffer, offset, length).reverse().toString("hex")}`)
+        return BigInt(`0x${Buffer.from(this.buffer, offset, length).toString("hex")}`)
     }
 
     /**
@@ -1015,7 +1015,7 @@ export default class Cache extends Uint8Array {
      */
     readBigIntBE = (offset = 0, length = this.length - offset): bigint => {
         this.check(offset, length)
-        return BigInt(`0x${Buffer.from(this.buffer, offset, length).toString("hex")}`)
+        return BigInt(`0x${Buffer.from(this.buffer, offset, length).reverse().toString("hex")}`)
     }
 
     /**
@@ -1109,13 +1109,14 @@ export default class Cache extends Uint8Array {
 
     /**
      * Checks if the current cache is equal to the specified cache.
+     * @param cache The cache to compare to.
+     * @returns Whether the caches are equal.
      */
     equals = (cache: Cache): boolean => {
         if (this.length !== cache.length) {
             return false
         }
 
-        // TODO: Naive approach, improve this
         for (let i = 0; i < this.length; i++) {
             if (this[i] !== cache[i]) {
                 return false
@@ -1263,7 +1264,6 @@ export default class Cache extends Uint8Array {
      * Rotates the cache to the left.
      */
     rotateLeft = (): this => {
-        // TODO: Naive approach, improve this
         const first = this[0]
         for (let i = 0; i < this.length - 1; i++) this[i] = this[i + 1]
         this[this.length - 1] = first
@@ -1275,7 +1275,6 @@ export default class Cache extends Uint8Array {
      * @returns The cache.
      */
     rotateRight = (): this => {
-        // TODO: Naive approach, improve this
         const last = this[this.length - 1]
         for (let i = this.length - 1; i > 0; i--) this[i] = this[i - 1]
         this[0] = last
@@ -1292,7 +1291,6 @@ export default class Cache extends Uint8Array {
     shiftLeft = (offset = 0, length = this.length, shift = 1): this => {
         this.check(offset, length)
 
-        // TODO: Naive approach, improve this
         for (let i = 0; i < this.length - 1; i++) this[i] = this[i + shift]
         for (let i = 0; i < shift; i++) this[this.length - i - 1] = 0
 
@@ -1309,7 +1307,6 @@ export default class Cache extends Uint8Array {
     shiftRight = (offset = 0, length = this.length, shift = 1): this => {
         this.check(offset, length)
 
-        // TODO: Naive approach, improve this
         for (let i = this.length - 1; i > 0; i--) this[i] = this[i - shift]
         for (let i = 0; i < shift; i++) this[i] = 0
 

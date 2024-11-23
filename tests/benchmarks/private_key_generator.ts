@@ -24,28 +24,28 @@ export default function executePrivateKeyGeneratorBenchmark(benchmarkDuration: n
     privateKeyGenerator.setOptions(options)
     bench.benchmark(
         () => privateKeyGenerator.generate(),
-        `generate(${options.privateKeySize} - poolSize: ${privateKeyGenerator.pool.length.toLocaleString("en-US")})`
+        `generate(${options.privateKeySize} - privateKeySize: ${privateKeyGenerator.privateKey.length.toLocaleString("en-US")})`
     )
 
     options = { privateKeySize: 8, lowerBound: 0n, upperBound: 2n ** 64n - 1n }
     privateKeyGenerator.setOptions(options)
     bench.benchmark(
         () => privateKeyGenerator.generate(),
-        `generate(${options.privateKeySize} - poolSize: ${privateKeyGenerator.pool.length.toLocaleString("en-US")})`
+        `generate(${options.privateKeySize} - privateKeySize: ${privateKeyGenerator.privateKey.length.toLocaleString("en-US")})`
     )
 
     options = { privateKeySize: 32, lowerBound: 0n, upperBound: 2n ** 256n - 1n }
     privateKeyGenerator.setOptions(options)
     bench.benchmark(
         () => privateKeyGenerator.generate(),
-        `generate(${options.privateKeySize} - poolSize: ${privateKeyGenerator.pool.length.toLocaleString("en-US")})`
+        `generate(${options.privateKeySize} - privateKeySize: ${privateKeyGenerator.privateKey.length.toLocaleString("en-US")})`
     )
 
     options = { privateKeySize: 32, lowerBound: 0n, upperBound: 2n ** 256n - 1n }
     privateKeyGenerator.setOptions(options)
     bench.benchmark(
         () => privateKeyGenerator.generate(),
-        `generate(${options.privateKeySize} - poolSize: ${privateKeyGenerator.pool.length?.toLocaleString("en-US")})`
+        `generate(${options.privateKeySize} - privateKeySize: ${privateKeyGenerator.privateKey.length?.toLocaleString("en-US")})`
     )
 
     bench.print("private_key_generator")

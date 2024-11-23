@@ -15,10 +15,8 @@ import {
     AddressOperation,
     MemorySlotWithCache,
 } from "#kernel/utils/instructions"
-import RandomBytesPool from "#kernel/generators/random_bytes_pool"
-import { KernelErrors } from "#lib/utils/errors"
-import { cyGeneral } from "@cybearl/cypack"
 import externalLogger from "#lib/utils/external_logger"
+import PrivateKeyGenerator from "#kernel/generators/private_key_generator"
 
 /**
  * The type definition of the public key generation mode.
@@ -39,7 +37,6 @@ export type Options = {
     base58NetworkByte?: number
     bech32Hrp?: string
     bech32WitnessVersion?: number
-    randomBytesPoolSize?: number
     enableDebugging?: boolean
     fixedPrivateKeyInputCache?: Cache | null
 }
@@ -51,7 +48,6 @@ export const DEFAULT_OPTIONS: Required<Options> = {
     base58NetworkByte: 0x00,
     bech32Hrp: "bc",
     bech32WitnessVersion: 0x00,
-    randomBytesPoolSize: 1024,
     enableDebugging: false,
     fixedPrivateKeyInputCache: null,
 }
@@ -76,7 +72,7 @@ export default class AddressGenerator {
     private _latestPrivateKeySlot: MemorySlot | null
 
     // Generators
-    private _randomBytesPool: RandomBytesPool
+    private _privateKeyGenerator: PrivateKeyGenerator
 
     // Algorithms
     private _secp256k1Algorithm: Secp256k1Algorithm
@@ -114,7 +110,7 @@ export default class AddressGenerator {
         this._latestPrivateKeySlot = null
 
         // Generators
-        this._randomBytesPool = new RandomBytesPool(this._options.randomBytesPoolSize)
+        this._privateKeyGenerator = new PrivateKeyGenerator(this._options.randomBytesPoolSize)
 
         // Algorithms
         this._secp256k1Algorithm = new Secp256k1Algorithm()

@@ -12,7 +12,6 @@ export type PrivateKeyGeneratorOptions = {
     privateKeySize?: number
     lowerBound?: bigint
     upperBound?: bigint
-    poolSize?: number
     endianness?: "BE" | "LE"
 }
 
@@ -23,12 +22,19 @@ const defaultOptions: Required<PrivateKeyGeneratorOptions> = {
     privateKeySize: 32,
     lowerBound: 0n,
     upperBound: 2n ** 256n - 1n,
-    poolSize: 0, // Unused, replaced by the private key size multiplied by 32
     endianness: os.endianness(),
 }
 
 /**
- * The `PrivateKeyGenerator` class is used to generate a private key from a pool of random bytes.
+ * The type definition for a bound.
+ */
+type Bound = {
+    value: Cache
+    bytesLength: number
+}
+
+/**
+ * The `PrivateKeyGenerator` class is used to generate a private key within a given range.
  *
  * Note that the range of the private key is in bytes, not directly in numbers, which drastically
  * improves the performance of the generator, but also limits the precision of the range to be in
@@ -36,14 +42,9 @@ const defaultOptions: Required<PrivateKeyGeneratorOptions> = {
  */
 export default class PrivateKeyGenerator {
     /**
-     * The pool of private keys.
+     * The private key represented as a `Cache` instance.
      */
-    pool!: Cache
-
-    /**
-     * The size in of the private key to generate, represented in bytes.
-     */
-    private _privateKeySize!: number
+    privateKey!: Cache
 
     /**
      * The highest possible value of the private key based on its size.
@@ -51,34 +52,14 @@ export default class PrivateKeyGenerator {
     private _maxValue!: bigint
 
     /**
-     * The lower bound of the private key to generate, represented in bytes.
+     * The lower bound of the private key to generate.
      */
-    private _lowerBound!: Cache
+    private _lowerBound!: Bound
 
     /**
-     * The upper bound of the private key to generate, represented in bytes.
+     * The upper bound of the private key to generate.
      */
-    private _upperBound!: Cache
-
-    /**
-     * The bytes length of the two bounds (always padded to the largest bytes length).
-     */
-    private _boundsBytesLength!: number
-
-    /**
-     * The current position in the pool.
-     */
-    private _poolPosition = 0
-
-    /**
-     * The pool of random bytes.
-     */
-    randomBytesPool!: Cache
-
-    /**
-     * The current position in the random bytes pool.
-     */
-    private _randomBytesPoolPosition = 0
+    private _upperBound!: Bound
 
     /**
      * Creates a new `PrivateKeyGenerator` instance.
@@ -88,7 +69,6 @@ export default class PrivateKeyGenerator {
      *   the nearest byte (optional, defaults to 0).
      * - upperBound The upper bound of the private key to generate rounded to
      *   the nearest byte (optional, defaults to 2^256 - 1).
-     * - poolSize The size of the pool, must be a multiple of the private key size (optional, defaults to 1,024).
      * - endianness The endianness to use (optional, defaults to the platform's endianness).
      */
     constructor(options?: PrivateKeyGeneratorOptions) {
@@ -96,35 +76,42 @@ export default class PrivateKeyGenerator {
     }
 
     /**
-     * Get a random byte from the random bytes pool, increases its position and triggers a refill if necessary.
-     */
-    getRandomByte(): number {
-        if (this._randomBytesPoolPosition >= this.randomBytesPool.length) {
-            this._randomBytesPoolPosition = 0
-            this.randomBytesPool.safeRandomFill()
-        }
-
-        return this.randomBytesPool[this._randomBytesPoolPosition++]
-    }
-
-    /**
-     * The memory slot that points to the currently requested bytes in the pool.
+     * The memory slot that can be used to read the private key.
      */
     get memorySlot(): MemorySlot {
         return {
-            start: this._poolPosition,
-            length: this._privateKeySize,
-            end: this._poolPosition + this._privateKeySize,
+            start: 0,
+            length: this.privateKey.length,
+            end: this.privateKey.length,
         }
     }
 
     /**
-     * Converts both the lower and upper bounds of the private key to two `Cache` instances.
-     * @param lowerBound The lower bound of the private key to generate.
-     * @param upperBound The upper bound of the private key to generate.
-     * @returns The lower and upper bounds of the private key as `Cache` instances.
+     * Set the options for the private key generator.
+     * @param options The available options:
+     * - privateKeySize The size of the private key to generate (optional, defaults to 32).
+     * - lowerBound The lower bound of the private key to generate rounded to
+     *   the nearest byte (optional, defaults to 0).
+     * - upperBound The upper bound of the private key to generate rounded to
+     *   the nearest byte (optional, defaults to 2^256 - 1).
+     * - endianness The endianness to use (optional, defaults to the platform's endianness).
      */
-    private _getBounds(lowerBound: bigint, upperBound: bigint): { lowerBound: Cache; upperBound: Cache } {
+    setOptions(options: PrivateKeyGeneratorOptions = defaultOptions): void {
+        if (options?.privateKeySize && options.privateKeySize <= 0) {
+            throw new Error(
+                cyGeneral.errors.stringifyError(
+                    KernelErrors.INVALID_PRIVATE_KEY_LENGTH,
+                    "The private key size must be greater than 0."
+                )
+            )
+        }
+
+        this.privateKey = new Cache(options?.privateKeySize ?? defaultOptions.privateKeySize)
+        this._maxValue = 2n ** BigInt(this.privateKey.length * 8) - 1n
+
+        const lowerBound = options.lowerBound ?? 0n
+        const upperBound = options.upperBound ?? this._maxValue
+
         if (lowerBound < 0n) {
             throw new Error(
                 cyGeneral.errors.stringifyError(
@@ -170,112 +157,57 @@ export default class PrivateKeyGenerator {
             )
         }
 
-        // Pad the shortest length to the largest length
-        // Example: 0x1 and 0x1000 => 0x0001 and 0x1000
-        this._boundsBytesLength = Math.ceil(
-            Math.max(lowerBound.toString(16).length / 2, upperBound.toString(16).length / 2)
-        )
-
-        return {
-            lowerBound: Cache.fromBigInt(lowerBound, this._boundsBytesLength),
-            upperBound: Cache.fromBigInt(upperBound, this._boundsBytesLength),
+        const lowerBoundBytesLength = Math.ceil(lowerBound.toString(16).length / 2)
+        this._lowerBound = {
+            value: Cache.fromBigInt(lowerBound, lowerBoundBytesLength),
+            bytesLength: lowerBoundBytesLength,
         }
+
+        const upperBoundBytesLength = Math.ceil(upperBound.toString(16).length / 2)
+        this._upperBound = {
+            value: Cache.fromBigInt(upperBound, upperBoundBytesLength),
+            bytesLength: upperBoundBytesLength,
+        }
+
+        this.generate(options.endianness)
     }
 
     /**
-     * Set the options for the private key generator.
-     * @param options The available options:
-     * - privateKeySize The size of the private key to generate (optional, defaults to 32).
-     * - lowerBound The lower bound of the private key to generate rounded to
-     *   the nearest byte (optional, defaults to 0).
-     * - upperBound The upper bound of the private key to generate rounded to
-     *   the nearest byte (optional, defaults to 2^256 - 1).
-     * - poolSize The size of the pool, must be a multiple of the private key size (optional, defaults to the
-     *   private key size multiplied by 32).
-     * - endianness The endianness to use (optional, defaults to the platform's endianness).
-     */
-    setOptions(options: PrivateKeyGeneratorOptions = defaultOptions): void {
-        if (options?.privateKeySize && options.privateKeySize <= 0) {
-            throw new Error(
-                cyGeneral.errors.stringifyError(
-                    KernelErrors.INVALID_PRIVATE_KEY_LENGTH,
-                    "The private key size must be greater than 0."
-                )
-            )
-        }
-
-        if (options?.poolSize && options.poolSize % (options.privateKeySize ?? 32) !== 0) {
-            throw new Error(
-                cyGeneral.errors.stringifyError(
-                    KernelErrors.INVALID_POOL_SIZE,
-                    "The pool size must be a multiple of the private key size."
-                )
-            )
-        }
-
-        this._privateKeySize = options.privateKeySize ?? 32
-        this._maxValue = 2n ** BigInt(this._privateKeySize * 8) - 1n
-
-        const bounds = this._getBounds(options.lowerBound ?? 0n, options.upperBound ?? this._maxValue)
-        this._lowerBound = bounds.lowerBound
-        this._upperBound = bounds.upperBound
-
-        const poolSize = !options.poolSize || options.poolSize === 0 ? this._privateKeySize * 32 : options.poolSize
-        this.pool = new Cache(poolSize)
-        this.randomBytesPool = new Cache(poolSize)
-
-        this.refill(options.endianness)
-    }
-
-    /**
-     * Refills the pool with new private keys based on their bounds.
+     * Generates a new private key following the bounds set in the options, using the
+     * principle of rejection sampling based on a random number of bytes between the needed
+     * number of bytes for the lower and upper bounds.
      * @param endianness The endianness to use (optional, defaults to the platform's endianness).
      */
-    refill(endianness = os.endianness()): void {
-        this.pool.clear()
+    generate(endianness = os.endianness()): MemorySlot {
+        // Clean the private key cache only up to the upper bound bytes length
+        this.privateKey.fill(0, this._upperBound.bytesLength)
 
-        const isLittleEndian = endianness === "LE"
-        for (let i = 0; i < this.pool.length; i += this._privateKeySize) {
-            let lowerLimit = this._lowerBound[isLittleEndian ? this._boundsBytesLength - 1 : 0] ?? 0x00
-            let upperLimit = this._upperBound[isLittleEndian ? this._boundsBytesLength - 1 : 0] ?? 0xff
+        // Generate a random number of bytes that will represent the random private key
+        const randomBytesLength = Math.ceil(
+            Math.random() * (this._upperBound.bytesLength - this._lowerBound.bytesLength) + this._lowerBound.bytesLength
+        )
 
-            for (let j = 0; j < this._boundsBytesLength; j++) {
-                const randomByte = Math.round(Math.random() * (upperLimit - lowerLimit) + lowerLimit)
-
-                if (endianness === "LE") this.pool[i + this._boundsBytesLength - j - 1] = randomByte
-                else this.pool[i + j] = randomByte
-
-                if (randomByte > lowerLimit) lowerLimit = 0x00
-                else lowerLimit = this._lowerBound[isLittleEndian ? this._boundsBytesLength - j - 2 : j - 1] ?? 0x00
-
-                if (randomByte < upperLimit) upperLimit = 0xff
-                else upperLimit = this._upperBound[isLittleEndian ? this._boundsBytesLength - j - 2 : j - 1] ?? 0xff
-            }
+        if (randomBytesLength > this._lowerBound.bytesLength || randomBytesLength < this._upperBound.bytesLength) {
+            // Within (exclusive) the lower and upper bounds bytes length, no need to check or reject
+            // It will always be within the bounds
+        } else if (randomBytesLength === this._lowerBound.bytesLength) {
+            // Equal to the lower bound bytes length
+        } else {
+            // Equal to the upper bound bytes length
         }
-
-        this._poolPosition = 0
-    }
-
-    /**
-     * Generates a new private key and returns the memory slot pointing to it.
-     * @returns The memory slot pointing to the generated private key.
-     */
-    generate(): MemorySlot {
-        this._poolPosition += this._privateKeySize
-        if (this._poolPosition + this._privateKeySize > this.pool.length) this.refill()
 
         return this.memorySlot
     }
 
     /**
-     * A debugging method that prints the content of the private key pool.
+     * A debugging method that prints the content of the private key cache in hexadecimal format.
      * @param endianness The endianness to use (optional, defaults to the platform's endianness).
      */
-    printPool(endianness = os.endianness()): void {
-        const poolHex = this.pool
+    printPrivateKey(endianness = os.endianness()): void {
+        const privateKeyHex = this.privateKey
             .toHexString(undefined, endianness)
-            .replace(new RegExp(`.{${this._privateKeySize * 2}}`, "g"), "$& ")
+            .replace(new RegExp(`.{${this.privateKey.length * 2}}`, "g"), "$& ")
 
-        externalLogger.info(`Pool: ${poolHex}`)
+        externalLogger.info(`Private key: ${privateKeyHex}`)
     }
 }

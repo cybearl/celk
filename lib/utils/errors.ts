@@ -207,12 +207,6 @@ export const KernelErrors = {
         message: "The private key range is invalid. it must be >= 0 & < Infinity.",
         data: null,
     },
-    INVALID_POOL_SIZE: {
-        status: 400,
-        name: "INVALID_POOL_SIZE",
-        message: "The pool size must be a multiple of the private key size.",
-        data: null,
-    },
     //=====//
     // 404 //
     //=====//

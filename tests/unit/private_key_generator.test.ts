@@ -16,18 +16,14 @@ test.group("private_key_generator", (group) => {
     })
 
     test("It should refill the pool with new random bytes based on the private key bounds", ({ expect }) => {
-        const initialPool = privateKeyGenerator.pool.toHexString()
-        privateKeyGenerator.refill()
-        const refilledPool = privateKeyGenerator.pool.toHexString()
+        const initialPool = privateKeyGenerator.privateKey.toHexString()
+        privateKeyGenerator.generate()
+        const refilledPool = privateKeyGenerator.privateKey.toHexString()
         expect(refilledPool).not.toBe(initialPool)
     })
 
     test("It should throw an error if the private key size is less than 1", ({ expect }) => {
         expect(() => new PrivateKeyGenerator({ privateKeySize: 0 })).toThrow()
-    })
-
-    test("It should throw an error if the pool size is not a multiple of the private key size", ({ expect }) => {
-        expect(() => new PrivateKeyGenerator({ poolSize: 1025 })).toThrow()
     })
 
     test("It should never generate a private key outside the bounds", ({ expect }) => {
@@ -37,6 +33,7 @@ test.group("private_key_generator", (group) => {
             [0n, 256n],
             [0n, 1024n],
             [10n, 11n],
+            [0x225n, 0xc174ee4cba4eb8f5cd775be3f071f00056fff5f145151a859a5c1b3899e500n],
             [
                 0xc174ee4cba4eb8f5cd775be3f071f00056fff5f145151a859a5c1b3899e300n,
                 0xc174ee4cba4eb8f5cd775be3f071f00056fff5f145151a859a5c1b3899e500n,
@@ -52,13 +49,17 @@ test.group("private_key_generator", (group) => {
 
             for (let i = 0; i < 8192; i++) {
                 const privateKeySlot = privateKeyGenerator.generate()
-                const privateKey = privateKeyGenerator.pool.readBigInt(privateKeySlot.start, privateKeySlot.length)
+                const privateKey = privateKeyGenerator.privateKey.readBigInt(
+                    privateKeySlot.start,
+                    privateKeySlot.length
+                )
                 expect(privateKey).toBeGreaterThanOrEqual(testBounds[0])
                 expect(privateKey).toBeLessThanOrEqual(testBounds[1])
             }
         }
     })
 
+    // Not really a test, more of a randomness report (using the test title as the final message)
     test("Randomness report finished", () => {
         const lowerBound = 0
         const upperBound = 256
@@ -79,7 +80,9 @@ test.group("private_key_generator", (group) => {
 
         for (let i = 0; i < distributionSamples; i++) {
             const privateKeySlot = privateKeyGenerator.generate()
-            const privateKey = Number(privateKeyGenerator.pool.readBigInt(privateKeySlot.start, privateKeySlot.length))
+            const privateKey = Number(
+                privateKeyGenerator.privateKey.readBigInt(privateKeySlot.start, privateKeySlot.length)
+            )
             keyCounts[privateKey]++
         }
 
