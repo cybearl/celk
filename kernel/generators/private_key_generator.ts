@@ -3,6 +3,7 @@ import { MemorySlot } from "#kernel/utils/instructions"
 import { KernelErrors } from "#lib/utils/errors"
 import externalLogger from "#lib/utils/external_logger"
 import { cyGeneral } from "@cybearl/cypack"
+import dedent from "dedent-js"
 import os from "node:os"
 
 /**
@@ -13,6 +14,7 @@ export type PrivateKeyGeneratorOptions = {
     lowerBound?: bigint
     upperBound?: bigint
     endianness?: "BE" | "LE"
+    maxRejections?: number
 }
 
 /**
@@ -23,6 +25,7 @@ const defaultOptions: Required<PrivateKeyGeneratorOptions> = {
     lowerBound: 0n,
     upperBound: 2n ** 256n - 1n,
     endianness: os.endianness(),
+    maxRejections: 1_000_000,
 }
 
 /**
@@ -62,6 +65,11 @@ export default class PrivateKeyGenerator {
     private _upperBound!: Bound
 
     /**
+     * The normalized endianness to use.
+     */
+    private _endianness!: "BE" | "LE"
+
+    /**
      * Creates a new `PrivateKeyGenerator` instance.
      * @param options The available options:
      * - privateKeySize The size of the private key to generate (optional, defaults to 32).
@@ -70,6 +78,7 @@ export default class PrivateKeyGenerator {
      * - upperBound The upper bound of the private key to generate rounded to
      *   the nearest byte (optional, defaults to 2^256 - 1).
      * - endianness The endianness to use (optional, defaults to the platform's endianness).
+     * - maxRejections The maximum number of bounds rejections before throwing an error (optional, defaults to 1,000,000).
      */
     constructor(options?: PrivateKeyGeneratorOptions) {
         this.setOptions(options)
@@ -95,6 +104,7 @@ export default class PrivateKeyGenerator {
      * - upperBound The upper bound of the private key to generate rounded to
      *   the nearest byte (optional, defaults to 2^256 - 1).
      * - endianness The endianness to use (optional, defaults to the platform's endianness).
+     * - maxRejections The maximum number of bounds rejections before throwing an error (optional, defaults to 1,000,000).
      */
     setOptions(options: PrivateKeyGeneratorOptions = defaultOptions): void {
         if (options?.privateKeySize && options.privateKeySize <= 0) {
@@ -157,6 +167,14 @@ export default class PrivateKeyGenerator {
             )
         }
 
+        if (upperBound < lowerBound + 255n) {
+            externalLogger.warn(dedent`
+                The range of the private key is less than 256, which may lead to a performance decrease because of the
+                rejection sampling algorithm. Consider increasing the range to at least 256, note that if the number of
+                rejections exceeds the maximum number of rejections (${defaultOptions.maxRejections.toLocaleString("en-US")}), an error will be thrown.
+            `)
+        }
+
         const lowerBoundBytesLength = Math.ceil(lowerBound.toString(16).length / 2)
         this._lowerBound = {
             value: Cache.fromBigInt(lowerBound, lowerBoundBytesLength),
@@ -169,43 +187,106 @@ export default class PrivateKeyGenerator {
             bytesLength: upperBoundBytesLength,
         }
 
-        this.generate(options.endianness)
+        this._endianness = this.privateKey.normalizeEndianness(options.endianness ?? defaultOptions.endianness)
+        this.generate()
+    }
+
+    /**
+     * Checks if the random private key is within the bounds.
+     * @param randomBytesLength The number of random bytes generated.
+     */
+    private _isWithinBounds(randomBytesLength: number): boolean {
+        let isWithinBounds = true
+
+        if (randomBytesLength === this._lowerBound.bytesLength) {
+            // Compare each byte of the random private key with the lower bound with a flag
+            // indicating if the random private key is greater than the lower bound
+            for (let i = 0; i < this._lowerBound.bytesLength; i++) {
+                const lowerBoundByte = this._lowerBound.value.readUint8(i)
+                const randomByte = this.privateKey.readUint8(i)
+
+                if (randomByte < lowerBoundByte) {
+                    isWithinBounds = false
+                    break
+                } else if (randomByte > lowerBoundByte) {
+                    // Improve performance by breaking the loop if the random private key
+                    // is strictly greater than the lower bound
+                    break
+                }
+            }
+        } else if (randomBytesLength === this._upperBound.bytesLength) {
+            // Compare each byte of the random private key with the upper bound with a flag
+            // indicating if the random private key is less than the upper bound
+            for (let i = 0; i < this._upperBound.bytesLength; i++) {
+                const upperBoundByte = this._upperBound.value.readUint8(i)
+                const randomByte = this.privateKey.readUint8(i)
+
+                if (randomByte > upperBoundByte) {
+                    isWithinBounds = false
+                    break
+                } else if (randomByte < upperBoundByte) {
+                    // Improve performance by breaking the loop if the random private key
+                    // is strictly less than the upper bound
+                    break
+                }
+            }
+        }
+
+        return isWithinBounds
     }
 
     /**
      * Generates a new private key following the bounds set in the options, using the
      * principle of rejection sampling based on a random number of bytes between the needed
      * number of bytes for the lower and upper bounds.
-     * @param endianness The endianness to use (optional, defaults to the platform's endianness).
+     * @param mode The generation mode to use (safe or fast).
      */
-    generate(endianness = os.endianness()): MemorySlot {
-        // Clean the private key cache only up to the upper bound bytes length
-        this.privateKey.fill(0, this._upperBound.bytesLength)
-
+    generate(): MemorySlot {
         // Generate a random number of bytes that will represent the random private key
-        const randomBytesLength = Math.ceil(
+        const randomBytesLength = Math.round(
             Math.random() * (this._upperBound.bytesLength - this._lowerBound.bytesLength) + this._lowerBound.bytesLength
         )
 
-        if (randomBytesLength > this._lowerBound.bytesLength || randomBytesLength < this._upperBound.bytesLength) {
-            // Within (exclusive) the lower and upper bounds bytes length, no need to check or reject
-            // It will always be within the bounds
-        } else if (randomBytesLength === this._lowerBound.bytesLength) {
-            // Equal to the lower bound bytes length
-        } else {
-            // Equal to the upper bound bytes length
+        let isWithinBounds = false
+        let rejections = 0
+
+        // Generate the private key until it is within the bounds
+        while (!isWithinBounds) {
+            if (rejections >= defaultOptions.maxRejections) {
+                throw new Error(
+                    cyGeneral.errors.stringifyError(
+                        KernelErrors.PRIVATE_KEY_GENERATION_FAILED,
+                        "The private key generation failed due to too many rejections."
+                    )
+                )
+            }
+
+            // Clean and refill the private key with random bytes
+            if (this._endianness === "LE") {
+                this.privateKey.clear(0, this._upperBound.bytesLength)
+                this.privateKey.randomFill(0, randomBytesLength)
+            } else {
+                this.privateKey.clear(
+                    this.privateKey.length - this._upperBound.bytesLength,
+                    this._upperBound.bytesLength
+                )
+                this.privateKey.randomFill(this.privateKey.length - randomBytesLength, randomBytesLength)
+            }
+
+            isWithinBounds = this._isWithinBounds(randomBytesLength)
+            if (!isWithinBounds) rejections++
         }
 
         return this.memorySlot
     }
 
     /**
-     * A debugging method that prints the content of the private key cache in hexadecimal format.
-     * @param endianness The endianness to use (optional, defaults to the platform's endianness).
+     * A debugging method that prints the content of the private key cache
+     * in hexadecimal format.
      */
-    printPrivateKey(endianness = os.endianness()): void {
+    printPrivateKey(): void {
         const privateKeyHex = this.privateKey
-            .toHexString(undefined, endianness)
+            .toHexString(undefined, this._endianness)
             .replace(new RegExp(`.{${this.privateKey.length * 2}}`, "g"), "$& ")
 
         externalLogger.info(`Private key: ${privateKeyHex}`)

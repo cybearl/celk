@@ -1002,7 +1002,13 @@ export default class Cache extends Uint8Array {
      */
     readBigIntLE = (offset = 0, length = this.length - offset): bigint => {
         this.check(offset, length)
-        return BigInt(`0x${Buffer.from(this.buffer, offset, length).toString("hex")}`)
+
+        console.log("A", `0x${Buffer.from(this.buffer, offset, length).toString("hex")}`)
+        console.log("B", BigInt(`0x${Buffer.from(this.buffer, offset, length).toString("hex")}`))
+        console.log("C", `0x${Buffer.from(this.buffer, offset, length).reverse().toString("hex")}`)
+        console.log("D", BigInt(`0x${Buffer.from(this.buffer, offset, length).reverse().toString("hex")}`))
+
+        return BigInt(`0x${Buffer.from(this.buffer, offset, length).reverse().toString("hex")}`)
     }
 
     /**
@@ -1015,7 +1021,10 @@ export default class Cache extends Uint8Array {
      */
     readBigIntBE = (offset = 0, length = this.length - offset): bigint => {
         this.check(offset, length)
-        return BigInt(`0x${Buffer.from(this.buffer, offset, length).reverse().toString("hex")}`)
+
+        console.log(`0x${Buffer.from(this.buffer, offset, length).toString("hex")}`)
+
+        return BigInt(`0x${Buffer.from(this.buffer, offset, length).toString("hex")}`)
     }
 
     /**

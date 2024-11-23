@@ -222,4 +222,13 @@ export const KernelErrors = {
         message: "This instruction could not be found.",
         data: null,
     },
+    //=====//
+    // 500 //
+    //=====//
+    PRIVATE_KEY_GENERATION_FAILED: {
+        status: 500,
+        name: "PRIVATE_KEY_GENERATION_FAILED",
+        message: "Failed to generate a private key.",
+        data: null,
+    },
 }

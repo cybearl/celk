@@ -20,33 +20,21 @@ export default function executePrivateKeyGeneratorBenchmark(benchmarkDuration: n
 
     let options: PrivateKeyGeneratorOptions
 
-    options = { privateKeySize: 1, lowerBound: 0n, upperBound: 255n }
+    options = { privateKeySize: 1 }
     privateKeyGenerator.setOptions(options)
-    bench.benchmark(
-        () => privateKeyGenerator.generate(),
-        `generate(${options.privateKeySize} - privateKeySize: ${privateKeyGenerator.privateKey.length.toLocaleString("en-US")})`
-    )
+    bench.benchmark(() => privateKeyGenerator.generate(), `generate(${options.privateKeySize})`)
 
-    options = { privateKeySize: 8, lowerBound: 0n, upperBound: 2n ** 64n - 1n }
+    options = { privateKeySize: 8 }
     privateKeyGenerator.setOptions(options)
-    bench.benchmark(
-        () => privateKeyGenerator.generate(),
-        `generate(${options.privateKeySize} - privateKeySize: ${privateKeyGenerator.privateKey.length.toLocaleString("en-US")})`
-    )
+    bench.benchmark(() => privateKeyGenerator.generate(), `generate(${options.privateKeySize})`)
 
-    options = { privateKeySize: 32, lowerBound: 0n, upperBound: 2n ** 256n - 1n }
+    options = { privateKeySize: 32 }
     privateKeyGenerator.setOptions(options)
-    bench.benchmark(
-        () => privateKeyGenerator.generate(),
-        `generate(${options.privateKeySize} - privateKeySize: ${privateKeyGenerator.privateKey.length.toLocaleString("en-US")})`
-    )
+    bench.benchmark(() => privateKeyGenerator.generate(), `generate(${options.privateKeySize})`)
 
-    options = { privateKeySize: 32, lowerBound: 0n, upperBound: 2n ** 256n - 1n }
+    options = { privateKeySize: 64 }
     privateKeyGenerator.setOptions(options)
-    bench.benchmark(
-        () => privateKeyGenerator.generate(),
-        `generate(${options.privateKeySize} - privateKeySize: ${privateKeyGenerator.privateKey.length?.toLocaleString("en-US")})`
-    )
+    bench.benchmark(() => privateKeyGenerator.generate(), `generate(${options.privateKeySize})`)
 
     bench.print("private_key_generator")
 }
