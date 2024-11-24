@@ -33,17 +33,20 @@ export enum GenericOperation {
  * such as base58 encoding, bech32 encoding, etc.
  */
 export enum AddressOperation {
-    // Base58 encoding
-    Base58NetworkByte = "base58-network-byte",
-    Base58DoubleSha256 = "base58-double-sha",
+    // https://bitcointalk.org/index.php?topic=5229211.0
+    BtcP2SHRedeemScriptPrefix = "btc-p2sh-redeem-script-prefix",
 
-    // Bech32 encoding
-    Bech32WitnessVersion = "bech32-witness-version",
+    // // Base58 encoding
+    // Base58NetworkByte = "base58-network-byte",
+    // Base58DoubleSha256 = "base58-double-sha",
 
-    // Address generation
-    Base58Address = "base58-address",
-    Bech32Address = "bech32-address",
-    EvmAddress = "evm-address",
+    // // Bech32 encoding
+    // Bech32WitnessVersion = "bech32-witness-version",
+
+    // // Address generation
+    // Base58Address = "base58-address",
+    // Bech32Address = "bech32-address",
+    // EvmAddress = "evm-address",
 }
 
 /**
@@ -68,14 +71,17 @@ export type InstructionWithFlags = Instruction & {
  * The type definition of the available instruction sets.
  */
 export type InstructionSetName =
-    | "MEMORY_SLOT::BTC"
-    | "MEMORY_SLOT::SEGWIT_BTC"
+    | "MEMORY_SLOT::BTC_P2PKH_UNCOMPRESSED"
+    | "MEMORY_SLOT::BTC_P2PKH_COMPRESSED"
+    | "MEMORY_SLOT::BTC_P2SH_P2WPKH_UNCOMPRESSED"
+    | "MEMORY_SLOT::BTC_P2SH_P2WPKH_COMPRESSED"
+    | "MEMORY_SLOT::BTC_P2SH_P2WSH_UNCOMPRESSED"
+    | "MEMORY_SLOT::BTC_P2SH_P2WSH_COMPRESSED"
+    | "MEMORY_SLOT::BTC_P2WPKH_UNCOMPRESSED"
+    | "MEMORY_SLOT::BTC_P2WPKH_COMPRESSED"
+    | "MEMORY_SLOT::BTC_P2WSH_COMPRESSED"
+    | "MEMORY_SLOT::BTC_P2WSH_COMPRESSED"
     | "MEMORY_SLOT::EVM"
-    | "BTC_P2PKH"
-    | "BTC_P2SH"
-    | "BTC_P2WPKH"
-    | "BTC_P2WSH"
-    | "EVM"
 
 /**
  * Returns the proper instruction set with flags for a given instruction set name.
@@ -91,7 +97,8 @@ export function getInstructionSet(instructionSetName: InstructionSetName): Instr
     let instructionSet: Instruction[]
 
     switch (instructionSetName) {
-        case "MEMORY_SLOT::BTC":
+        case "MEMORY_SLOT::BTC_P2PKH_UNCOMPRESSED":
+        case "MEMORY_SLOT::BTC_P2WPKH_UNCOMPRESSED":
             // prettier-ignore
             instructionSet = [
                 { inputSlot:                                 null, outputSlot: { start:   0, end:  32, length: 32 }, operation: GenericOperation.PrivateKey },
@@ -100,13 +107,40 @@ export function getInstructionSet(instructionSetName: InstructionSetName): Instr
                 { inputSlot: { start:  97, end: 129, length: 32 }, outputSlot: { start: 129, end: 149, length: 20 }, operation: GenericOperation.Ripemd160 },
             ]
             break
-        case "MEMORY_SLOT::SEGWIT_BTC":
+        case "MEMORY_SLOT::BTC_P2PKH_COMPRESSED":
+        case "MEMORY_SLOT::BTC_P2WPKH_COMPRESSED":
+            // prettier-ignore
+            instructionSet = [
+                { inputSlot:                                 null, outputSlot: { start:   0, end:  32, length: 32 }, operation: GenericOperation.PrivateKey },
+                { inputSlot: { start:   0, end:  32, length: 32 }, outputSlot: { start:  32, end:  65, length: 33 }, operation: GenericOperation.PublicKey },
+                { inputSlot: { start:  32, end:  65, length: 33 }, outputSlot: { start:  65, end:  97, length: 32 }, operation: GenericOperation.Sha256 },
+                { inputSlot: { start:  65, end:  97, length: 32 }, outputSlot: { start:  97, end: 117, length: 20 }, operation: GenericOperation.Ripemd160 },
+            ]
+            break
+        case "MEMORY_SLOT::BTC_P2SH_P2WPKH_UNCOMPRESSED":
+        case "MEMORY_SLOT::BTC_P2SH_P2WSH_UNCOMPRESSED":
             // prettier-ignore
             instructionSet = [
                 { inputSlot:                                 null, outputSlot: { start:   0, end:  32, length: 32 }, operation: GenericOperation.PrivateKey },
                 { inputSlot: { start:   0, end:  32, length: 32 }, outputSlot: { start:  32, end:  97, length: 65 }, operation: GenericOperation.PublicKey },
                 { inputSlot: { start:  32, end:  97, length: 65 }, outputSlot: { start:  97, end: 129, length: 32 }, operation: GenericOperation.Sha256 },
-                { inputSlot: { start:  97, end: 129, length: 32 }, outputSlot: { start: 129, end: 149, length: 20 }, operation: GenericOperation.Ripemd160 },
+                { inputSlot:                                 null, outputSlot: { start: 129, end: 133, length:  4 }, operation: AddressOperation.BtcP2SHRedeemScriptPrefix },
+                { inputSlot: { start:  97, end: 129, length: 32 }, outputSlot: { start: 133, end: 153, length: 20 }, operation: GenericOperation.Ripemd160 },
+                { inputSlot: { start: 129, end: 153, length: 24 }, outputSlot: { start: 153, end: 185, length: 32 }, operation: GenericOperation.Sha256 },
+                { inputSlot: { start: 153, end: 185, length: 32 }, outputSlot:                                 null, operation: GenericOperation.Ripemd160 },
+            ]
+            break
+        case "MEMORY_SLOT::BTC_P2SH_P2WPKH_COMPRESSED":
+        case "MEMORY_SLOT::BTC_P2SH_P2WSH_COMPRESSED":
+            // prettier-ignore
+            instructionSet = [
+                { inputSlot:                                 null, outputSlot: { start:   0, end:  32, length: 32 }, operation: GenericOperation.PrivateKey },
+                { inputSlot: { start:   0, end:  32, length: 32 }, outputSlot: { start:  32, end:  65, length: 33 }, operation: GenericOperation.PublicKey },
+                { inputSlot: { start:  32, end:  65, length: 33 }, outputSlot: { start:  65, end:  97, length: 32 }, operation: GenericOperation.Sha256 },
+                { inputSlot:                                 null, outputSlot: { start:  97, end: 101, length:  4 }, operation: AddressOperation.BtcP2SHRedeemScriptPrefix },
+                { inputSlot: { start:  65, end:  97, length: 32 }, outputSlot: { start: 101, end: 121, length: 20 }, operation: GenericOperation.Ripemd160 },
+                { inputSlot: { start:  97, end: 121, length: 24 }, outputSlot: { start: 121, end: 153, length: 32 }, operation: GenericOperation.Sha256 },
+                { inputSlot: { start: 121, end: 153, length: 32 }, outputSlot:                                 null, operation: GenericOperation.Ripemd160 },
             ]
             break
         case "MEMORY_SLOT::EVM":
