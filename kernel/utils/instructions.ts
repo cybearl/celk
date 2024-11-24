@@ -82,13 +82,42 @@ export type InstructionSetName =
  *
  * Note that the instruction are written directly in the code for better readability
  * of the overall memory space management.
+ *
  * @param instructionSetName The name of the instruction set.
  * @returns The instruction set with the corresponding flags.
+ * @source [SecretScan.org](https://secretscan.org/)
  */
 export function getInstructionSet(instructionSetName: InstructionSetName): InstructionWithFlags[] {
     let instructionSet: Instruction[]
 
     switch (instructionSetName) {
+        case "MEMORY_SLOT::BTC":
+            // prettier-ignore
+            instructionSet = [
+                { inputSlot:                                 null, outputSlot: { start:   0, end:  32, length: 32 }, operation: GenericOperation.PrivateKey },
+                { inputSlot: { start:   0, end:  32, length: 32 }, outputSlot: { start:  32, end:  97, length: 65 }, operation: GenericOperation.PublicKey },
+                { inputSlot: { start:  32, end:  97, length: 65 }, outputSlot: { start:  97, end: 129, length: 32 }, operation: GenericOperation.Sha256 },
+                { inputSlot: { start:  97, end: 129, length: 32 }, outputSlot: { start: 129, end: 149, length: 20 }, operation: GenericOperation.Ripemd160 },
+            ]
+            break
+        case "MEMORY_SLOT::SEGWIT_BTC":
+            // prettier-ignore
+            instructionSet = [
+                { inputSlot:                                 null, outputSlot: { start:   0, end:  32, length: 32 }, operation: GenericOperation.PrivateKey },
+                { inputSlot: { start:   0, end:  32, length: 32 }, outputSlot: { start:  32, end:  97, length: 65 }, operation: GenericOperation.PublicKey },
+                { inputSlot: { start:  32, end:  97, length: 65 }, outputSlot: { start:  97, end: 129, length: 32 }, operation: GenericOperation.Sha256 },
+                { inputSlot: { start:  97, end: 129, length: 32 }, outputSlot: { start: 129, end: 149, length: 20 }, operation: GenericOperation.Ripemd160 },
+            ]
+            break
+        case "MEMORY_SLOT::EVM":
+            // https://ethereum.stackexchange.com/questions/3542/how-are-ethereum-addresses-generated
+            // prettier-ignore
+            instructionSet = [
+                { inputSlot:                                 null, outputSlot: { start:   0, end:  32, length: 32 }, operation: GenericOperation.PrivateKey },
+                { inputSlot: { start:   0, end:  32, length: 32 }, outputSlot: { start:  32, end:  96, length: 64 }, operation: GenericOperation.PublicKey },
+                { inputSlot: { start:  32, end:  96, length: 64 }, outputSlot: { start:  96, end: 128, length: 32 }, operation: GenericOperation.Keccak256 },
+            ]
+            break
         default:
             throw new Error(
                 cyGeneral.errors.stringifyError(KernelErrors.INSTRUCTION_SET_NOT_FOUND, undefined, {

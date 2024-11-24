@@ -16,7 +16,7 @@ import {
     MemorySlotWithCache,
 } from "#kernel/utils/instructions"
 import externalLogger from "#lib/utils/external_logger"
-import PrivateKeyGenerator from "#kernel/generators/private_key_generator"
+import PrivateKeyGenerator, { PrivateKeyGeneratorOptions } from "#kernel/generators/private_key_generator"
 
 /**
  * The type definition of the public key generation mode.
@@ -25,31 +25,30 @@ export type PublicKeyGenerationMode = "compressed" | "uncompressed" | "evm"
 
 /**
  * The type definition of the address generator options.
+ * @param privateKeyGeneratorOptions The private key generator options (bounds, rejection limits, etc.).
  * @param base58NetworkByte The base58 network byte (only for base58 addresses, defaults to 0x00).
  * @param bech32Hrp The bech32 human-readable part (only for bech32 addresses, defaults to "bc").
  * @param bech32WitnessVersion The bech32 witness version (only for bech32 addresses, from 0 to 16, defaults to 0).
  * @param randomBytesPoolSize The random bytes pool size (defaults to 1,024).
  * @param enableDebugging Whether to enable debugging (defaults to `false`).
- * @param fixedPrivateKeyInputCache A fixed private key to use formatted as a cache instance,
- * mostly for testing purposes (should be a 32-byte Cache, defaults to `null`).
  */
-export type Options = {
+export type AddressGeneratorOptions = {
+    privateKeyGeneratorOptions?: PrivateKeyGeneratorOptions
     base58NetworkByte?: number
     bech32Hrp?: string
     bech32WitnessVersion?: number
     enableDebugging?: boolean
-    fixedPrivateKeyInputCache?: Cache | null
 }
 
 /**
  * The default address generator options.
  */
-export const DEFAULT_OPTIONS: Required<Options> = {
+export const defaultAddressGeneratorOptions: Required<AddressGeneratorOptions> = {
+    privateKeyGeneratorOptions: {},
     base58NetworkByte: 0x00,
     bech32Hrp: "bc",
     bech32WitnessVersion: 0x00,
     enableDebugging: false,
-    fixedPrivateKeyInputCache: null,
 }
 
 /**
@@ -61,7 +60,7 @@ export default class AddressGenerator {
     private _instructionSet: InstructionWithFlags[]
 
     // Parameters
-    private _options: Required<Options>
+    private _options: Required<AddressGeneratorOptions>
 
     // Pre-computed flags
     private _isRawInstructionSet: boolean
@@ -69,7 +68,6 @@ export default class AddressGenerator {
 
     // Memory
     private _cache: Cache
-    private _latestPrivateKeySlot: MemorySlot | null
 
     // Generators
     private _privateKeyGenerator: PrivateKeyGenerator
@@ -93,13 +91,13 @@ export default class AddressGenerator {
     constructor(
         instructionSetName: InstructionSetName,
         publicKeyGenerationMode: PublicKeyGenerationMode,
-        options?: Options
+        options?: AddressGeneratorOptions
     ) {
         // Instructions
         this._instructionSet = getInstructionSet(instructionSetName)
 
         // Parameters
-        this._options = { ...DEFAULT_OPTIONS, ...options }
+        this._options = { ...defaultAddressGeneratorOptions, ...options }
 
         // Pre-computed flags
         this._isRawInstructionSet = instructionSetName.includes("RAW")
@@ -107,10 +105,9 @@ export default class AddressGenerator {
 
         // Memory
         this._cache = new Cache(getInstructionSetCacheLength(this._instructionSet))
-        this._latestPrivateKeySlot = null
 
         // Generators
-        this._privateKeyGenerator = new PrivateKeyGenerator(this._options.randomBytesPoolSize)
+        this._privateKeyGenerator = new PrivateKeyGenerator(this._options.privateKeyGeneratorOptions)
 
         // Algorithms
         this._secp256k1Algorithm = new Secp256k1Algorithm()
@@ -152,11 +149,7 @@ export default class AddressGenerator {
         } else {
             switch (instruction.operation) {
                 case GenericOperation.PrivateKey:
-                    toLog = this._randomBytesPool.pool.readHexString(
-                        this._randomBytesPool.memorySlot.start as number,
-                        this._randomBytesPool.memorySlot.length
-                    )
-
+                    toLog = this._privateKeyGenerator.privateKey.toHexString()
                     break
                 default:
                     toLog = this._cache.readHexString(
@@ -183,22 +176,17 @@ export default class AddressGenerator {
     ): void {
         switch (operation) {
             case GenericOperation.PrivateKey:
-                this._randomBytesPool.increment(outputSlot.length)
-                this._latestPrivateKeySlot = this._randomBytesPool.memorySlot
+                this._privateKeyGenerator.generate()
                 break
             case GenericOperation.PublicKey:
-                const internalInputSlot: MemorySlotWithCache = this._options.fixedPrivateKeyInputCache
-                    ? { cache: this._options.fixedPrivateKeyInputCache, ...inputSlot }
-                    : { cache: this._randomBytesPool.pool, ...inputSlot }
-
                 this._secp256k1Algorithm.generate(
                     this._publicKeyGenerationMode === PublicKeyGenerationMode.Compressed
                         ? "compressed"
                         : "uncompressed",
-                    internalInputSlot,
+                    { cache: this._privateKeyGenerator.privateKey, ...inputSlot },
                     { cache: this._cache, ...outputSlot }
                 )
-                break
+                break { cache: this._randomBytesPool.pool, ...inputSlot }
             case GenericOperation.Sha256:
                 this._sha256Algorithm.hash({ cache: this._cache, ...inputSlot }, { cache: this._cache, ...outputSlot })
                 break
@@ -294,13 +282,5 @@ export default class AddressGenerator {
         }
 
         return result
-    }
-
-    /**
-     * Gets the latest private key slot.
-     * @returns The latest private key slot.
-     */
-    get latestPrivateKeySlot(): MemorySlot | null {
-        return this._latestPrivateKeySlot
     }
 }

@@ -20,7 +20,7 @@ export type PrivateKeyGeneratorOptions = {
 /**
  * The default options for the `PrivateKeyGenerator` class.
  */
-const defaultOptions: Required<PrivateKeyGeneratorOptions> = {
+export const defaultPrivateKeyGeneratorOptions: Required<PrivateKeyGeneratorOptions> = {
     privateKeySize: 32,
     lowerBound: 0n,
     upperBound: 2n ** 256n - 1n,
@@ -71,6 +71,11 @@ export default class PrivateKeyGenerator {
     private _endianness!: "BE" | "LE"
 
     /**
+     * The maximum number of bounds rejections before throwing an error.
+     */
+    private _maxRejections!: number
+
+    /**
      * Whether to throw an error when the maximum number of rejections is reached.
      */
     private _throwOnMaxRejections!: boolean
@@ -84,7 +89,8 @@ export default class PrivateKeyGenerator {
      * - upperBound The upper bound of the private key to generate rounded to
      *   the nearest byte (optional, defaults to 2^256 - 1).
      * - endianness The endianness to use (optional, defaults to the platform's endianness).
-     * - maxRejections The maximum number of bounds rejections before throwing an error (optional, defaults to 1,000,000).
+     * - maxRejections The maximum number of bounds rejections before throwing an error (optional, defaults to 1,000,000,
+     *   set to -1 to disable the limit).
      * - throwOnMaxRejections A flag indicating if an error should be thrown when the maximum number of rejections is
      *   reached, if not, it will just return the private key outside the bounds (optional, defaults to true).
      */
@@ -112,11 +118,12 @@ export default class PrivateKeyGenerator {
      * - upperBound The upper bound of the private key to generate rounded to
      *   the nearest byte (optional, defaults to 2^256 - 1).
      * - endianness The endianness to use (optional, defaults to the platform's endianness).
-     * - maxRejections The maximum number of bounds rejections before throwing an error (optional, defaults to 1,000,000).
+     * - maxRejections The maximum number of bounds rejections before throwing an error (optional, defaults to 1,000,000,
+     *   set to -1 to disable the limit).
      * - throwOnMaxRejections A flag indicating if an error should be thrown when the maximum number of rejections is
      *   reached, if not, it will just return the private key outside the bounds (optional, defaults to true).
      */
-    setOptions(options: PrivateKeyGeneratorOptions = defaultOptions): void {
+    setOptions(options: PrivateKeyGeneratorOptions = defaultPrivateKeyGeneratorOptions): void {
         if (options?.privateKeySize && options.privateKeySize <= 0) {
             throw new Error(
                 cyGeneral.errors.stringifyError(
@@ -126,9 +133,12 @@ export default class PrivateKeyGenerator {
             )
         }
 
-        this.privateKey = new Cache(options?.privateKeySize ?? defaultOptions.privateKeySize)
+        this.privateKey = new Cache(options?.privateKeySize ?? defaultPrivateKeyGeneratorOptions.privateKeySize)
         this._maxValue = 2n ** BigInt(this.privateKey.length * 8) - 1n
-        this._throwOnMaxRejections = options.throwOnMaxRejections ?? defaultOptions.throwOnMaxRejections
+
+        this._maxRejections = options.maxRejections ?? defaultPrivateKeyGeneratorOptions.maxRejections
+        this._throwOnMaxRejections =
+            options.throwOnMaxRejections ?? defaultPrivateKeyGeneratorOptions.throwOnMaxRejections
 
         const lowerBound = options.lowerBound ?? 0n
         const upperBound = options.upperBound ?? this._maxValue
@@ -190,7 +200,10 @@ export default class PrivateKeyGenerator {
             bytesLength: upperBoundBytesLength,
         }
 
-        this._endianness = this.privateKey.normalizeEndianness(options.endianness ?? defaultOptions.endianness)
+        this._endianness = this.privateKey.normalizeEndianness(
+            options.endianness ?? defaultPrivateKeyGeneratorOptions.endianness
+        )
+
         this.generate()
     }
 
@@ -238,17 +251,12 @@ export default class PrivateKeyGenerator {
      * number of bytes for the lower and upper bounds.
      */
     generate(): MemorySlot {
-        // Generate a random number of bytes that will represent the random private key
-        const randomBytesLength = Math.round(
-            Math.random() * (this._upperBound.bytesLength - this._lowerBound.bytesLength) + this._lowerBound.bytesLength
-        )
-
         let isWithinBounds = false
         let rejections = 0
 
         // Generate the private key until it is within the bounds
         while (!isWithinBounds) {
-            if (rejections >= defaultOptions.maxRejections) {
+            if (this._maxRejections !== -1 && rejections >= this._maxRejections) {
                 if (this._throwOnMaxRejections) {
                     throw new Error(
                         cyGeneral.errors.stringifyError(
@@ -260,6 +268,12 @@ export default class PrivateKeyGenerator {
                     return this.memorySlot
                 }
             }
+
+            // Generate a random number of bytes that will represent the random private key
+            const randomBytesLength = Math.round(
+                Math.random() * (this._upperBound.bytesLength - this._lowerBound.bytesLength) +
+                    this._lowerBound.bytesLength
+            )
 
             // Clean and refill the private key with random bytes
             if (this._endianness === "LE") {
