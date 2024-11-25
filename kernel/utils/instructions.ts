@@ -66,7 +66,7 @@ export type InstructionWithFlags = Instruction & {
     isGenericOperation: boolean
     isEnd: boolean
 }
-
+Legacy P2PKH with uncompressed public keys.
 /**
  * The type definition of the available instruction sets.
  */

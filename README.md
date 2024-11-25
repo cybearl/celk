@@ -7,21 +7,11 @@
 
 ### Introduction
 
-This project intends to offer a simple and efficient way to generate Bitcoin and Ethereum addresses with the goal
-of brute-forcing them (after a few thousand years lol).
+This project intends to see how much I can optimize the generation of Bitcoin and Ethereum addresses.
+I'm mostly doing that for fun, and will implement new methods (headless-gl, workers, etc..) just to
+see how much I can improve the performances on Node.js only (with the exception of shaders, if any),
 
-The goal being to eventually build a dual (Xeon | Epyc)-based home server, and to run this project on it for years
-(or decades lol) to see if luck is on my side.
-
-### Performances
-
-Benchmark environment:
-
--   CPU: AMD Ryzen 7 5800x (8 cores / 16 threads) @ 3.8 GHz.
--   GPU: NVIDIA GeForce RTX 3070.
--   RAM: 32 GB DDR4 @ 3200 MHz.
--   OS: Windows 11 64 bits.
--   Node.js: v20.15.0.
+We're still far away from VanitySearch (+- 3,000 MK/s on modern GPUs), but it's a fun project to work on.
 
 ### Benchmarking of the generator
 
