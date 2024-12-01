@@ -13,7 +13,7 @@ import {
     getInstructionSetCacheLength,
     InstructionWithFlags,
     AddressOperation,
-    MemorySlotWithCache,
+    MemorySlotWithCacheInstance,
 } from "#kernel/utils/instructions"
 import externalLogger from "#lib/utils/external_logger"
 import PrivateKeyGenerator, { PrivateKeyGeneratorOptions } from "#kernel/generators/private_key_generator"

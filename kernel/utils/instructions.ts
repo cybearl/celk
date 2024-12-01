@@ -14,7 +14,7 @@ export type MemorySlot = {
 /**
  * The type definition of a memory slot extended with a cache instance.
  */
-export type MemorySlotWithCache = Partial<MemorySlot> & { cache: Cache }
+export type MemorySlotWithCacheInstance = Partial<MemorySlot> & { cache: Cache }
 
 /**
  * An enum containing all the generic operations for the instruction sets,
@@ -32,18 +32,9 @@ export enum GenericOperation {
  * An enum containing all the specific address operations for the non-raw instruction sets,
  * such as base58 encoding, bech32 encoding, etc.
  */
-export enum AddressOperation {}
-// // Base58 encoding
-// Base58NetworkByte = "base58-network-byte",
-// Base58DoubleSha256 = "base58-double-sha",
-
-// // Bech32 encoding
-// Bech32WitnessVersion = "bech32-witness-version",
-
-// // Address generation
-// Base58Address = "base58-address",
-// Bech32Address = "bech32-address",
-// EvmAddress = "evm-address",
+export enum AddressOperation {
+    BtcP2shPrefix = "btc-p2sh-prefix", // Pushing "0014" at the beginning of the ripemd160 hash
+}
 
 /**
  * The type definition of an instruction, based on a generic or specific address operation,
@@ -66,7 +57,14 @@ export type InstructionWithFlags = Instruction & {
 /**
  * The type definition of the available instruction sets.
  */
-export type InstructionSetName = "MEMORY_SLOT::BTC33" | "MEMORY_SLOT::BTC65" | "MEMORY_SLOT::EVM64"
+export type InstructionSetName =
+    | "MEMORY_SLOT::BTC33"
+    | "MEMORY_SLOT::BTC65"
+    | "MEMORY_SLOT::BTC33::P2SH"
+    | "MEMORY_SLOT::BTC65::P2SH"
+    | "MEMORY_SLOT::BTC33::P2WSH"
+    | "MEMORY_SLOT::BTC65::P2WSH"
+    | "MEMORY_SLOT::EVM64"
 
 /**
  * Returns the proper instruction set with flags for a given instruction set name,
@@ -102,6 +100,46 @@ export function getInstructionSet(instructionSetName: InstructionSetName): Instr
                 { inputSlot: { start:  32, end:  97, length: 65 }, outputSlot: { start:  97, end: 129, length: 32 }, operation: GenericOperation.Sha256 },
                 { inputSlot: { start:  97, end: 129, length: 32 }, outputSlot: { start: 129, end: 149, length: 20 }, operation: GenericOperation.Ripemd160 },
             ]
+            break
+        case "MEMORY_SLOT::BTC33::P2SH":
+            // prettier-ignore
+            instructionSet = [
+                { inputSlot:                                 null, outputSlot: { start:   0, end:  32, length: 32 }, operation: GenericOperation.PrivateKey },
+                { inputSlot: { start:   0, end:  32, length: 32 }, outputSlot: { start:  32, end:  65, length: 33 }, operation: GenericOperation.PublicKey },
+                { inputSlot: { start:  32, end:  65, length: 33 }, outputSlot: { start:  65, end:  97, length: 32 }, operation: GenericOperation.Sha256 },
+                { inputSlot:                                 null, outputSlot: { start:  97, end:  99, length:  2 }, operation: AddressOperation.BtcP2shPrefix },
+                { inputSlot: { start:  65, end:  97, length: 32 }, outputSlot: { start:  99, end: 119, length: 20 }, operation: GenericOperation.Ripemd160 },
+                { inputSlot: { start:  97, end: 119, length: 22 }, outputSlot: { start: 119, end: 151, length: 32 }, operation: GenericOperation.Sha256 },
+                { inputSlot: { start: 119, end: 151, length: 32 }, outputSlot: { start: 151, end: 171, length: 20 }, operation: GenericOperation.Ripemd160 },
+            ]
+            break
+        case "MEMORY_SLOT::BTC65::P2SH":
+            // prettier-ignore
+            instructionSet = [
+                { inputSlot:                                 null, outputSlot: { start:   0, end:  32, length: 32 }, operation: GenericOperation.PrivateKey },
+                { inputSlot: { start:   0, end:  32, length: 32 }, outputSlot: { start:  32, end:  97, length: 65 }, operation: GenericOperation.PublicKey },
+                { inputSlot: { start:  32, end:  97, length: 65 }, outputSlot: { start:  97, end: 129, length: 32 }, operation: GenericOperation.Sha256 },
+                { inputSlot:                                 null, outputSlot: { start: 129, end: 131, length:  2 }, operation: AddressOperation.BtcP2shPrefix },
+                { inputSlot: { start:  97, end: 129, length: 32 }, outputSlot: { start: 131, end: 151, length: 20 }, operation: GenericOperation.Ripemd160 },
+                { inputSlot: { start: 129, end: 151, length: 22 }, outputSlot: { start: 151, end: 183, length: 32 }, operation: GenericOperation.Sha256 },
+                { inputSlot: { start: 151, end: 183, length: 32 }, outputSlot: { start: 183, end: 203, length: 20 }, operation: GenericOperation.Ripemd160 },
+            ]
+            break
+        case "MEMORY_SLOT::BTC33::P2WSH":
+            // prettier-ignore
+            instructionSet = [
+                    { inputSlot:                                 null, outputSlot: { start:   0, end:  32, length: 32 }, operation: GenericOperation.PrivateKey },
+                    { inputSlot: { start:   0, end:  32, length: 32 }, outputSlot: { start:  32, end:  65, length: 33 }, operation: GenericOperation.PublicKey },
+                    { inputSlot: { start:  32, end:  65, length: 33 }, outputSlot: { start:  65, end:  97, length: 32 }, operation: GenericOperation.Sha256 },
+                ]
+            break
+        case "MEMORY_SLOT::BTC65::P2WSH":
+            // prettier-ignore
+            instructionSet = [
+                    { inputSlot:                                 null, outputSlot: { start:   0, end:  32, length: 32 }, operation: GenericOperation.PrivateKey },
+                    { inputSlot: { start:   0, end:  32, length: 32 }, outputSlot: { start:  32, end:  97, length: 65 }, operation: GenericOperation.PublicKey },
+                    { inputSlot: { start:  32, end:  97, length: 65 }, outputSlot: { start:  97, end: 129, length: 32 }, operation: GenericOperation.Sha256 },
+                ]
             break
         case "MEMORY_SLOT::EVM64":
             // prettier-ignore

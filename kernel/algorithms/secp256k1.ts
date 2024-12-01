@@ -1,4 +1,4 @@
-import { MemorySlotWithCache } from "#kernel/utils/instructions"
+import { MemorySlotWithCacheInstance } from "#kernel/utils/instructions"
 import { KernelErrors } from "#lib/utils/errors"
 import { cyGeneral } from "@cybearl/cypack"
 
@@ -41,44 +41,47 @@ export default class Secp256k1Algorithm {
      */
     generate(
         mode: PublicKeyGenerationMode,
-        inputSlotWithCache: MemorySlotWithCache,
-        outputSlotWithCache: MemorySlotWithCache
+        inputSlotWithCacheInstance: MemorySlotWithCacheInstance,
+        outputSlotWithCacheInstance: MemorySlotWithCacheInstance
     ): void {
         if (mode === "compressed") {
-            if (outputSlotWithCache.cache.length < 33) {
+            if (outputSlotWithCacheInstance.cache.length < 33) {
                 throw new Error(
                     cyGeneral.errors.stringifyError(KernelErrors.INVALID_CACHE_LENGTH, undefined, {
-                        length: outputSlotWithCache.cache.length,
+                        length: outputSlotWithCacheInstance.cache.length,
                         expected: 33,
                     })
                 )
             }
         } else {
-            if (outputSlotWithCache.cache.length < 65) {
+            if (outputSlotWithCacheInstance.cache.length < 65) {
                 throw new Error(
                     cyGeneral.errors.stringifyError(KernelErrors.INVALID_CACHE_LENGTH, undefined, {
-                        length: outputSlotWithCache.cache.length,
+                        length: outputSlotWithCacheInstance.cache.length,
                         expected: 65,
                     })
                 )
             }
         }
 
-        if (inputSlotWithCache.length !== 32) {
+        if (inputSlotWithCacheInstance.length !== 32) {
             throw new Error(
                 cyGeneral.errors.stringifyError(KernelErrors.INVALID_PRIVATE_KEY_LENGTH, undefined, {
-                    length: inputSlotWithCache.length,
+                    length: inputSlotWithCacheInstance.length,
                     expected: 32,
                 })
             )
         }
 
-        outputSlotWithCache.cache.writeUint8Array(
+        outputSlotWithCacheInstance.cache.writeUint8Array(
             secp256k1.getPublicKey(
-                inputSlotWithCache.cache.copy(inputSlotWithCache?.start, inputSlotWithCache?.length),
+                inputSlotWithCacheInstance.cache.copy(
+                    inputSlotWithCacheInstance?.start,
+                    inputSlotWithCacheInstance?.length
+                ),
                 mode === "compressed"
             ),
-            outputSlotWithCache?.start
+            outputSlotWithCacheInstance?.start
         )
     }
 }
