@@ -1,23 +1,15 @@
-import PrivateKeyGenerator from "#kernel/generators/private_key_generator"
+import AddressGenerator from "#kernel/generators/address_generator"
 
-const privateKeyGenerator = new PrivateKeyGenerator({ privateKeySize: 4, upperBound: 65535n })
+const addressGenerator = new AddressGenerator("MEMORY_SLOT::BTC65", {
+    enableDebugging: true,
+})
 
-const listOfTestBounds: [bigint, bigint][] = [[500n, 501n]]
+addressGenerator.executeInstructions()
 
-for (const testBounds of listOfTestBounds) {
-    privateKeyGenerator.setOptions({
-        privateKeySize: 2,
-        lowerBound: testBounds[0],
-        upperBound: testBounds[1],
-    })
+console.log("")
 
-    for (let i = 0; i < 1; i++) {
-        const privateKeySlot = privateKeyGenerator.generate()
-        const privateKey = privateKeyGenerator.privateKey.readBigInt(privateKeySlot.start, privateKeySlot.length, "LE")
-        console.log("privateKey", privateKey.toString())
+addressGenerator.setParams("MEMORY_SLOT::BTC33", {
+    enableDebugging: true,
+})
 
-        if (privateKey < testBounds[0] || privateKey > testBounds[1]) {
-            throw new Error("Private key out of bounds")
-        }
-    }
-}
+addressGenerator.executeInstructions()

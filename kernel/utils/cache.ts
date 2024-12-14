@@ -226,7 +226,7 @@ export default class Cache extends Uint8Array {
         if (value.startsWith("0x")) value = value.slice(2)
 
         const cache = new Cache(Math.ceil(value.length / 2))
-        cache.writeHexString(value, 0, value.length)
+        cache.writeHexString(value, 0, Math.ceil(value.length / 2))
         return cache
     }
 
@@ -315,15 +315,15 @@ export default class Cache extends Uint8Array {
      * the order will be the same as the string.
      * @param value The hexadecimal string to write to the cache.
      * @param offset The offset to start writing at (optional, defaults to 0).
-     * @param length The length to write (optional, defaults to the value length).
+     * @param length The length to write **(in characters => 2 per byte)** (optional, defaults to the value length).
      * @returns The cache instance.
      */
     writeHexString = (value: string, offset = 0, length = value.length): this => {
-        if (value.length === 0) {
-            throw new RangeError(`[Cache - writeHexString] Invalid hexadecimal string length: '${value.length}'.`)
+        if (length === 0) {
+            throw new RangeError(`[Cache - writeHexString] Invalid hexadecimal string length: '${length}'.`)
         }
-        if (value.length % 2 !== 0) {
-            throw new RangeError(`[Cache - writeHexString] Invalid hexadecimal string length: '${value.length}'.`)
+        if (length % 2 !== 0) {
+            throw new RangeError(`[Cache - writeHexString] Invalid hexadecimal string length: '${length}'.`)
         }
 
         // Remove any `0x` prefix before writing
@@ -354,8 +354,8 @@ export default class Cache extends Uint8Array {
      * @returns The cache instance.
      */
     writeUtf8String = (value: string, offset = 0, length = value.length): this => {
-        if (value.length === 0) {
-            throw new RangeError(`[Cache - writeUtf8String] Invalid UTF-8 string length: '${value.length}'.`)
+        if (length === 0) {
+            throw new RangeError(`[Cache - writeUtf8String] Invalid UTF-8 string length: '${length}'.`)
         }
 
         this.check(offset, length)

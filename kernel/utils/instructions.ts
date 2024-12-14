@@ -78,6 +78,7 @@ export type InstructionSetName =
  * @sources
  * - [SecretScan.org](https://secretscan.org/)
  * - [Hiro.so](https://www.hiro.so/blog/understanding-the-differences-between-bitcoin-address-formats-when-developing-your-app)
+ * - [RFC TOOLS](https://www.rfctools.com/bitcoin-address-test-tool/)
  */
 export function getInstructionSet(instructionSetName: InstructionSetName): InstructionWithFlags[] {
     let instructionSet: Instruction[]
@@ -168,7 +169,7 @@ export function getInstructionSet(instructionSetName: InstructionSetName): Instr
 }
 
 /**
- * Gets the needed cache length for a given instruction set,
+ * Get the needed cache length for a given instruction set,
  * by finding the maximum end of the input and output slots.
  */
 export function getInstructionSetCacheLength(instructionSet: Instruction[]): number {
@@ -176,4 +177,22 @@ export function getInstructionSetCacheLength(instructionSet: Instruction[]): num
         ...instructionSet.map((instruction) => instruction.inputSlot?.end || 0),
         ...instructionSet.map((instruction) => instruction.outputSlot?.end || 0)
     )
+}
+
+/**
+ * Get the private key output memory slot from a given instruction set.
+ * @param instructionSet The instruction set to get the private key output memory slot from.
+ * @returns The private key output memory slot.
+ */
+export function getPrivateKeyOutputMemorySlot(instructionSet: Instruction[]): MemorySlot {
+    return instructionSet.find((instruction) => instruction.operation === GenericOperation.PrivateKey)!.outputSlot!
+}
+
+/**
+ * Get the longest instruction operation name length from a given instruction set, for logging padding purposes.
+ * @param instructionSet The instruction set to get the longest instruction name length from.
+ * @returns The longest instruction name length.
+ */
+export function getLongestInstructionOperationNameLength(instructionSet: Instruction[]): number {
+    return Math.max(...instructionSet.map((instruction) => instruction.operation.length))
 }

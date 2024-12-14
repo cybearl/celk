@@ -207,6 +207,12 @@ export const KernelErrors = {
         message: "The private key range is invalid. it must be >= 0 & < Infinity.",
         data: null,
     },
+    INVALID_INJECTED_PRIVATE_KEY: {
+        status: 400,
+        name: "INVALID_INJECTED_PRIVATE_KEY",
+        message: "The injected private key is either null or invalid.",
+        data: null,
+    },
     //=====//
     // 404 //
     //=====//

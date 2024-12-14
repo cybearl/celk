@@ -1,13 +1,16 @@
 import { test } from "@japa/runner"
 import PrivateKeyGenerator from "#kernel/generators/private_key_generator"
 import externalLogger from "#lib/utils/external_logger"
+import Cache from "#kernel/utils/cache"
 
 const sep = "    "
 test.group("private_key_generator", (group) => {
+    let cache: Cache
     let privateKeyGenerator: PrivateKeyGenerator
 
     group.each.setup(() => {
-        privateKeyGenerator = new PrivateKeyGenerator()
+        cache = new Cache(32)
+        privateKeyGenerator = new PrivateKeyGenerator({ cache })
     })
 
     test("It should generate a private key and return the memory slot pointing to it", ({ expect }) => {

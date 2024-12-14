@@ -1,4 +1,4 @@
-name: adonis-boilerplate
+name: celk
 
 services:
     redis:
