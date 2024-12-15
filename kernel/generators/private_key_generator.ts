@@ -88,91 +88,109 @@ export default class PrivateKeyGenerator {
      * Creates a new `PrivateKeyGenerator` instance.
      * @param outputSlotWithCacheInstance The cache instance to write the private key to, and its dedicated memory slot (optional, defaults to 0 => data length).
      * @param options The private key generator options:
-     * - `injectedHexPrivateKey` The hexadecimal representation of the private key to inject (optional, used for testing).
-     * - `lowerBound` The lower bound of the private key to generate rounded to
+     * - `injectedHexPrivateKey`: The hexadecimal representation of the private key to inject (optional, used for testing).
+     * - `lowerBound`: The lower bound of the private key to generate rounded to
      *   the nearest byte (optional, defaults to 0).
-     * - `upperBound` The upper bound of the private key to generate rounded to
+     * - `upperBound`: The upper bound of the private key to generate rounded to
      *   the nearest byte (optional, defaults to 2^256 - 1).
-     * - `endianness` The endianness to use (optional, defaults to the platform's endianness).
-     * - `maxRejections` The maximum number of bounds rejections before throwing an error (optional, defaults to 1,000,000,
+     * - `endianness`: The endianness to use (optional, defaults to the platform's endianness).
+     * - `maxRejections`: The maximum number of bounds rejections before throwing an error (optional, defaults to 1,000,000,
      *   set to -1 to disable the limit).
-     * - `throwOnMaxRejections` A flag indicating if an error should be thrown when the maximum number of rejections is
+     * - `throwOnMaxRejections`: A flag indicating if an error should be thrown when the maximum number of rejections is
      *   reached, if not, it will just return the private key outside the bounds (optional, defaults to true).
      */
     constructor(outputSlotWithCacheInstance: MemorySlotWithCacheInstance, options?: PrivateKeyGeneratorOptions) {
-        this.setParams(outputSlotWithCacheInstance, options)
+        this.setCacheInstanceWithSlot(outputSlotWithCacheInstance)
+        this.setOptions(options)
     }
 
     /**
-     * Set the options for the private key generator.
-     * @param outputSlotWithCacheInstance The cache instance to write the private key to, and its dedicated memory slot (optional, defaults to 0 => data length).
-     * @param options The private key generator options:
-     * - `injectedHexPrivateKey` The hexadecimal representation of the private key to inject (optional, used for testing).
-     * - `lowerBound` The lower bound of the private key to generate rounded to
-     *   the nearest byte (optional, defaults to 0).
-     * - `upperBound` The upper bound of the private key to generate rounded to
-     *   the nearest byte (optional, defaults to 2^256 - 1).
-     * - `endianness` The endianness to use (optional, defaults to the platform's endianness).
-     * - `maxRejections` The maximum number of bounds rejections before throwing an error (optional, defaults to 1,000,000,
-     *   set to -1 to disable the limit).
-     * - `throwOnMaxRejections` A flag indicating if an error should be thrown when the maximum number of rejections is
-     *   reached, if not, it will just return the private key outside the bounds (optional, defaults to true).
+     * Set the output slot with cache instance to write the private key to.
+     * @param outputSlotWithCacheInstance The cache instance to write the private key to, and its dedicated memory slot.
      */
-    setParams(
-        outputSlotWithCacheInstance: MemorySlotWithCacheInstance,
-        options: PrivateKeyGeneratorOptions = defaultPrivateKeyGeneratorOptions
-    ): void {
+    setCacheInstanceWithSlot(outputSlotWithCacheInstance: MemorySlotWithCacheInstance): void {
         if (outputSlotWithCacheInstance.cache.length <= 0) {
             throw new Error(
                 cyGeneral.errors.stringifyError(
                     KernelErrors.INVALID_PRIVATE_KEY_LENGTH,
-                    "The private key size must be greater than 0."
+                    "The private key size must be greater than 0.",
+                    {
+                        length: outputSlotWithCacheInstance.cache.length,
+                    }
                 )
             )
         }
 
         this._outputSlotWithCacheInstance = outputSlotWithCacheInstance
+
+        // Initially clear the entire cache's memory slot
+        this._outputSlotWithCacheInstance.cache.clear(
+            this._outputSlotWithCacheInstance.start,
+            this._outputSlotWithCacheInstance.length
+        )
+    }
+
+    /**
+     * Set the options for the private key generator.
+     * @param options The private key generator options:
+     * - `injectedHexPrivateKey`: The hexadecimal representation of the private key to inject (optional, used for testing).
+     * - `lowerBound`: The lower bound of the private key to generate rounded to
+     *   the nearest byte (optional, defaults to 0).
+     * - `upperBound`: The upper bound of the private key to generate rounded to
+     *   the nearest byte (optional, defaults to 2^256 - 1).
+     * - `endianness`: The endianness to use (optional, defaults to the platform's endianness).
+     * - `maxRejections`: The maximum number of bounds rejections before throwing an error (optional, defaults to 1,000,000,
+     *   set to -1 to disable the limit).
+     * - `throwOnMaxRejections`: A flag indicating if an error should be thrown when the maximum number of rejections is
+     *   reached, if not, it will just return the private key outside the bounds (optional, defaults to true).
+     */
+    setOptions(options: PrivateKeyGeneratorOptions = defaultPrivateKeyGeneratorOptions): void {
         this._injectedHexPrivateKey = options.injectedHexPrivateKey
         this._maxValue = 2n ** BigInt(this._outputSlotWithCacheInstance.cache.length * 8) - 1n
         this._maxRejections = options.maxRejections ?? defaultPrivateKeyGeneratorOptions.maxRejections
         this._throwOnMaxRejections =
             options.throwOnMaxRejections ?? defaultPrivateKeyGeneratorOptions.throwOnMaxRejections
 
-        const lowerBound = options.lowerBound ?? 0n
-        const upperBound = options.upperBound ?? this._maxValue
+        const lowerBound = options.lowerBound ?? defaultPrivateKeyGeneratorOptions.lowerBound
+        const upperBound = options.upperBound
+            ? options.upperBound > this._maxValue
+                ? this._maxValue
+                : options.upperBound
+            : this._maxValue
 
         if (lowerBound < 0n) {
             throw new Error(
                 cyGeneral.errors.stringifyError(
                     KernelErrors.INVALID_PRIVATE_KEY_RANGE,
-                    "The lower bound must be greater than or equal to 0."
+                    "The lower bound must be greater than or equal to 0.",
+                    {
+                        lowerBound: lowerBound,
+                    }
                 )
             )
         }
 
-        if (upperBound < 0n) {
+        if (upperBound < 1n) {
             throw new Error(
                 cyGeneral.errors.stringifyError(
                     KernelErrors.INVALID_PRIVATE_KEY_RANGE,
-                    "The upper bound must be greater than or equal to 0."
+                    "The upper bound must be greater than or equal to 1.",
+                    {
+                        upperBound: upperBound,
+                    }
                 )
             )
         }
 
-        if (upperBound === lowerBound) {
+        if (upperBound <= lowerBound) {
             throw new Error(
                 cyGeneral.errors.stringifyError(
                     KernelErrors.INVALID_PRIVATE_KEY_RANGE,
-                    "The upper and lower bounds must not be equal."
-                )
-            )
-        }
-
-        if (upperBound < lowerBound) {
-            throw new Error(
-                cyGeneral.errors.stringifyError(
-                    KernelErrors.INVALID_PRIVATE_KEY_RANGE,
-                    "The upper bound must be greater than or equal to the lower bound."
+                    "The upper bound must be greater than the lower bound.",
+                    {
+                        lowerBound: lowerBound,
+                        upperBound: upperBound,
+                    }
                 )
             )
         }
@@ -181,7 +199,11 @@ export default class PrivateKeyGenerator {
             throw new Error(
                 cyGeneral.errors.stringifyError(
                     KernelErrors.INVALID_PRIVATE_KEY_RANGE,
-                    "The upper bound must be less than or equal to the maximum value of the private key based on its size."
+                    "The upper bound must be less than or equal to the maximum value of the private key based on its size.",
+                    {
+                        upperBound: upperBound,
+                        maxValue: this._maxValue,
+                    }
                 )
             )
         }
@@ -202,8 +224,26 @@ export default class PrivateKeyGenerator {
             options.endianness ?? defaultPrivateKeyGeneratorOptions.endianness
         )
 
+        // Initially clear the entire cache's memory slot
+        this._outputSlotWithCacheInstance.cache.clear(
+            this._outputSlotWithCacheInstance.start,
+            this._outputSlotWithCacheInstance.length
+        )
+
         if (!options.injectedHexPrivateKey) this.generate()
         else this.useInjectedHexPrivateKey()
+    }
+
+    /**
+     * Returns information about the private key generator:
+     * * `minByteSize`: The minimum size of the private key in bytes.
+     * - `maxByteSize`: The maximum size of the private key in bytes.
+     */
+    get info(): { minByteSize: number; maxByteSize: number } {
+        return {
+            minByteSize: this._lowerBound.bytesLength,
+            maxByteSize: this._upperBound.bytesLength,
+        }
     }
 
     /**

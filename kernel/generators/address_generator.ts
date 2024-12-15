@@ -100,12 +100,12 @@ export default class AddressGenerator {
      * Set the options for the address generator.
      * @param instructionSetName The name of the instruction set to use.
      * @param options The address generator options:
-     * - `privateKeyGeneratorOptions` The private key generator options (bounds, rejection limits, etc.).
-     * - `base58NetworkByte` The base58 network byte (only for base58 addresses, defaults to 0x00).
-     * - `bech32Hrp` The bech32 human-readable part (only for bech32 addresses, defaults to "bc").
-     * - `bech32WitnessVersion` The bech32 witness version (only for bech32 addresses, from 0 to 16, defaults to 0).
-     * - `randomBytesPoolSize` The random bytes pool size (defaults to 1,024).
-     * - `enableDebugging` Whether to enable debugging (defaults to `false`).
+     * - `privateKeyGeneratorOptions`: The private key generator options (bounds, rejection limits, etc.).
+     * - `base58NetworkByte`: The base58 network byte (only for base58 addresses, defaults to 0x00).
+     * - `bech32Hrp`: The bech32 human-readable part (only for bech32 addresses, defaults to "bc").
+     * - `bech32WitnessVersion`: The bech32 witness version (only for bech32 addresses, from 0 to 16, defaults to 0).
+     * - `randomBytesPoolSize`: The random bytes pool size (defaults to 1,024).
+     * - `enableDebugging`: Whether to enable debugging (defaults to `false`).
      */
     setParams(instructionSetName: InstructionSetName, options?: AddressGeneratorOptions): void {
         // Instructions

@@ -14,12 +14,29 @@ test.group("private_key_generator", (group) => {
     })
 
     test("It should generate a private key and return the memory slot pointing to it", ({ expect }) => {
-        const privateKeySlot = privateKeyGenerator.generate()
-        expect(privateKeySlot).toBeDefined()
+        privateKeyGenerator.generate()
+
+        const privateKey = cache.readBigInt(0, 32, "LE")
+        expect(privateKey).toBeGreaterThanOrEqual(0n)
     })
 
-    test("It should throw an error if the private key size is less than 1", ({ expect }) => {
-        expect(() => new PrivateKeyGenerator({ privateKeySize: 0 })).toThrow()
+    test("It should throw an error if the lower bound is less than 0", ({ expect }) => {
+        expect(() => privateKeyGenerator.setOptions({ lowerBound: -1n })).toThrow()
+    })
+
+    test("It should throw an error if the upper bound is less than 1", ({ expect }) => {
+        expect(() => privateKeyGenerator.setOptions({ upperBound: 0n })).toThrow()
+    })
+
+    test("It should throw an error if the upper bound is equal or less than the lower bound", ({ expect }) => {
+        expect(() => privateKeyGenerator.setOptions({ lowerBound: 1n, upperBound: 1n })).toThrow()
+        expect(() => privateKeyGenerator.setOptions({ lowerBound: 1n, upperBound: 0n })).toThrow()
+    })
+
+    test("It should throw an error if the upper bound is greater than the maximum possible value", ({ expect }) => {
+        const testCache = new Cache(4)
+        privateKeyGenerator.setCacheInstanceWithSlot({ cache: testCache })
+        expect(() => privateKeyGenerator.setOptions({ upperBound: 4_294_967_296n })).toThrow()
     })
 
     test("It should never generate a private key outside the bounds if the space is wide enough", ({ expect }) => {
@@ -31,20 +48,15 @@ test.group("private_key_generator", (group) => {
 
         for (const testBounds of listOfTestBounds) {
             privateKeyGenerator.setOptions({
-                privateKeySize: 32,
                 lowerBound: testBounds[0],
                 upperBound: testBounds[1],
                 throwOnMaxRejections: false,
             })
 
             for (let i = 0; i < 8192; i++) {
-                const privateKeySlot = privateKeyGenerator.generate()
-                const privateKey = privateKeyGenerator.privateKey.readBigInt(
-                    privateKeySlot.start,
-                    privateKeySlot.length,
-                    "LE"
-                )
+                privateKeyGenerator.generate()
 
+                const privateKey = cache.readBigInt(0, 32, "LE")
                 expect(privateKey).toBeGreaterThanOrEqual(testBounds[0])
                 expect(privateKey).toBeLessThanOrEqual(testBounds[1])
             }
@@ -58,26 +70,21 @@ test.group("private_key_generator", (group) => {
         const distributionSamples = 100_000
 
         privateKeyGenerator.setOptions({
-            privateKeySize: 1,
             lowerBound: BigInt(lowerBound),
             upperBound: BigInt(upperBound),
             maxRejections: -1,
         })
 
         externalLogger.info(`${sep}Running randomness report for the private key generator:`)
-        externalLogger.info(
-            `${sep}- privateKey: ${privateKeyGenerator.privateKey.length.toLocaleString("en-US")} bytes`
-        )
+        externalLogger.info(`${sep}- privateKey: ${cache.length.toLocaleString("en-US")} bytes`)
         externalLogger.info(`${sep}- lowerBound: ${lowerBound.toLocaleString("en-US")}`)
         externalLogger.info(`${sep}- upperBound: ${upperBound.toLocaleString("en-US")}`)
 
         const frequencies = new Array(upperBound + 1).fill(0)
 
         for (let i = 0; i < distributionSamples; i++) {
-            const privateKeySlot = privateKeyGenerator.generate()
-            const privateKey = Number(
-                privateKeyGenerator.privateKey.readBigInt(privateKeySlot.start, privateKeySlot.length)
-            )
+            privateKeyGenerator.generate()
+            const privateKey = Number(cache.readBigInt(0, 32))
 
             frequencies[privateKey]++
         }
