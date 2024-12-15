@@ -9,7 +9,6 @@ import os from "node:os"
  * The type definition of the options for the `PrivateKeyGenerator` class.
  */
 export type PrivateKeyGeneratorOptions = {
-    injectedHexPrivateKey?: string
     lowerBound?: bigint
     upperBound?: bigint
     endianness?: "BE" | "LE"
@@ -20,7 +19,7 @@ export type PrivateKeyGeneratorOptions = {
 /**
  * The default options for the `PrivateKeyGenerator` class.
  */
-export const defaultPrivateKeyGeneratorOptions: Required<Omit<PrivateKeyGeneratorOptions, "injectedHexPrivateKey">> = {
+export const defaultPrivateKeyGeneratorOptions: Required<PrivateKeyGeneratorOptions> = {
     lowerBound: 0n,
     upperBound: 2n ** 256n - 1n,
     endianness: os.endianness(),
@@ -48,11 +47,6 @@ export default class PrivateKeyGenerator {
      * The output slot with cache instance passed to the generator.
      */
     private _outputSlotWithCacheInstance!: MemorySlotWithCacheInstance
-
-    /**
-     * The hexadecimal representation of the private key to inject (optional, used for testing).
-     */
-    private _injectedHexPrivateKey?: string
 
     /**
      * The highest possible value of the private key based on its size.
@@ -88,7 +82,6 @@ export default class PrivateKeyGenerator {
      * Creates a new `PrivateKeyGenerator` instance.
      * @param outputSlotWithCacheInstance The cache instance to write the private key to, and its dedicated memory slot (optional, defaults to 0 => data length).
      * @param options The private key generator options:
-     * - `injectedHexPrivateKey`: The hexadecimal representation of the private key to inject (optional, used for testing).
      * - `lowerBound`: The lower bound of the private key to generate rounded to
      *   the nearest byte (optional, defaults to 0).
      * - `upperBound`: The upper bound of the private key to generate rounded to
@@ -102,6 +95,7 @@ export default class PrivateKeyGenerator {
     constructor(outputSlotWithCacheInstance: MemorySlotWithCacheInstance, options?: PrivateKeyGeneratorOptions) {
         this.setCacheInstanceWithSlot(outputSlotWithCacheInstance)
         this.setOptions(options)
+        this.generate()
     }
 
     /**
@@ -133,7 +127,6 @@ export default class PrivateKeyGenerator {
     /**
      * Set the options for the private key generator.
      * @param options The private key generator options:
-     * - `injectedHexPrivateKey`: The hexadecimal representation of the private key to inject (optional, used for testing).
      * - `lowerBound`: The lower bound of the private key to generate rounded to
      *   the nearest byte (optional, defaults to 0).
      * - `upperBound`: The upper bound of the private key to generate rounded to
@@ -145,7 +138,10 @@ export default class PrivateKeyGenerator {
      *   reached, if not, it will just return the private key outside the bounds (optional, defaults to true).
      */
     setOptions(options: PrivateKeyGeneratorOptions = defaultPrivateKeyGeneratorOptions): void {
-        this._injectedHexPrivateKey = options.injectedHexPrivateKey
+        if (typeof options !== "object" || Object.keys(options).length === 0) {
+            options = defaultPrivateKeyGeneratorOptions
+        }
+
         this._maxValue = 2n ** BigInt(this._outputSlotWithCacheInstance.cache.length * 8) - 1n
         this._maxRejections = options.maxRejections ?? defaultPrivateKeyGeneratorOptions.maxRejections
         this._throwOnMaxRejections =
@@ -229,17 +225,14 @@ export default class PrivateKeyGenerator {
             this._outputSlotWithCacheInstance.start,
             this._outputSlotWithCacheInstance.length
         )
-
-        if (!options.injectedHexPrivateKey) this.generate()
-        else this.useInjectedHexPrivateKey()
     }
 
     /**
      * Returns information about the private key generator:
-     * * `minByteSize`: The minimum size of the private key in bytes.
+     * - `minByteSize`: The minimum size of the private key in bytes.
      * - `maxByteSize`: The maximum size of the private key in bytes.
      */
-    get info(): { minByteSize: number; maxByteSize: number } {
+    get info() {
         return {
             minByteSize: this._lowerBound.bytesLength,
             maxByteSize: this._upperBound.bytesLength,
@@ -282,27 +275,6 @@ export default class PrivateKeyGenerator {
         }
 
         return isWithinBounds
-    }
-
-    /**
-     * Injects a private key into the cache instead of generating a new one, useful for testing,
-     * uses the `injectedHexPrivateKey` option.
-     */
-    useInjectedHexPrivateKey(): void {
-        if (!this._injectedHexPrivateKey) {
-            throw new Error(
-                cyGeneral.errors.stringifyError(
-                    KernelErrors.INVALID_INJECTED_PRIVATE_KEY,
-                    "The injected private key is missing."
-                )
-            )
-        }
-
-        this._outputSlotWithCacheInstance.cache.writeHexString(
-            this._injectedHexPrivateKey,
-            this._outputSlotWithCacheInstance.start,
-            (this._outputSlotWithCacheInstance.length ?? 0) * 2 // In characters, 2 per byte
-        )
     }
 
     /**

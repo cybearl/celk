@@ -18,6 +18,8 @@ import {
 } from "#kernel/utils/instructions"
 import externalLogger from "#lib/utils/external_logger"
 import PrivateKeyGenerator, { PrivateKeyGeneratorOptions } from "#kernel/generators/private_key_generator"
+import { cyGeneral } from "@cybearl/cypack"
+import { KernelErrors } from "#lib/utils/errors"
 
 /**
  * The type definition of the public key generation mode.
@@ -28,6 +30,7 @@ export type PublicKeyGenerationMode = "compressed" | "uncompressed" | "evm"
  * The type definition of the address generator options.
  */
 export type AddressGeneratorOptions = {
+    injectedHexPrivateKey?: string
     privateKeyGeneratorOptions?: PrivateKeyGeneratorOptions
     base58NetworkByte?: number
     bech32Hrp?: string
@@ -38,7 +41,7 @@ export type AddressGeneratorOptions = {
 /**
  * The default address generator options.
  */
-export const defaultAddressGeneratorOptions: Required<AddressGeneratorOptions> = {
+export const defaultAddressGeneratorOptions: Required<Omit<AddressGeneratorOptions, "injectedHexPrivateKey">> = {
     privateKeyGeneratorOptions: {},
     base58NetworkByte: 0x00,
     bech32Hrp: "bc",
@@ -64,6 +67,7 @@ export default class AddressGenerator {
     private _isMemorySlotInstructionSet!: boolean
     private _publicKeyGenerationMode!: "compressed" | "uncompressed" | "evm"
     private _longestInstructionOperationNameLength!: number
+    private _injectedPrivateKey?: Cache
 
     // Memory
     cache!: Cache
@@ -85,21 +89,8 @@ export default class AddressGenerator {
      * Creates a new `AddressGenerator` instance.
      * @param instructionSetName The name of the instruction set to use.
      * @param options The address generator options:
-     * - `privateKeyGeneratorOptions` The private key generator options (bounds, rejection limits, etc.).
-     * - `base58NetworkByte` The base58 network byte (only for base58 addresses, defaults to 0x00).
-     * - `bech32Hrp` The bech32 human-readable part (only for bech32 addresses, defaults to "bc").
-     * - `bech32WitnessVersion` The bech32 witness version (only for bech32 addresses, from 0 to 16, defaults to 0).
-     * - `randomBytesPoolSize` The random bytes pool size (defaults to 1,024).
-     * - `enableDebugging` Whether to enable debugging (defaults to `false`).
-     */
-    constructor(instructionSetName: InstructionSetName, options?: AddressGeneratorOptions) {
-        this.setParams(instructionSetName, options)
-    }
-
-    /**
-     * Set the options for the address generator.
-     * @param instructionSetName The name of the instruction set to use.
-     * @param options The address generator options:
+     * - `injectedHexPrivateKey`: The hexadecimal representation of the private key to inject (optional, used for testing,
+     *   note that it prevents the private key generator from executing).
      * - `privateKeyGeneratorOptions`: The private key generator options (bounds, rejection limits, etc.).
      * - `base58NetworkByte`: The base58 network byte (only for base58 addresses, defaults to 0x00).
      * - `bech32Hrp`: The bech32 human-readable part (only for bech32 addresses, defaults to "bc").
@@ -107,12 +98,18 @@ export default class AddressGenerator {
      * - `randomBytesPoolSize`: The random bytes pool size (defaults to 1,024).
      * - `enableDebugging`: Whether to enable debugging (defaults to `false`).
      */
-    setParams(instructionSetName: InstructionSetName, options?: AddressGeneratorOptions): void {
+    constructor(instructionSetName: InstructionSetName, options?: AddressGeneratorOptions) {
+        this.setInstructionSet(instructionSetName)
+        this.setOptions(options)
+    }
+
+    /**
+     * Set the options for the address generator.
+     * @param instructionSetName The name of the instruction set to use.
+     */
+    setInstructionSet(instructionSetName: InstructionSetName): void {
         // Instructions
         this._instructionSet = getInstructionSet(instructionSetName)
-
-        // Parameters
-        this._options = { ...defaultAddressGeneratorOptions, ...options }
 
         // Pre-computed flags
         this._isMemorySlotInstructionSet = instructionSetName.startsWith("MEMORY_SLOT::")
@@ -128,10 +125,7 @@ export default class AddressGenerator {
 
         // Generators
         const privateKeyMemorySlot = getPrivateKeyOutputMemorySlot(this._instructionSet)
-        this._privateKeyGenerator = new PrivateKeyGenerator(
-            { ...privateKeyMemorySlot, cache: this.cache },
-            this._options.privateKeyGeneratorOptions
-        )
+        this._privateKeyGenerator = new PrivateKeyGenerator({ ...privateKeyMemorySlot, cache: this.cache })
 
         // Algorithms
         this._secp256k1Algorithm = new Secp256k1Algorithm()
@@ -142,6 +136,34 @@ export default class AddressGenerator {
         // Encoders
         this._base58Encoder = new Base58Encoder()
         this._bech32Encoder = new Bech32Encoder()
+    }
+
+    /**
+     * Set the options for the address generator.
+     * @param options The address generator options:
+     * - `injectedHexPrivateKey`: The hexadecimal representation of the private key to inject (optional, used for testing,
+     *   note that it prevents the private key generator from executing).
+     * - `privateKeyGeneratorOptions`: The private key generator options (bounds, rejection limits, etc.).
+     * - `base58NetworkByte`: The base58 network byte (only for base58 addresses, defaults to 0x00).
+     * - `bech32Hrp`: The bech32 human-readable part (only for bech32 addresses, defaults to "bc").
+     * - `bech32WitnessVersion`: The bech32 witness version (only for bech32 addresses, from 0 to 16, defaults to 0).
+     * - `randomBytesPoolSize`: The random bytes pool size (defaults to 1,024).
+     * - `enableDebugging`: Whether to enable debugging (defaults to `false`).
+     */
+    setOptions(options: AddressGeneratorOptions = defaultAddressGeneratorOptions): void {
+        if (options.enableDebugging) {
+            externalLogger.info(`Initialized Address Generator with debug mode enabled:`)
+            externalLogger.info(`Instruction Set: [${this._instructionSet.map((i) => i.operation).join(", ")}]`)
+        }
+
+        this._options = { ...this._options, ...options }
+        this._privateKeyGenerator.setOptions(this._options.privateKeyGeneratorOptions)
+
+        // Converts the injected private key to a cache instance to improve performances even
+        // via injection
+        this._injectedPrivateKey = options.injectedHexPrivateKey
+            ? Cache.fromHexString(options.injectedHexPrivateKey)
+            : undefined
     }
 
     /**
@@ -165,8 +187,8 @@ export default class AddressGenerator {
             }
         }
 
-        externalLogger.info(
-            `Instruction: ${instruction.operation.padStart(this._longestInstructionOperationNameLength, " ")} | Result: ${toLog}`
+        externalLogger.debug(
+            `>> Instruction (${instruction.isGenericOperation ? "generic" : "address"}): "${instruction.operation.padStart(this._longestInstructionOperationNameLength, " ")}" | Result: ${toLog} | Bytes: ${instruction.outputSlot?.length}`
         )
     }
 
@@ -184,7 +206,8 @@ export default class AddressGenerator {
     ): void {
         switch (operation) {
             case GenericOperation.PrivateKey:
-                this._privateKeyGenerator.generate()
+                if (!this._injectedPrivateKey) this._privateKeyGenerator.generate()
+                else this.cache.writeUint8Array(this._injectedPrivateKey, outputSlot.start, outputSlot.length)
                 break
             case GenericOperation.PublicKey:
                 // EVM is not supported by the current secp256k1 library
@@ -264,11 +287,18 @@ export default class AddressGenerator {
     /**
      * Executes a single instruction from the instruction set and increments the instruction pointer,
      * used for debugging and testing purposes, not recommended for production use as it is slower.
+     * @param customIndex The custom index of the instruction to execute, replaces the instruction pointer.
      */
-    executeInstruction(): MemorySlot | string | null {
-        const instruction = this._instructionSet[this._instructionPointer]
-
-        console.log(instruction, this._instructionPointer)
+    executeInstruction(customIndex?: number): MemorySlot | string | null {
+        const instruction = this._instructionSet[customIndex ?? this._instructionPointer]
+        if (!instruction) {
+            throw new Error(
+                cyGeneral.errors.stringifyError(
+                    KernelErrors.INVALID_INSTRUCTION_INDEX,
+                    "The given instruction index leads to either a non-existent or invalid instruction."
+                )
+            )
+        }
 
         let result: MemorySlot | string | null = null
 
@@ -291,7 +321,11 @@ export default class AddressGenerator {
         }
 
         if (this._options.enableDebugging) this._logInstruction(instruction, result)
-        this._instructionPointer++
+
+        if (!customIndex) {
+            if (instruction.isEnd) this._instructionPointer = 0
+            else this._instructionPointer++
+        }
 
         return result
     }

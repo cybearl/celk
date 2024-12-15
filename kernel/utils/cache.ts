@@ -226,7 +226,7 @@ export default class Cache extends Uint8Array {
         if (value.startsWith("0x")) value = value.slice(2)
 
         const cache = new Cache(Math.ceil(value.length / 2))
-        cache.writeHexString(value, 0, Math.ceil(value.length / 2))
+        cache.writeHexString(value, 0, value.length)
         return cache
     }
 

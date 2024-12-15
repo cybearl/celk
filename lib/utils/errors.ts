@@ -213,6 +213,12 @@ export const KernelErrors = {
         message: "The injected private key is either null or invalid.",
         data: null,
     },
+    INVALID_INSTRUCTION_INDEX: {
+        status: 400,
+        name: "INVALID_INSTRUCTION_INDEX",
+        message: "The instruction index is invalid.",
+        data: null,
+    },
     //=====//
     // 404 //
     //=====//

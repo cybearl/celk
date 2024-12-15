@@ -174,7 +174,6 @@ test.group("cache / static / fromUint32Array", (group) => {
     })
 
     test("It should create a cache with the correct values", ({ expect }) => {
-        console.log(cache.toHexString())
         for (let i = 0; i < cache.length; i++) {
             if (os.endianness() === "LE") {
                 expect(cache.readUint8(i)).toBe(uint32ArrayByteValuesLE[i])
