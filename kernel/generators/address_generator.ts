@@ -33,8 +33,8 @@ export type AddressGeneratorOptions = {
     injectedHexPrivateKey?: string
     privateKeyGeneratorOptions?: PrivateKeyGeneratorOptions
     btcBase58NetworkByte?: number
-    bech32Hrp?: string
-    bech32WitnessVersion?: number
+    btcBech32Hrp?: string
+    btcBech32WitnessVersion?: number
     enableDebugging?: boolean
 }
 
@@ -44,8 +44,8 @@ export type AddressGeneratorOptions = {
 export const defaultAddressGeneratorOptions: Required<Omit<AddressGeneratorOptions, "injectedHexPrivateKey">> = {
     privateKeyGeneratorOptions: {},
     btcBase58NetworkByte: 0x00,
-    bech32Hrp: "bc",
-    bech32WitnessVersion: 0x00,
+    btcBech32Hrp: "bc",
+    btcBech32WitnessVersion: 0x00,
     enableDebugging: false,
 }
 
@@ -92,9 +92,9 @@ export default class AddressGenerator {
      * - `injectedHexPrivateKey`: The hexadecimal representation of the private key to inject (optional, used for testing,
      *   note that it prevents the private key generator from executing).
      * - `privateKeyGeneratorOptions`: The private key generator options (bounds, rejection limits, etc.).
-     * - `base58NetworkByte`: The base58 network byte (only for base58 addresses, defaults to 0x00).
-     * - `bech32Hrp`: The bech32 human-readable part (only for bech32 addresses, defaults to "bc").
-     * - `bech32WitnessVersion`: The bech32 witness version (only for bech32 addresses, from 0 to 16, defaults to 0).
+     * - `btcBase58NetworkByte`: The base58 network byte (only for Bitcoin Base58-based addresses, defaults to 0x00).
+     * - `btcBech32Hrp`: The bech32 human-readable part (only for Bitcoin bech32-based addresses, defaults to "bc").
+     * - `btcBech32WitnessVersion`: The bech32 witness version (only for Bitcoin bech32-based addresses, from 0 to 16, defaults to 0).
      * - `randomBytesPoolSize`: The random bytes pool size (defaults to 1,024).
      * - `enableDebugging`: Whether to enable debugging (defaults to `false`).
      */
@@ -144,7 +144,7 @@ export default class AddressGenerator {
      * - `injectedHexPrivateKey`: The hexadecimal representation of the private key to inject (optional, used for testing,
      *   note that it prevents the private key generator from executing).
      * - `privateKeyGeneratorOptions`: The private key generator options (bounds, rejection limits, etc.).
-     * - `base58NetworkByte`: The base58 network byte (only for base58 addresses, defaults to 0x00).
+     * - `btcBase58NetworkByte`: The base58 network byte (only for Bitcoin Base58-based addresses, defaults to 0x00).
      * - `bech32Hrp`: The bech32 human-readable part (only for bech32 addresses, defaults to "bc").
      * - `bech32WitnessVersion`: The bech32 witness version (only for bech32 addresses, from 0 to 16, defaults to 0).
      * - `randomBytesPoolSize`: The random bytes pool size (defaults to 1,024).
