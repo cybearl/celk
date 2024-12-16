@@ -317,7 +317,7 @@ test.group("cache / write / writeUint16Array", (group) => {
     const uint16ArrayByteValuesBE = [0xff, 0x11, 0x11, 0xff]
 
     test("It should write a Uint16Array to the cache (little endian)", ({ expect }) => {
-        cache.writeUint16Array(uint16Array, 0, 4, "LE")
+        cache.writeUint16Array(uint16Array, 0, 4, 0, "LE")
 
         for (let i = 0; i < cache.length; i++) {
             expect(cache.readUint8(i)).toBe(uint16ArrayByteValuesLE[i])
@@ -325,7 +325,7 @@ test.group("cache / write / writeUint16Array", (group) => {
     })
 
     test("It should write a Uint16Array to the cache (big endian)", ({ expect }) => {
-        cache.writeUint16Array(uint16Array, 0, 4, "BE")
+        cache.writeUint16Array(uint16Array, 0, 4, 0, "BE")
 
         for (let i = 0; i < cache.length; i++) {
             expect(cache.readUint8(i)).toBe(uint16ArrayByteValuesBE[i])
@@ -333,7 +333,7 @@ test.group("cache / write / writeUint16Array", (group) => {
     })
 
     test("It should write a Uint16Array to the cache at the specified byte offset (little endian)", ({ expect }) => {
-        cache.writeUint16Array(new Uint16Array([0x11ff]), 2, 1, "LE")
+        cache.writeUint16Array(new Uint16Array([0x11ff]), 2, 1, 0, "LE")
         expect(cache.readUint8(0)).toBe(0x00)
         expect(cache.readUint8(1)).toBe(0x00)
         expect(cache.readUint8(2)).toBe(0xff)
@@ -341,7 +341,7 @@ test.group("cache / write / writeUint16Array", (group) => {
     })
 
     test("It should write a Uint16Array to the cache at the specified byte offset (big endian)", ({ expect }) => {
-        cache.writeUint16Array(new Uint16Array([0x11ff]), 2, 1, "BE")
+        cache.writeUint16Array(new Uint16Array([0x11ff]), 2, 1, 0, "BE")
         expect(cache.readUint8(0)).toBe(0x00)
         expect(cache.readUint8(1)).toBe(0x00)
         expect(cache.readUint8(2)).toBe(0x11)
@@ -361,7 +361,7 @@ test.group("cache / write / writeUint32Array", (group) => {
     const uint32ArrayByteValuesBE = [0xff, 0x11, 0xff, 0x11, 0x11, 0xff, 0x11, 0xff]
 
     test("It should write a Uint32Array to the cache (little endian)", ({ expect }) => {
-        cache.writeUint32Array(uint32Array, 0, 8, "LE")
+        cache.writeUint32Array(uint32Array, 0, 8, 0, "LE")
 
         for (let i = 0; i < cache.length; i++) {
             expect(cache.readUint8(i)).toBe(uint32ArrayByteValuesLE[i])
@@ -369,7 +369,7 @@ test.group("cache / write / writeUint32Array", (group) => {
     })
 
     test("It should write a Uint32Array to the cache (big endian)", ({ expect }) => {
-        cache.writeUint32Array(uint32Array, 0, 8, "BE")
+        cache.writeUint32Array(uint32Array, 0, 8, 0, "BE")
 
         for (let i = 0; i < cache.length; i++) {
             expect(cache.readUint8(i)).toBe(uint32ArrayByteValuesBE[i])
@@ -377,7 +377,7 @@ test.group("cache / write / writeUint32Array", (group) => {
     })
 
     test("It should write a Uint32Array to the cache at the specified byte offset (little endian)", ({ expect }) => {
-        cache.writeUint32Array(new Uint32Array([0xf1ff1fff]), 4, 1, "LE")
+        cache.writeUint32Array(new Uint32Array([0xf1ff1fff]), 4, 1, 0, "LE")
         expect(cache.readUint8(0)).toBe(0x00)
         expect(cache.readUint8(1)).toBe(0x00)
         expect(cache.readUint8(2)).toBe(0x00)
@@ -389,7 +389,7 @@ test.group("cache / write / writeUint32Array", (group) => {
     })
 
     test("It should write a Uint32Array to the cache at the specified byte offset (big endian)", ({ expect }) => {
-        cache.writeUint32Array(new Uint32Array([0xf1ff1fff]), 4, 1, "BE")
+        cache.writeUint32Array(new Uint32Array([0xf1ff1fff]), 4, 1, 0, "BE")
         expect(cache.readUint8(0)).toBe(0x00)
         expect(cache.readUint8(1)).toBe(0x00)
         expect(cache.readUint8(2)).toBe(0x00)

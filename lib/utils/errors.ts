@@ -219,6 +219,12 @@ export const KernelErrors = {
         message: "The instruction index is invalid.",
         data: null,
     },
+    INVALID_INSTRUCTION_LENGTH: {
+        status: 400,
+        name: "INVALID_INSTRUCTION_LENGTH",
+        message: "The instruction length is invalid.",
+        data: null,
+    },
     //=====//
     // 404 //
     //=====//

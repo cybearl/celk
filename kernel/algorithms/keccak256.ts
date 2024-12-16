@@ -29,7 +29,7 @@ export default class Keccak256Algorithm {
                 .update(
                     inputSlotWithCacheInstance.cache.subarray(
                         inputSlotWithCacheInstance?.start,
-                        inputSlotWithCacheInstance?.end
+                        inputSlotWithCacheInstance?.length
                     )
                 )
                 .digest(),

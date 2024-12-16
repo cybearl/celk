@@ -32,7 +32,7 @@ export type PublicKeyGenerationMode = "compressed" | "uncompressed" | "evm"
 export type AddressGeneratorOptions = {
     injectedHexPrivateKey?: string
     privateKeyGeneratorOptions?: PrivateKeyGeneratorOptions
-    base58NetworkByte?: number
+    btcBase58NetworkByte?: number
     bech32Hrp?: string
     bech32WitnessVersion?: number
     enableDebugging?: boolean
@@ -43,7 +43,7 @@ export type AddressGeneratorOptions = {
  */
 export const defaultAddressGeneratorOptions: Required<Omit<AddressGeneratorOptions, "injectedHexPrivateKey">> = {
     privateKeyGeneratorOptions: {},
-    base58NetworkByte: 0x00,
+    btcBase58NetworkByte: 0x00,
     bech32Hrp: "bc",
     bech32WitnessVersion: 0x00,
     enableDebugging: false,
@@ -184,12 +184,18 @@ export default class AddressGenerator {
                         instruction.outputSlot?.start as number,
                         instruction.outputSlot?.length
                     )
+
+                    toLog += ` | Bytes: ${instruction.outputSlot?.length}`
             }
         }
 
-        externalLogger.debug(
-            `>> Instruction (${instruction.isGenericOperation ? "generic" : "address"}): "${instruction.operation.padStart(this._longestInstructionOperationNameLength, " ")}" | Result: ${toLog} | Bytes: ${instruction.outputSlot?.length}`
-        )
+        const isGenericOp = instruction.isGenericOperation ? "generic" : "address"
+        const paddedOp = `"${instruction.operation}"`.padStart(this._longestInstructionOperationNameLength + 2, " ")
+
+        const logMessage = `>> Instruction (${isGenericOp}): ${paddedOp} | Result: ${toLog}`
+
+        if (instruction.isEnd) externalLogger.silly(logMessage)
+        else externalLogger.debug(logMessage)
     }
 
     /**
@@ -210,10 +216,8 @@ export default class AddressGenerator {
                 else this.cache.writeUint8Array(this._injectedPrivateKey, outputSlot.start, outputSlot.length)
                 break
             case GenericOperation.PublicKey:
-                // EVM is not supported by the current secp256k1 library
-                const mode = this._publicKeyGenerationMode === "evm" ? "compressed" : this._publicKeyGenerationMode
                 this._secp256k1Algorithm.generate(
-                    mode,
+                    this._publicKeyGenerationMode,
                     { cache: this.cache, ...inputSlot },
                     { cache: this.cache, ...outputSlot }
                 )
@@ -244,25 +248,21 @@ export default class AddressGenerator {
     ): string | undefined {
         switch (operation) {
             case AddressOperation.BtcP2shPrefix:
-                this.cache.writeUint16(0x0014, outputSlot?.start)
+                this.cache.writeUint8(0x00, outputSlot?.start)
+                this.cache.writeUint8(0x14, (outputSlot?.start ?? 0) + 1)
                 break
-            // // Base58 encoding
-            // case AddressOperation.Base58NetworkByte:
-            //     this.cache.writeUint8(this._options.base58NetworkByte, outputSlot?.start)
-            //     break
-            // case AddressOperation.Base58DoubleSha256:
-            //     this._sha256Algorithm.hash({ cache: this.cache, ...inputSlot }, { cache: this.cache, ...outputSlot })
-            //     this._sha256Algorithm.hash({ cache: this.cache, ...outputSlot }, { cache: this.cache, ...outputSlot })
-            //     break
-
+            // Base58 encoding
+            case AddressOperation.BtcBase58NetworkByte:
+                this.cache.writeUint8(this._options.btcBase58NetworkByte, outputSlot?.start)
+                break
             // // Bech32 encoding
             // case AddressOperation.Bech32WitnessVersion:
             //     this.cache.writeUint8(this._options.bech32WitnessVersion, outputSlot?.start)
             //     break
 
-            // // Address generation
-            // case AddressOperation.Base58Address:
-            //     return this._base58Encoder.encode(this.cache, inputSlot as MemorySlot)
+            // Address generation
+            case AddressOperation.Base58Encoding:
+                return this._base58Encoder.encode(this.cache, inputSlot as MemorySlot)
             // case AddressOperation.Bech32Address:
             //     return this._bech32Encoder.encode(
             //         this._options.bech32WitnessVersion,
@@ -270,8 +270,8 @@ export default class AddressGenerator {
             //         this.cache,
             //         inputSlot as MemorySlot
             //     )
-            // case AddressOperation.EvmAddress:
-            //     return `0x${this.cache.readHexString(inputSlot?.start, inputSlot?.length)}`
+            case AddressOperation.HexEncoding:
+                return `0x${this.cache.readHexString(inputSlot?.start, inputSlot?.length)}`
         }
 
         return undefined

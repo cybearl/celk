@@ -612,16 +612,17 @@ export default class Cache extends Uint8Array {
      * @param array The Uint8Array to write to the cache.
      * @param offset The offset to start writing at (optional, defaults to 0).
      * @param length The length to write (optional, defaults to the array length).
+     * @param arrayOffset The offset to start reading from in the array (optional, defaults to 0).
      * @returns The cache instance.
      */
-    writeUint8Array = (array: Uint8Array, offset = 0, length = array.byteLength): this => {
+    writeUint8Array = (array: Uint8Array, offset = 0, length = array.byteLength, arrayOffset = 0): this => {
         if (!array || !(array instanceof Uint8Array)) {
             throw new TypeError(`[Cache - writeUint8Array] Invalid Uint8Array: '${array}'.`)
         }
 
         this.check(offset, length)
 
-        for (let i = 0; i < length; i++) this[offset + i] = array[i]
+        for (let i = arrayOffset; i < length; i++) this[offset - arrayOffset + i] = array[i]
 
         return this
     }
@@ -631,6 +632,7 @@ export default class Cache extends Uint8Array {
      * @param array The Uint16Array to write to the cache.
      * @param offset The offset to start writing at (optional, defaults to 0).
      * @param length The length to write (optional, defaults to the array length).
+     * @param arrayOffset The offset to start reading from in the array (optional, defaults to 0).
      * @param endianness The endianness to use (optional, defaults to the platform's endianness).
      * @param verifyAlignment Whether to verify that the offset is aligned to 2 bytes (optional, defaults to `true`).
      * @returns The cache instance.
@@ -639,6 +641,7 @@ export default class Cache extends Uint8Array {
         array: Uint16Array,
         offset = 0,
         length = array.byteLength,
+        arrayOffset = 0,
         endianness = this.platformEndianness,
         verifyAlignment = true
     ): this => {
@@ -652,15 +655,15 @@ export default class Cache extends Uint8Array {
         this.check(offset, length)
 
         if (this.normalizeEndianness(endianness) === "LE") {
-            for (let i = 0; i < length; i += 2) {
-                this.writeUint16LE(array[i / 2], offset + i, verifyAlignment, false)
+            for (let i = arrayOffset; i < length; i += 2) {
+                this.writeUint16LE(array[i / 2], offset - arrayOffset + i, verifyAlignment, false)
             }
 
             return this
         }
 
-        for (let i = 0; i < length; i += 2) {
-            this.writeUint16BE(array[i / 2], offset + i, verifyAlignment, false)
+        for (let i = arrayOffset; i < length; i += 2) {
+            this.writeUint16BE(array[i / 2], offset - arrayOffset + i, verifyAlignment, false)
         }
 
         return this
@@ -671,6 +674,7 @@ export default class Cache extends Uint8Array {
      * @param array The Uint32Array to write to the cache.
      * @param offset The offset to start writing at (optional, defaults to 0).
      * @param length The length to write (optional, defaults to the array length).
+     * @param arrayOffset The offset to start reading from in the array (optional, defaults to 0).
      * @param endianness The endianness to use (optional, defaults to the platform's endianness).
      * @param verifyAlignment Whether to verify that the offset is aligned to 4 bytes (optional, defaults to `true`).
      * @returns The cache instance.
@@ -679,6 +683,7 @@ export default class Cache extends Uint8Array {
         array: Uint32Array,
         offset = 0,
         length = array.byteLength,
+        arrayOffset = 0,
         endianness = this.platformEndianness,
         verifyAlignment = true
     ): this => {
@@ -692,15 +697,15 @@ export default class Cache extends Uint8Array {
         this.check(offset, length)
 
         if (this.normalizeEndianness(endianness) === "LE") {
-            for (let i = 0; i < length; i += 4) {
-                this.writeUint32LE(array[i / 4], offset + i, verifyAlignment, false)
+            for (let i = arrayOffset; i < length; i += 4) {
+                this.writeUint32LE(array[i / 4], offset - arrayOffset + i, verifyAlignment, false)
             }
 
             return this
         }
 
-        for (let i = 0; i < length; i += 4) {
-            this.writeUint32BE(array[i / 4], offset + i, verifyAlignment, false)
+        for (let i = arrayOffset; i < length; i += 4) {
+            this.writeUint32BE(array[i / 4], offset - arrayOffset + i, verifyAlignment, false)
         }
 
         return this

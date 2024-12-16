@@ -23,7 +23,7 @@ export default function executeSecp256k1AlgorithmBenchmark(_: any, benchmarkDura
     // Test cache instances
     const cache = new Cache(32 + 65)
     const inputSlot: MemorySlot = { start: 0, length: 32, end: 32 }
-    const outputSlot: MemorySlot = { start: 32, length: 65, end: 32 + 65 }
+    const outputSlot: MemorySlot = { start: 32, length: 65, end: 97 }
     cache.writeUint8Array(randomUint8Array, inputSlot.start)
 
     // Benchmark
@@ -37,6 +37,7 @@ export default function executeSecp256k1AlgorithmBenchmark(_: any, benchmarkDura
         () => secp256k1.generate("uncompressed", { cache, ...inputSlot }, { cache, ...outputSlot }),
         "hash(u32)"
     )
+    bench.benchmark(() => secp256k1.generate("evm", { cache, ...inputSlot }, { cache, ...outputSlot }), "hash(e32)")
 
     bench.print()
 }

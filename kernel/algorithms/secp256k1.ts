@@ -15,8 +15,9 @@ export const N_STR = "0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8C
  * The type definition of the public key generation mode:
  * - `compressed`: Compressed 33 bytes public key (with prefix `0x02` or `0x03` depending on the Y coordinate).
  * - `uncompressed`: Uncompressed 65 bytes public key (with prefix `0x04`).
+ * - `evm`: EVM-compatible 64 bytes public key (without prefix).
  */
-export type PublicKeyGenerationMode = "compressed" | "uncompressed"
+export type PublicKeyGenerationMode = "compressed" | "uncompressed" | "evm"
 
 /**
  * The `Secp256k1Algorithm` class is used to generate a public key from a private key
@@ -28,6 +29,22 @@ export type PublicKeyGenerationMode = "compressed" | "uncompressed"
  * `@noble/curves` package.
  */
 export default class Secp256k1Algorithm {
+    /**
+     * Get the proper byte length based on the public key generation mode.
+     * @param mode The public key generation mode (`compressed` or `uncompressed`).
+     * @returns The byte length of the public key.
+     */
+    getPublicKeyLength(mode: PublicKeyGenerationMode): number {
+        switch (mode) {
+            case "compressed":
+                return 33
+            case "uncompressed":
+                return 65
+            case "evm":
+                return 64
+        }
+    }
+
     /**
      * Generates a public key from a private key stored inside a `Cache` instance at a certain position
      * given by an input `MemorySlot`, and writes the key to the same or another `Cache` instance
@@ -44,31 +61,22 @@ export default class Secp256k1Algorithm {
         inputSlotWithCacheInstance: MemorySlotWithCacheInstance,
         outputSlotWithCacheInstance: MemorySlotWithCacheInstance
     ): void {
-        if (mode === "compressed") {
-            if (outputSlotWithCacheInstance.cache.length < 33) {
-                throw new Error(
-                    cyGeneral.errors.stringifyError(KernelErrors.INVALID_CACHE_LENGTH, undefined, {
-                        length: outputSlotWithCacheInstance.cache.length,
-                        expected: 33,
-                    })
-                )
-            }
-        } else {
-            if (outputSlotWithCacheInstance.cache.length < 65) {
-                throw new Error(
-                    cyGeneral.errors.stringifyError(KernelErrors.INVALID_CACHE_LENGTH, undefined, {
-                        length: outputSlotWithCacheInstance.cache.length,
-                        expected: 65,
-                    })
-                )
-            }
-        }
-
         if (inputSlotWithCacheInstance.length !== 32) {
             throw new Error(
                 cyGeneral.errors.stringifyError(KernelErrors.INVALID_PRIVATE_KEY_LENGTH, undefined, {
                     length: inputSlotWithCacheInstance.length,
                     expected: 32,
+                })
+            )
+        }
+
+        const publicKeyLength = this.getPublicKeyLength(mode)
+
+        if (outputSlotWithCacheInstance.cache.length < publicKeyLength) {
+            throw new Error(
+                cyGeneral.errors.stringifyError(KernelErrors.INVALID_CACHE_LENGTH, undefined, {
+                    length: outputSlotWithCacheInstance.cache.length,
+                    expected: publicKeyLength,
                 })
             )
         }
@@ -81,7 +89,9 @@ export default class Secp256k1Algorithm {
                 ),
                 mode === "compressed"
             ),
-            outputSlotWithCacheInstance?.start
+            outputSlotWithCacheInstance?.start,
+            undefined,
+            mode === "evm" ? 1 : 0
         )
     }
 }
