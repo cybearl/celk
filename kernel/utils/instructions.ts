@@ -72,7 +72,10 @@ export type InstructionSetName =
     | "BTC65::P2PKH"
     | "BTC33::P2SH"
     | "BTC65::P2SH"
-    // TODO
+    | "BTC33::P2WPKH"
+    | "BTC65::P2WPKH"
+    | "BTC33::P2WSH"
+    | "BTC65::P2WSH"
     | "EVM"
 
 /**
@@ -217,7 +220,40 @@ export function getInstructionSet(instructionSetName: InstructionSetName): Instr
                 { inputSlot: { start: 183, end: 208, length: 25 }, outputSlot:                                 null, operation: AddressOperation.Base58Encoding },
             ]
             break
-        // TODO
+        case "BTC33::P2WPKH":
+            // prettier-ignore
+            instructionSet = [
+                { inputSlot:                                 null, outputSlot: { start:   0, end:  32, length: 32 }, operation: GenericOperation.PrivateKey },
+                { inputSlot: { start:   0, end:  32, length: 32 }, outputSlot: { start:  32, end:  65, length: 33 }, operation: GenericOperation.PublicKey },
+                { inputSlot: { start:  32, end:  65, length: 33 }, outputSlot: { start:  65, end:  97, length: 32 }, operation: GenericOperation.Sha256 },
+                { inputSlot: { start:  65, end:  97, length: 32 }, outputSlot: { start:  97, end: 117, length: 20 }, operation: GenericOperation.Ripemd160 },
+            ]
+            break
+        case "BTC65::P2WPKH":
+            // prettier-ignore
+            instructionSet = [
+                { inputSlot:                                 null, outputSlot: { start:   0, end:  32, length: 32 }, operation: GenericOperation.PrivateKey },
+                { inputSlot: { start:   0, end:  32, length: 32 }, outputSlot: { start:  32, end:  97, length: 65 }, operation: GenericOperation.PublicKey },
+                { inputSlot: { start:  32, end:  97, length: 65 }, outputSlot: { start:  97, end: 129, length: 32 }, operation: GenericOperation.Sha256 },
+                { inputSlot: { start:  97, end: 129, length: 32 }, outputSlot: { start: 129, end: 149, length: 20 }, operation: GenericOperation.Ripemd160 },
+            ]
+            break
+        case "BTC33::P2WSH":
+            // prettier-ignore
+            instructionSet = [
+                { inputSlot:                                 null, outputSlot: { start:   0, end:  32, length: 32 }, operation: GenericOperation.PrivateKey },
+                { inputSlot: { start:   0, end:  32, length: 32 }, outputSlot: { start:  32, end:  65, length: 33 }, operation: GenericOperation.PublicKey },
+                { inputSlot: { start:  32, end:  65, length: 33 }, outputSlot: { start:  65, end:  97, length: 32 }, operation: GenericOperation.Sha256 },
+            ]
+            break
+        case "BTC65::P2WSH":
+            // prettier-ignore
+            instructionSet = [
+                { inputSlot:                                 null, outputSlot: { start:   0, end:  32, length: 32 }, operation: GenericOperation.PrivateKey },
+                { inputSlot: { start:   0, end:  32, length: 32 }, outputSlot: { start:  32, end:  97, length: 65 }, operation: GenericOperation.PublicKey },
+                { inputSlot: { start:  32, end:  97, length: 65 }, outputSlot: { start:  97, end: 129, length: 32 }, operation: GenericOperation.Sha256 },
+            ]
+            break
         case "EVM":
             // prettier-ignore
             instructionSet = [
