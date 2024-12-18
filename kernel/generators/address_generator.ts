@@ -342,26 +342,30 @@ export default class AddressGenerator {
     executeInstructions(): MemorySlot | string | null {
         let result: MemorySlot | string | null = null
 
-        for (const instruction of this._instructionSet) {
-            if (instruction.isGenericOperation) {
-                this._executeGenericOperation(
-                    instruction.operation as GenericOperation,
-                    instruction.inputSlot,
-                    instruction.outputSlot as MemorySlot
-                )
+        try {
+            for (const instruction of this._instructionSet) {
+                if (instruction.isGenericOperation) {
+                    this._executeGenericOperation(
+                        instruction.operation as GenericOperation,
+                        instruction.inputSlot,
+                        instruction.outputSlot as MemorySlot
+                    )
 
-                if (instruction.outputSlot) result = instruction.outputSlot
-            } else {
-                const address = this._executeAddressOperation(
-                    instruction.operation as AddressOperation,
-                    instruction.inputSlot,
-                    instruction.outputSlot
-                )
+                    if (instruction.outputSlot) result = instruction.outputSlot
+                } else {
+                    const address = this._executeAddressOperation(
+                        instruction.operation as AddressOperation,
+                        instruction.inputSlot,
+                        instruction.outputSlot
+                    )
 
-                if (address) result = address
+                    if (address) result = address
+                }
+
+                if (this._options.enableDebugging) this._logInstruction(instruction, result)
             }
-
-            if (this._options.enableDebugging) this._logInstruction(instruction, result)
+        } catch (e) {
+            externalLogger.error(`Error while executing instructions: ${e.message}`)
         }
 
         return result

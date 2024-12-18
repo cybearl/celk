@@ -10,6 +10,12 @@ import secp256k1 from "secp256k1"
 export const N_STR = "0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364141"
 
 /**
+ * The number representing the highest possible value for a 256-bit unsigned integer
+ * on the secp256k1 curve, also known as the order of the curve (-1).
+ */
+export const N_BIGINT = 2n ** 256n - 0x14551231950b75fc4402da1732fc9bebfn - 1n
+
+/**
  * The type definition of the public key generation mode:
  * - `compressed`: Compressed 33 bytes public key (with prefix `0x02` or `0x03` depending on the Y coordinate).
  * - `uncompressed`: Uncompressed 65 bytes public key (with prefix `0x04`).

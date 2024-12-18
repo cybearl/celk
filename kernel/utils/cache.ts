@@ -315,10 +315,10 @@ export default class Cache extends Uint8Array {
      * the order will be the same as the string.
      * @param value The hexadecimal string to write to the cache.
      * @param offset The offset to start writing at (optional, defaults to 0).
-     * @param length The length to write **(in characters => 2 per byte)** (optional, defaults to the value length).
+     * @param length The length to write (optional, defaults to the value length).
      * @returns The cache instance.
      */
-    writeHexString = (value: string, offset = 0, length = value.length): this => {
+    writeHexString = (value: string, offset = 0, length = value.length / 2): this => {
         if (length === 0) {
             throw new RangeError(`[Cache - writeHexString] Invalid hexadecimal string length: '${length}'.`)
         }
@@ -332,14 +332,14 @@ export default class Cache extends Uint8Array {
             length -= 2
         }
 
-        this.check(offset, Math.ceil(length / 2))
+        this.check(offset, length)
 
-        for (let i = 0; i < length; i += 2) {
-            const highNibble = value.charCodeAt(i) | 0x20 // Convert to lowercase for A-F
-            const lowNibble = value.charCodeAt(i + 1) | 0x20 // Convert to lowercase for A-F
+        for (let i = 0; i < length; i++) {
+            const highNibble = value.charCodeAt(i * 2) | 0x20 // Convert to lowercase for A-F
+            const lowNibble = value.charCodeAt(i * 2 + 1) | 0x20 // Convert to lowercase for A-F
 
             // Converts the pair of hexadecimal characters to a byte
-            this[offset + i / 2] =
+            this[offset + i] =
                 ((highNibble - (highNibble > 57 ? 87 : 48)) << 4) | (lowNibble - (lowNibble > 57 ? 87 : 48))
         }
 
@@ -371,8 +371,9 @@ export default class Cache extends Uint8Array {
      * - `utf8`: UTF-8 encoding.
      * - `hex`: Hexadecimal encoding.
      *
-     * **Note:** The `hex` encoding supports `0x` prefix but there's no `endianness` parameter here,
-     * it follows the order of the string.
+     * **Notes:**
+     * - The `hex` encoding supports `0x` prefix but there's no `endianness` parameter here,
+     *   it follows the order of the string.
      * @param value The string to write to the cache.
      * @param encoding The encoding to use (optional, defaults to "utf8").
      * @param offset The offset to start writing at (optional, defaults to 0).

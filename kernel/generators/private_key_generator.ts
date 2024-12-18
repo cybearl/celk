@@ -1,3 +1,4 @@
+import { N_BIGINT } from "#kernel/algorithms/secp256k1"
 import Cache from "#kernel/utils/cache"
 import { MemorySlotWithCacheInstance } from "#kernel/utils/instructions"
 import { KernelErrors } from "#lib/utils/errors"
@@ -21,7 +22,7 @@ export type PrivateKeyGeneratorOptions = {
  */
 export const defaultPrivateKeyGeneratorOptions: Required<PrivateKeyGeneratorOptions> = {
     lowerBound: 1n,
-    upperBound: 2n ** 256n - 1n,
+    upperBound: N_BIGINT,
     endianness: os.endianness(),
     maxRejections: 1_000_000,
     throwOnMaxRejections: true,
@@ -176,6 +177,19 @@ export default class PrivateKeyGenerator {
                     {
                         upperBound: upperBound,
                         maxValue: this._maxValue,
+                    }
+                )
+            )
+        }
+
+        if (upperBound > N_BIGINT) {
+            throw new Error(
+                cyGeneral.errors.stringifyError(
+                    KernelErrors.INVALID_PRIVATE_KEY_RANGE,
+                    "The upper bound must be less than or equal to the order of the secp256k1 curve.",
+                    {
+                        upperBound: upperBound,
+                        order: N_BIGINT,
                     }
                 )
             )
