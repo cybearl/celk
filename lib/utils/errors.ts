@@ -225,6 +225,12 @@ export const KernelErrors = {
         message: "The instruction length is invalid.",
         data: null,
     },
+    INVALID_MAX_REJECTION_THRESHOLD: {
+        status: 400,
+        name: "INVALID_MAX_REJECTION_THRESHOLD",
+        message: "The max rejection threshold is invalid.",
+        data: null,
+    },
     //=====//
     // 404 //
     //=====//

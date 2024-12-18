@@ -20,7 +20,7 @@ export type PrivateKeyGeneratorOptions = {
  * The default options for the `PrivateKeyGenerator` class.
  */
 export const defaultPrivateKeyGeneratorOptions: Required<PrivateKeyGeneratorOptions> = {
-    lowerBound: 0n,
+    lowerBound: 1n,
     upperBound: 2n ** 256n - 1n,
     endianness: os.endianness(),
     maxRejections: 1_000_000,
@@ -83,7 +83,7 @@ export default class PrivateKeyGenerator {
      * @param outputSlotWithCacheInstance The cache instance to write the private key to, and its dedicated memory slot (optional, defaults to 0 => data length).
      * @param options The private key generator options:
      * - `lowerBound`: The lower bound of the private key to generate rounded to
-     *   the nearest byte (optional, defaults to 0).
+     *   the nearest byte (optional, defaults to 1).
      * - `upperBound`: The upper bound of the private key to generate rounded to
      *   the nearest byte (optional, defaults to 2^256 - 1).
      * - `endianness`: The endianness to use (optional, defaults to the platform's endianness).
@@ -94,7 +94,7 @@ export default class PrivateKeyGenerator {
      */
     constructor(outputSlotWithCacheInstance: MemorySlotWithCacheInstance, options?: PrivateKeyGeneratorOptions) {
         this.setCacheInstanceWithSlot(outputSlotWithCacheInstance)
-        this.setOptions(options)
+        this.setOptions(options ?? defaultPrivateKeyGeneratorOptions)
         this.generate()
     }
 
@@ -122,38 +122,15 @@ export default class PrivateKeyGenerator {
             this._outputSlotWithCacheInstance.start,
             this._outputSlotWithCacheInstance.length
         )
+
+        // Calculate the maximum value of the private key based on its size
+        this._maxValue = 2n ** BigInt(this._outputSlotWithCacheInstance.cache.length * 8) - 1n
     }
 
     /**
-     * Set the options for the private key generator.
-     * @param options The private key generator options:
-     * - `lowerBound`: The lower bound of the private key to generate rounded to
-     *   the nearest byte (optional, defaults to 0).
-     * - `upperBound`: The upper bound of the private key to generate rounded to
-     *   the nearest byte (optional, defaults to 2^256 - 1).
-     * - `endianness`: The endianness to use (optional, defaults to the platform's endianness).
-     * - `maxRejections`: The maximum number of bounds rejections before throwing an error (optional, defaults to 1,000,000,
-     *   set to -1 to disable the limit).
-     * - `throwOnMaxRejections`: A flag indicating if an error should be thrown when the maximum number of rejections is
-     *   reached, if not, it will just return the private key outside the bounds (optional, defaults to true).
+     * Verify and set the new bounds for the private key generator.
      */
-    setOptions(options: PrivateKeyGeneratorOptions = defaultPrivateKeyGeneratorOptions): void {
-        if (typeof options !== "object" || Object.keys(options).length === 0) {
-            options = defaultPrivateKeyGeneratorOptions
-        }
-
-        this._maxValue = 2n ** BigInt(this._outputSlotWithCacheInstance.cache.length * 8) - 1n
-        this._maxRejections = options.maxRejections ?? defaultPrivateKeyGeneratorOptions.maxRejections
-        this._throwOnMaxRejections =
-            options.throwOnMaxRejections ?? defaultPrivateKeyGeneratorOptions.throwOnMaxRejections
-
-        const lowerBound = options.lowerBound ?? defaultPrivateKeyGeneratorOptions.lowerBound
-        const upperBound = options.upperBound
-            ? options.upperBound > this._maxValue
-                ? this._maxValue
-                : options.upperBound
-            : this._maxValue
-
+    private _verifyAndSetBounds(lowerBound: bigint, upperBound: bigint): void {
         if (lowerBound < 0n) {
             throw new Error(
                 cyGeneral.errors.stringifyError(
@@ -215,12 +192,63 @@ export default class PrivateKeyGenerator {
             value: Cache.fromBigInt(upperBound, upperBoundBytesLength),
             bytesLength: upperBoundBytesLength,
         }
+    }
 
-        this._endianness = this._outputSlotWithCacheInstance.cache.normalizeEndianness(
-            options.endianness ?? defaultPrivateKeyGeneratorOptions.endianness
-        )
+    /**
+     * Set the options for the private key generator.
+     * @param options The private key generator options:
+     * - `lowerBound`: The lower bound of the private key to generate rounded to
+     *   the nearest byte (optional, defaults to 0).
+     * - `upperBound`: The upper bound of the private key to generate rounded to
+     *   the nearest byte (optional, defaults to 2^256 - 1).
+     * - `endianness`: The endianness to use (optional, defaults to the platform's endianness).
+     * - `maxRejections`: The maximum number of bounds rejections before throwing an error (optional, defaults to 1,000,000,
+     *   set to -1 to disable the limit).
+     * - `throwOnMaxRejections`: A flag indicating if an error should be thrown when the maximum number of rejections is
+     *   reached, if not, it will just return the private key outside the bounds (optional, defaults to true).
+     */
+    setOptions(options: PrivateKeyGeneratorOptions): void {
+        if (options.lowerBound || options.upperBound) {
+            this._verifyAndSetBounds(options.lowerBound ?? 0n, options.upperBound ?? this._maxValue)
+        }
 
-        // Initially clear the entire cache's memory slot
+        if (options.endianness) {
+            this._endianness = this._outputSlotWithCacheInstance.cache.normalizeEndianness(options.endianness)
+        }
+
+        if (options.maxRejections !== undefined) {
+            if (options.maxRejections < -1) {
+                throw new Error(
+                    cyGeneral.errors.stringifyError(
+                        KernelErrors.INVALID_MAX_REJECTION_THRESHOLD,
+                        "The maximum number of rejections must be greater than (> 0) or equal to -1.",
+                        {
+                            maxRejections: options.maxRejections,
+                        }
+                    )
+                )
+            }
+
+            if (options.maxRejections === 0) {
+                throw new Error(
+                    cyGeneral.errors.stringifyError(
+                        KernelErrors.INVALID_MAX_REJECTION_THRESHOLD,
+                        "The maximum number of rejections must be greater than 0.",
+                        {
+                            maxRejections: options.maxRejections,
+                        }
+                    )
+                )
+            }
+
+            this._maxRejections = options.maxRejections
+        }
+
+        if (options.throwOnMaxRejections !== undefined) {
+            this._throwOnMaxRejections = options.throwOnMaxRejections
+        }
+
+        // Clear the entire cache's memory slot to prevent any conflict / contamination
         this._outputSlotWithCacheInstance.cache.clear(
             this._outputSlotWithCacheInstance.start,
             this._outputSlotWithCacheInstance.length

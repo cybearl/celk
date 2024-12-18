@@ -4,14 +4,14 @@ import Bench from "#lib/utils/benchmark"
 import externalLogger from "#lib/utils/external_logger"
 
 /**
- * The benchmark for the `Base58Encoder` class.
+ * The benchmark for the `PrivateKeyGenerator` class.
  * @param _ Placeholder for the benchmark input size (unused here).
  * @param benchmarkDuration The duration of the benchmark in milliseconds.
  */
-export default function executePrivateKeyGeneratorBenchmark(benchmarkDuration: number) {
+export default function executePrivateKeyGeneratorBenchmark(_: any, benchmarkDuration: number) {
     externalLogger.info("Starting benchmarking of the private key generator...")
     externalLogger.info(`>> Benchmark duration: ${benchmarkDuration} millisecond(s)`)
-    externalLogger.info(">> Benchmark input size: unused (PrivateKeyGenerator is not input-size dependent)")
+    externalLogger.info(">> Benchmark input size: unused ('PrivateKeyGenerator' is not input-size dependent)")
 
     // Test cache instances
     let cache: Cache = Cache.alloc(1)

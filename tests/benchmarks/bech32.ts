@@ -11,7 +11,7 @@ import externalLogger from "#lib/utils/external_logger"
 export default function executeBech32EncoderBenchmark(_: any, benchmarkDuration: number) {
     externalLogger.info("Starting benchmarking of the Bech32 encoder...")
     externalLogger.info(`>> Benchmark duration: ${benchmarkDuration} millisecond(s)`)
-    externalLogger.info(">> Benchmark input size: unused (Bech32Encoder is not input-size dependent)")
+    externalLogger.info(">> Benchmark input size: unused ('Bech32Encoder' is not input-size dependent)")
 
     // Test values
     const bech32InputHex = "128739950dcdd98e5c01a056a19a3b2a9c77b9b7"

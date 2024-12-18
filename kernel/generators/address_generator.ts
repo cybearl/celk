@@ -55,6 +55,7 @@ export const defaultAddressGeneratorOptions: Required<Omit<AddressGeneratorOptio
  */
 export default class AddressGenerator {
     // Instructions
+    instructionSetName!: InstructionSetName
     private _instructionSet!: InstructionWithFlags[]
 
     // Pointer, used only when executing instructions one by one
@@ -96,12 +97,11 @@ export default class AddressGenerator {
      * - `btcBech32Hrp`: The bech32 human-readable part (only for Bitcoin bech32-based addresses, defaults to "bc").
      * - `btcBech32WitnessVersion`: The bech32 witness version (only for Bitcoin bech32-based addresses, from 0 to 16,
      *   defaults to 0).
-     * - `randomBytesPoolSize`: The random bytes pool size (defaults to 1,024).
      * - `enableDebugging`: Whether to enable debugging (defaults to `false`).
      */
     constructor(instructionSetName: InstructionSetName, options?: AddressGeneratorOptions) {
         this.setInstructionSet(instructionSetName)
-        this.setOptions(options)
+        this.setOptions(options ?? defaultAddressGeneratorOptions)
     }
 
     /**
@@ -110,6 +110,7 @@ export default class AddressGenerator {
      */
     setInstructionSet(instructionSetName: InstructionSetName): void {
         // Instructions
+        this.instructionSetName = instructionSetName
         this._instructionSet = getInstructionSet(instructionSetName)
 
         // Pre-computed flags
@@ -146,25 +147,28 @@ export default class AddressGenerator {
      *   note that it prevents the private key generator from executing).
      * - `privateKeyGeneratorOptions`: The private key generator options (bounds, rejection limits, etc.).
      * - `btcBase58NetworkByte`: The base58 network byte (only for Bitcoin Base58-based addresses, defaults to 0x00).
-     * - `bech32Hrp`: The bech32 human-readable part (only for bech32 addresses, defaults to "bc").
-     * - `bech32WitnessVersion`: The bech32 witness version (only for bech32 addresses, from 0 to 16, defaults to 0).
-     * - `randomBytesPoolSize`: The random bytes pool size (defaults to 1,024).
+     * - `btcBech32Hrp`: The bech32 human-readable part (only for Bitcoin bech32-based addresses, defaults to "bc").
+     * - `btcBech32WitnessVersion`: The bech32 witness version (only for Bitcoin bech32-based addresses, from 0 to 16,
+     *   defaults to 0).
      * - `enableDebugging`: Whether to enable debugging (defaults to `false`).
      */
-    setOptions(options: AddressGeneratorOptions = defaultAddressGeneratorOptions): void {
+    setOptions(options: AddressGeneratorOptions): void {
         if (options.enableDebugging) {
             externalLogger.info(`Initialized Address Generator with debug mode enabled:`)
             externalLogger.info(`Instruction Set: [${this._instructionSet.map((i) => i.operation).join(", ")}]`)
         }
 
-        this._options = { ...this._options, ...options }
-        this._privateKeyGenerator.setOptions(this._options.privateKeyGeneratorOptions)
-
         // Converts the injected private key to a cache instance to improve performances even
         // via injection
-        this._injectedPrivateKey = options.injectedHexPrivateKey
-            ? Cache.fromHexString(options.injectedHexPrivateKey)
-            : undefined
+        if (options.injectedHexPrivateKey) {
+            this._injectedPrivateKey = Cache.fromHexString(options?.injectedHexPrivateKey)
+        }
+
+        if (options.privateKeyGeneratorOptions) {
+            this._privateKeyGenerator.setOptions(options.privateKeyGeneratorOptions)
+        }
+
+        this._options = { ...this._options, ...options }
     }
 
     /**

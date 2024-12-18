@@ -11,7 +11,7 @@ import externalLogger from "#lib/utils/external_logger"
 export default function executeBase58EncoderBenchmark(_: any, benchmarkDuration: number) {
     externalLogger.info("Starting benchmarking of the Base58 encoder...")
     externalLogger.info(`>> Benchmark duration: ${benchmarkDuration} millisecond(s)`)
-    externalLogger.info(">> Benchmark input size: unused (Base58Encoder is not input-size dependent)")
+    externalLogger.info(">> Benchmark input size: unused ('Base58Encoder' is not input-size dependent)")
 
     // Test values
     const base58InputUtf8 = "128739950dcdd98e5e"

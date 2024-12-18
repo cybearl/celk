@@ -12,7 +12,7 @@ import externalLogger from "#lib/utils/external_logger"
 export default function executeSecp256k1AlgorithmBenchmark(_: any, benchmarkDuration: number) {
     externalLogger.info("Starting benchmarking of the SECP256K1 algorithm...")
     externalLogger.info(`>> Benchmark duration: ${benchmarkDuration} millisecond(s)`)
-    externalLogger.info(">> Benchmark input size: unused (Secp256k1Algorithm is not input-size dependent)")
+    externalLogger.info(">> Benchmark input size: unused ('Secp256k1Algorithm' is not input-size dependent)")
 
     const secp256k1 = new Secp256k1Algorithm()
 
