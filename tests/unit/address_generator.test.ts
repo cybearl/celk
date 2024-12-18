@@ -1,12 +1,6 @@
 import { test } from "@japa/runner"
 import AddressGenerator from "#kernel/generators/address_generator"
-import {
-    InstructionSetName,
-    MemorySlot,
-    addressInstructionSetNames,
-    instructionSetNames,
-    memoryInstructionSetNames,
-} from "#kernel/utils/instructions"
+import { MemorySlot, addressInstructionSetNames, memoryInstructionSetNames } from "#kernel/utils/instructions"
 import externalLogger from "#lib/utils/external_logger"
 
 const sep = "    "
@@ -397,7 +391,7 @@ test.group("address_generator / generations", () => {
     })
 
     // Not a test, just returning a sample of all addresses for fun
-    test("Finished sampling", () => {
+    test("Finished address sampling", () => {
         const privateKey = "0000000000000000000000000000000000000000000000000000000000000001"
 
         const addressGenerator = new AddressGenerator("MEMORY_SLOT::BTC33", {
@@ -406,22 +400,19 @@ test.group("address_generator / generations", () => {
         })
 
         externalLogger.info(`${sep}Running sampling of the address generator:`)
-        externalLogger.info(
-            `${sep}- privateKey: ${addressGenerator.cache.length.toLocaleString("en-US")} bytes (fixed => 0x00..01)`
-        )
 
         for (const memoryInstructionSetName of memoryInstructionSetNames) {
             addressGenerator.setInstructionSet(memoryInstructionSetName)
             const res = addressGenerator.executeInstructions() as MemorySlot
-            externalLogger.info(
-                `${sep}[${memoryInstructionSetName}] 0x${addressGenerator.cache.readHexString(res.start, res.length)}`
+            externalLogger.debug(
+                `${sep}>> [${memoryInstructionSetName}] 0x${addressGenerator.cache.readHexString(res.start, res.length)}`
             )
         }
 
         for (const addressInstructionSetName of addressInstructionSetNames) {
             addressGenerator.setInstructionSet(addressInstructionSetName)
             const res = addressGenerator.executeInstructions() as string
-            externalLogger.info(`${sep}[${addressInstructionSetName}] ${res}`)
+            externalLogger.info(`${sep}>> [${addressInstructionSetName}] ${res}`)
         }
     })
 })

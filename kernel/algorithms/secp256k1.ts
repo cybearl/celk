@@ -1,9 +1,7 @@
 import { MemorySlotWithCacheInstance } from "#kernel/utils/instructions"
 import { KernelErrors } from "#lib/utils/errors"
 import { cyGeneral } from "@cybearl/cypack"
-
-// TODO: Implement a better algorithm that supports 64 bytes public keys.
-import { secp256k1 } from "@noble/curves/secp256k1"
+import secp256k1 from "secp256k1"
 
 /**
  * The (string) hex number representing the highest possible value for a 256-bit unsigned integer
@@ -26,12 +24,12 @@ export type PublicKeyGenerationMode = "compressed" | "uncompressed" | "evm"
  * position given by an output `MemorySlot`.
  *
  * This class is a wrapper around the `secp256k1` function from the
- * `@noble/curves` package.
+ * `secp256k1` package.
  */
 export default class Secp256k1Algorithm {
     /**
      * Get the proper byte length based on the public key generation mode.
-     * @param mode The public key generation mode (`compressed` or `uncompressed`).
+     * @param mode The public key generation mode (`compressed`, `uncompressed` or `evm`).
      * @returns The byte length of the public key.
      */
     getPublicKeyLength(mode: PublicKeyGenerationMode): number {
@@ -50,8 +48,8 @@ export default class Secp256k1Algorithm {
      * given by an input `MemorySlot`, and writes the key to the same or another `Cache` instance
      * at a position given by an output `MemorySlot`.
      *
-     * Output Length: 33 bytes (uncompressed) or 65 bytes (compressed).
-     * @param mode The public key generation mode (`compressed` or `uncompressed`).
+     * Output Length: 33 bytes (compressed), 65 bytes (uncompressed) or 64 bytes (evm).
+     * @param mode The public key generation mode (`compressed`, `uncompressed` or `evm`).
      * @param cache The `Cache` instance to read the data from and write the hash to.
      * @param inputSlot The position of the data to read in the cache (optional, defaults to 0 => length).
      * @param outputSlot The position to write the hash to in the cache (optional, defaults to 0 => data length).
@@ -82,7 +80,7 @@ export default class Secp256k1Algorithm {
         }
 
         outputSlotWithCacheInstance.cache.writeUint8Array(
-            secp256k1.getPublicKey(
+            secp256k1.publicKeyCreate(
                 inputSlotWithCacheInstance.cache.copy(
                     inputSlotWithCacheInstance?.start,
                     inputSlotWithCacheInstance?.length
@@ -90,7 +88,7 @@ export default class Secp256k1Algorithm {
                 mode === "compressed"
             ),
             outputSlotWithCacheInstance?.start,
-            undefined,
+            undefined, // Dynamic, let the function decide
             mode === "evm" ? 1 : 0
         )
     }
