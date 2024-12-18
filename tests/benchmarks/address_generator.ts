@@ -1,5 +1,5 @@
 import AddressGenerator from "#kernel/generators/address_generator"
-import { InstructionSetName } from "#kernel/utils/instructions"
+import { addressInstructionSetNames, memoryInstructionSetNames } from "#kernel/utils/instructions"
 import Bench from "#lib/utils/benchmark"
 import externalLogger from "#lib/utils/external_logger"
 
@@ -18,30 +18,6 @@ export default function executeAddressGeneratorBenchmark(benchmarkDuration: numb
 
     // Benchmark
     const bench = new Bench(benchmarkDuration)
-
-    const memoryInstructionSetNames: InstructionSetName[] = [
-        "MEMORY_SLOT::BTC33",
-        "MEMORY_SLOT::BTC65",
-        "MEMORY_SLOT::BTC33::P2SH",
-        "MEMORY_SLOT::BTC65::P2SH",
-        "MEMORY_SLOT::BTC33::P2WPKH", // = "MEMORY_SLOT::BTC33"
-        "MEMORY_SLOT::BTC65::P2WPKH", // = "MEMORY_SLOT::BTC65"
-        "MEMORY_SLOT::BTC33::P2WSH",
-        "MEMORY_SLOT::BTC65::P2WSH",
-        "MEMORY_SLOT::EVM64",
-    ]
-
-    const instructionSetNames: InstructionSetName[] = [
-        "BTC33::P2PKH",
-        "BTC65::P2PKH",
-        "BTC33::P2SH",
-        "BTC65::P2SH",
-        "BTC33::P2WPKH",
-        "BTC65::P2WPKH",
-        "BTC33::P2WSH",
-        "BTC65::P2WSH",
-        "EVM64",
-    ]
 
     for (const memoryInstructionSetName of memoryInstructionSetNames) {
         addressGenerator.setInstructionSet(memoryInstructionSetName)
@@ -70,9 +46,9 @@ export default function executeAddressGeneratorBenchmark(benchmarkDuration: numb
 
     bench.print("Into memory")
 
-    for (const instructionSetName of instructionSetNames) {
-        addressGenerator.setInstructionSet(instructionSetName)
-        bench.benchmark(() => addressGenerator.executeInstructions(), `[${instructionSetName}]`)
+    for (const addressInstructionSetName of addressInstructionSetNames) {
+        addressGenerator.setInstructionSet(addressInstructionSetName)
+        bench.benchmark(() => addressGenerator.executeInstructions(), `[${addressInstructionSetName}]`)
     }
 
     bench.print("Into address")

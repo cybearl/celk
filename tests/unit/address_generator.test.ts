@@ -1,6 +1,15 @@
 import { test } from "@japa/runner"
 import AddressGenerator from "#kernel/generators/address_generator"
+import {
+    InstructionSetName,
+    MemorySlot,
+    addressInstructionSetNames,
+    instructionSetNames,
+    memoryInstructionSetNames,
+} from "#kernel/utils/instructions"
+import externalLogger from "#lib/utils/external_logger"
 
+const sep = "    "
 const enableDebugging = false
 const fixedPrivateKey1 = "0000000000000000000000000000000000000000000000000000000000000001"
 
@@ -25,8 +34,9 @@ test.group("address_generator / private key injection for testing", (group) => {
 /**
  * Test values sourced from:
  * https://www.rfctools.com/bitcoin-address-test-tool/
+ * https://www.secretscan.org/
  */
-test.group("address_generator / memory slot generations", () => {
+test.group("address_generator / generations", () => {
     test("MEMORY_SLOT::BTC33 / MEMORY_SLOT::BTC33::P2WPKH", ({ expect }) => {
         const privateKey = "0765E02476F4B84F2E44FE1882B2612A7FE0EAEE62C0C6B11DBCC336A6265852"
         const publicKey = "02B0AE5F7A9955F7CCF6851AF1EB59F5B1AA0C384E525F60A7521770443450160F"
@@ -384,5 +394,34 @@ test.group("address_generator / memory slot generations", () => {
         expect(addressGenerator.cache.readHexString(32, 64)).toBe(publicKey)
         expect(addressGenerator.cache.readHexString(96, 32)).toBe(keccak256)
         expect(result).toBe(address)
+    })
+
+    // Not a test, just returning a sample of all addresses for fun
+    test("Finished sampling", () => {
+        const privateKey = "0000000000000000000000000000000000000000000000000000000000000001"
+
+        const addressGenerator = new AddressGenerator("MEMORY_SLOT::BTC33", {
+            injectedHexPrivateKey: privateKey,
+            enableDebugging: false,
+        })
+
+        externalLogger.info(`${sep}Running sampling of the address generator:`)
+        externalLogger.info(
+            `${sep}- privateKey: ${addressGenerator.cache.length.toLocaleString("en-US")} bytes (fixed => 0x00..01)`
+        )
+
+        for (const memoryInstructionSetName of memoryInstructionSetNames) {
+            addressGenerator.setInstructionSet(memoryInstructionSetName)
+            const res = addressGenerator.executeInstructions() as MemorySlot
+            externalLogger.info(
+                `${sep}[${memoryInstructionSetName}] 0x${addressGenerator.cache.readHexString(res.start, res.length)}`
+            )
+        }
+
+        for (const addressInstructionSetName of addressInstructionSetNames) {
+            addressGenerator.setInstructionSet(addressInstructionSetName)
+            const res = addressGenerator.executeInstructions() as string
+            externalLogger.info(`${sep}[${addressInstructionSetName}] ${res}`)
+        }
     })
 })

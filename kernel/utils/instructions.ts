@@ -84,6 +84,60 @@ export type InstructionSetName =
     | "EVM64"
 
 /**
+ * An array containing all the available instruction set names.
+ */
+export const instructionSetNames: InstructionSetName[] = [
+    "MEMORY_SLOT::BTC33",
+    "MEMORY_SLOT::BTC65",
+    "MEMORY_SLOT::BTC33::P2SH",
+    "MEMORY_SLOT::BTC65::P2SH",
+    "MEMORY_SLOT::BTC33::P2WPKH", // = "MEMORY_SLOT::BTC33"
+    "MEMORY_SLOT::BTC65::P2WPKH", // = "MEMORY_SLOT::BTC65"
+    "MEMORY_SLOT::BTC33::P2WSH",
+    "MEMORY_SLOT::BTC65::P2WSH",
+    "MEMORY_SLOT::EVM64",
+    "BTC33::P2PKH",
+    "BTC65::P2PKH",
+    "BTC33::P2SH",
+    "BTC65::P2SH",
+    "BTC33::P2WPKH",
+    "BTC65::P2WPKH",
+    "BTC33::P2WSH",
+    "BTC65::P2WSH",
+    "EVM64",
+]
+
+/**
+ * An array containing all the available memory instruction set names.
+ */
+export const memoryInstructionSetNames: InstructionSetName[] = [
+    "MEMORY_SLOT::BTC33",
+    "MEMORY_SLOT::BTC65",
+    "MEMORY_SLOT::BTC33::P2SH",
+    "MEMORY_SLOT::BTC65::P2SH",
+    "MEMORY_SLOT::BTC33::P2WPKH", // = "MEMORY_SLOT::BTC33"
+    "MEMORY_SLOT::BTC65::P2WPKH", // = "MEMORY_SLOT::BTC65"
+    "MEMORY_SLOT::BTC33::P2WSH",
+    "MEMORY_SLOT::BTC65::P2WSH",
+    "MEMORY_SLOT::EVM64",
+]
+
+/**
+ * An array containing all the available address instruction set names.
+ */
+export const addressInstructionSetNames: InstructionSetName[] = [
+    "BTC33::P2PKH",
+    "BTC65::P2PKH",
+    "BTC33::P2SH",
+    "BTC65::P2SH",
+    "BTC33::P2WPKH",
+    "BTC65::P2WPKH",
+    "BTC33::P2WSH",
+    "BTC65::P2WSH",
+    "EVM64",
+]
+
+/**
  * Returns the proper instruction set with flags for a given instruction set name,
  * the number in the instruction set name represents the length of the public key.
  *

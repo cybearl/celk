@@ -4,6 +4,7 @@ import externalLogger from "#lib/utils/external_logger"
 import Cache from "#kernel/utils/cache"
 
 const sep = "    "
+
 test.group("private_key_generator", (group) => {
     let cache: Cache
     let privateKeyGenerator: PrivateKeyGenerator
