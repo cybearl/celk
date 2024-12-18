@@ -1,14 +1,9 @@
 import AddressGenerator from "#kernel/generators/address_generator"
 
-const addressGenerator = new AddressGenerator("MEMORY_SLOT::BTC65", {
-    enableDebugging: true,
-})
+const privateKey = "0000000000000000000000000000000000000000000000000000000000000001"
 
-addressGenerator.executeInstructions()
-
-console.log("")
-
-addressGenerator.setParams("MEMORY_SLOT::BTC33", {
+const addressGenerator = new AddressGenerator("BTC33::P2WSH", {
+    injectedHexPrivateKey: privateKey,
     enableDebugging: true,
 })
 

@@ -61,7 +61,7 @@ export default class AddressGenerator {
     private _instructionPointer = 0
 
     // Parameters
-    private _options!: Required<AddressGeneratorOptions>
+    private _options = defaultAddressGeneratorOptions
 
     // Pre-computed flags / values
     private _isMemorySlotInstructionSet!: boolean
@@ -94,7 +94,8 @@ export default class AddressGenerator {
      * - `privateKeyGeneratorOptions`: The private key generator options (bounds, rejection limits, etc.).
      * - `btcBase58NetworkByte`: The base58 network byte (only for Bitcoin Base58-based addresses, defaults to 0x00).
      * - `btcBech32Hrp`: The bech32 human-readable part (only for Bitcoin bech32-based addresses, defaults to "bc").
-     * - `btcBech32WitnessVersion`: The bech32 witness version (only for Bitcoin bech32-based addresses, from 0 to 16, defaults to 0).
+     * - `btcBech32WitnessVersion`: The bech32 witness version (only for Bitcoin bech32-based addresses, from 0 to 16,
+     *   defaults to 0).
      * - `randomBytesPoolSize`: The random bytes pool size (defaults to 1,024).
      * - `enableDebugging`: Whether to enable debugging (defaults to `false`).
      */
@@ -251,25 +252,24 @@ export default class AddressGenerator {
                 this.cache.writeUint8(0x00, outputSlot?.start)
                 this.cache.writeUint8(0x14, (outputSlot?.start ?? 0) + 1)
                 break
-            // Base58 encoding
             case AddressOperation.BtcBase58NetworkByte:
                 this.cache.writeUint8(this._options.btcBase58NetworkByte, outputSlot?.start)
                 break
-            // // Bech32 encoding
-            // case AddressOperation.Bech32WitnessVersion:
-            //     this.cache.writeUint8(this._options.bech32WitnessVersion, outputSlot?.start)
-            //     break
-
-            // Address generation
-            case AddressOperation.Base58Encoding:
+            case AddressOperation.BtcBase58Encoding:
                 return this._base58Encoder.encode(this.cache, inputSlot as MemorySlot)
-            // case AddressOperation.Bech32Address:
-            //     return this._bech32Encoder.encode(
-            //         this._options.bech32WitnessVersion,
-            //         this._options.bech32Hrp,
-            //         this.cache,
-            //         inputSlot as MemorySlot
-            //     )
+            case AddressOperation.BtcP2wshOpPush33Prefix:
+                this.cache.writeUint8(0x21, outputSlot?.start)
+                break
+            case AddressOperation.BtcP2wshOpChecksigSuffix:
+                this.cache.writeUint8(0xac, outputSlot?.start)
+                break
+            case AddressOperation.BtcBech32Encoding:
+                return this._bech32Encoder.encode(
+                    this._options.btcBech32WitnessVersion,
+                    this._options.btcBech32Hrp,
+                    this.cache,
+                    inputSlot as MemorySlot
+                )
             case AddressOperation.HexEncoding:
                 return `0x${this.cache.readHexString(inputSlot?.start, inputSlot?.length)}`
         }

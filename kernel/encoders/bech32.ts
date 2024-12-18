@@ -177,15 +177,18 @@ export default class Bech32Encoder {
 
     /**
      * Encodes a Bech32 string from a bytecode stored in a `Cache` instance and a witness version.
-     * @param version The witness version to use (0-16).
+     * @param version The witness version to use (0-16, optional, defaults to 0 and can be set to `null`).
      * @param hrp The HRP to use (Human Readable Part).
      * @param cache The `Cache` instance to read the data from.
      * @param slot The position of the data in the cache (optional, defaults to 0 => length).
      * @returns The encoded Bech32 string.
      */
-    encode(version: number, hrp: string, cache: Cache, slot?: MemorySlot): string {
-        // Start with the witness version and concatenate the data converted to a 5-bit array
-        const data = [version].concat(this._convertTo5BitArray(cache, slot))
+    encode(version: number | null = 0, hrp: string, cache: Cache, slot?: MemorySlot): string {
+        let data: number[] = []
+
+        // Start with the witness version (if any) and concatenate the data converted to a 5-bit array
+        if (version !== null) data = [version].concat(this._convertTo5BitArray(cache, slot))
+        else data = this._convertTo5BitArray(cache, slot)
 
         // Compute the checksum
         const checksum = this._createChecksum(hrp, data[0], data)
