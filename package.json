@@ -1,6 +1,6 @@
 {
     "name": "celk",
-    "version": "2024.11.1-alpha",
+    "version": "2024.12.1-alpha",
     "description": "A brute-forcing tool for Bitcoin and Ethereum addresses entirely written in Typescript.",
     "repository": "https://github.com/cybearl/celk",
     "author": "yoratoni <yoratoni.dev@gmail.com>",
