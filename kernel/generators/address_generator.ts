@@ -1,6 +1,6 @@
 import Keccak256Algorithm from "#kernel/algorithms/keccak256"
 import Ripemd160Algorithm from "#kernel/algorithms/ripemd160"
-import Secp256k1Algorithm from "#kernel/algorithms/secp256k1"
+import Secp256k1Algorithm, { PublicKeyGenerationMode } from "#kernel/algorithms/secp256k1"
 import Sha256Algorithm from "#kernel/algorithms/sha256"
 import Cache from "#kernel/utils/cache"
 import Base58Encoder from "#kernel/encoders/base58"
@@ -20,11 +20,6 @@ import externalLogger from "#lib/utils/external_logger"
 import PrivateKeyGenerator, { PrivateKeyGeneratorOptions } from "#kernel/generators/private_key_generator"
 import { cyGeneral } from "@cybearl/cypack"
 import { KernelErrors } from "#lib/utils/errors"
-
-/**
- * The type definition of the public key generation mode.
- */
-export type PublicKeyGenerationMode = "compressed" | "uncompressed" | "evm"
 
 /**
  * The type definition of the address generator options.
@@ -66,7 +61,7 @@ export default class AddressGenerator {
 
     // Pre-computed flags / values
     private _isMemorySlotInstructionSet!: boolean
-    private _publicKeyGenerationMode!: "compressed" | "uncompressed" | "evm"
+    private _publicKeyGenerationMode!: PublicKeyGenerationMode
     private _longestInstructionOperationNameLength!: number
     private _injectedPrivateKey?: Cache
 
