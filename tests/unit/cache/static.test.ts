@@ -208,3 +208,29 @@ test.group("cache / static / fromBigInt", (group) => {
         }
     })
 })
+
+test.group("cache / static / fromRange", (group) => {
+    let cache: Cache
+
+    const start = 0
+    const end = 10
+    const rangeByteValues = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+
+    group.each.setup(() => {
+        cache = Cache.fromRange(start, end)
+    })
+
+    test("It should create a cache from a range", ({ expect }) => {
+        expect(cache).toBeInstanceOf(Cache)
+    })
+
+    test("It should create a cache with the correct length", ({ expect }) => {
+        expect(cache.length).toBe(end - start)
+    })
+
+    test("It should create a cache with the correct values", ({ expect }) => {
+        for (let i = 0; i < cache.length; i++) {
+            expect(cache.readUint8(i)).toBe(rangeByteValues[i])
+        }
+    })
+})

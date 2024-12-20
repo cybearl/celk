@@ -225,8 +225,9 @@ export default class Cache extends Uint8Array {
         // Remove any `0x` prefix before writing
         if (value.startsWith("0x")) value = value.slice(2)
 
-        const cache = new Cache(Math.ceil(value.length / 2))
-        cache.writeHexString(value, 0, value.length)
+        const byteLength = Math.ceil(value.length / 2)
+        const cache = new Cache(byteLength)
+        cache.writeHexString(value, 0, byteLength)
         return cache
     }
 
@@ -299,6 +300,22 @@ export default class Cache extends Uint8Array {
         const byteLength = length ?? Math.ceil(value.toString(16).length / 2)
         const cache = new Cache(byteLength)
         cache.writeBigInt(value, 0, byteLength, endianness)
+        return cache
+    }
+
+    /**
+     * Creates a new Cache object from a range of numbers between 0 and 255.
+     * @param start The start of the range.
+     * @param end The end of the range.
+     * @returns A new Cache object.
+     */
+    static fromRange = (start: number, end: number): Cache => {
+        if (start < 0 || start > 255) throw new RangeError(`[Cache - fromRange] Invalid start value: '${start}'.`)
+        if (end < 0 || end > 255) throw new RangeError(`[Cache - fromRange] Invalid end value: '${end}'.`)
+
+        const length = end - start
+        const cache = new Cache(length)
+        for (let i = 0; i < length; i++) cache[i] = start + i
         return cache
     }
 
@@ -1092,8 +1109,9 @@ export default class Cache extends Uint8Array {
      * @returns The bit array.
      */
     toBits = (msbFirst = true): Bit[] => {
-        const bits: Bit[] = new Array(this.length * 8)
-        for (let i = 0; i < this.length * 8; i++) bits[i] = this.readBit(i, msbFirst)
+        const length = this.length * 8
+        const bits: Bit[] = new Array(length)
+        for (let i = 0; i < length; i++) bits[i] = this.readBit(i, msbFirst)
         return bits
     }
 
@@ -1253,8 +1271,10 @@ export default class Cache extends Uint8Array {
     partialReverse = (offset = 0, length = this.length): this => {
         this.check(offset, length)
 
+        const dividedLength = Math.floor(length / 2)
         const calculatedLength = offset + length
-        for (let i = 0; i < length / 2; i++) {
+
+        for (let i = 0; i < dividedLength; i++) {
             const offsetIndex = i + offset
             const endOffsetIndex = calculatedLength - i - 1
             const temp = this[offsetIndex]
