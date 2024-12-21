@@ -1,6 +1,6 @@
 import { test } from "@japa/runner"
 import AddressGenerator from "#kernel/generators/address_generator"
-import { MemorySlot, addressInstructionSetNames, memoryInstructionSetNames } from "#kernel/utils/instructions"
+import { InstructionSet, MemorySlot, addressInstructionSets, memoryInstructionSets } from "#kernel/utils/instructions"
 import externalLogger from "#lib/utils/external_logger"
 
 const sep = "    "
@@ -11,7 +11,7 @@ test.group("address_generator / private key injection for testing", (group) => {
     let addressGenerator: AddressGenerator
 
     group.each.setup(() => {
-        addressGenerator = new AddressGenerator("MEMORY_SLOT::BTC33", {
+        addressGenerator = new AddressGenerator(InstructionSet.MEMORY_SLOT_BTC33_P2PKH, {
             injectedHexPrivateKey: fixedPrivateKey1,
             enableDebugging: enableDebugging,
         })
@@ -31,13 +31,13 @@ test.group("address_generator / private key injection for testing", (group) => {
  * https://www.secretscan.org/
  */
 test.group("address_generator / generations", () => {
-    test("MEMORY_SLOT::BTC33 / MEMORY_SLOT::BTC33::P2WPKH", ({ expect }) => {
+    test("MEMORY_SLOT::BTC33::P2PKH / MEMORY_SLOT::BTC33::P2WPKH", ({ expect }) => {
         const privateKey = "0765E02476F4B84F2E44FE1882B2612A7FE0EAEE62C0C6B11DBCC336A6265852"
         const publicKey = "02B0AE5F7A9955F7CCF6851AF1EB59F5B1AA0C384E525F60A7521770443450160F"
         const sha256 = "6405A9FE83FC3895B698D294D5609F55E8072006FD3E144DB6ECB0DAD6E62D80"
         const ripemd160 = "C51632E43113797078001B20C5A4BC41B7389BFD"
 
-        const addressGenerator = new AddressGenerator("MEMORY_SLOT::BTC33", {
+        const addressGenerator = new AddressGenerator(InstructionSet.MEMORY_SLOT_BTC33_P2PKH, {
             injectedHexPrivateKey: privateKey,
             enableDebugging: enableDebugging,
         })
@@ -49,14 +49,14 @@ test.group("address_generator / generations", () => {
         expect(addressGenerator.cache.readHexString(97, 20)).toBe(ripemd160)
     })
 
-    test("MEMORY_SLOT::BTC65 / MEMORY_SLOT::BTC65::P2WPKH", ({ expect }) => {
+    test("MEMORY_SLOT::BTC65::P2PKH / MEMORY_SLOT::BTC65::P2WPKH", ({ expect }) => {
         const privateKey = "D17351FB80B81B4780BFB98BF8614179275C784D52B23FA945A6EBD6D8A07D6F"
         const publicKey =
             "04B21B7D3264081687AF835FAF57F04C81CF23170B08266DA36C98F93F156AC9336B74F8B560145E294EB913B21D6860CA5E16B03C34D66799555CD617665551E0"
         const sha256 = "CF34DF803A31B6F2EAB236AD8FEB503FE8CD1416E47303A7A8EC82D69CE7DE49"
         const ripemd160 = "D284DCCB02F91219D792736D92C3C177D9A4D580"
 
-        const addressGenerator = new AddressGenerator("MEMORY_SLOT::BTC65", {
+        const addressGenerator = new AddressGenerator(InstructionSet.MEMORY_SLOT_BTC65_P2PKH, {
             injectedHexPrivateKey: privateKey,
             enableDebugging: enableDebugging,
         })
@@ -77,7 +77,7 @@ test.group("address_generator / generations", () => {
         const sha256v2 = "082502F80591F73B5DD55154FFFC4FF54B656208AA37DA25C16E5042865A740F"
         const ripemd160v2 = "1A3D8D46905072DE931063A89B3A0845E1B27D03"
 
-        const addressGenerator = new AddressGenerator("MEMORY_SLOT::BTC33::P2SH", {
+        const addressGenerator = new AddressGenerator(InstructionSet.MEMORY_SLOT_BTC33_P2SH, {
             injectedHexPrivateKey: privateKey,
             enableDebugging: enableDebugging,
         })
@@ -102,7 +102,7 @@ test.group("address_generator / generations", () => {
         const sha256v2 = "C4BD4066871E39652D29DB35834722BA7D13EDB53D1106E123C88041BCD8DAA8"
         const ripemd160v2 = "57202D1293B07FD053F961A985BD3A424AA83A91"
 
-        const addressGenerator = new AddressGenerator("MEMORY_SLOT::BTC65::P2SH", {
+        const addressGenerator = new AddressGenerator(InstructionSet.MEMORY_SLOT_BTC65_P2SH, {
             injectedHexPrivateKey: privateKey,
             enableDebugging: enableDebugging,
         })
@@ -122,7 +122,7 @@ test.group("address_generator / generations", () => {
         const publicKey = "02FD41D2B03DE290140A2F576EA492D9F3A82F18AB9301190E4DCF4E6BEC341675"
         const sha256 = "26754241776257E61E4641CA948AD7E49896B8295FB73B43854E82094B740E75"
 
-        const addressGenerator = new AddressGenerator("MEMORY_SLOT::BTC33::P2WSH", {
+        const addressGenerator = new AddressGenerator(InstructionSet.MEMORY_SLOT_BTC33_P2WSH, {
             injectedHexPrivateKey: privateKey,
             enableDebugging: enableDebugging,
         })
@@ -139,7 +139,7 @@ test.group("address_generator / generations", () => {
             "04EFE21160D36ACE3775F560C1F0AFDA47D75B95FA989305C1E03C956ADB0BA7436D7806539E5E1020EF438CA814062C7BBAAE0880F37040C4D8DFBAB35E8500F3"
         const sha256 = "9EE1B639CC6BE910C767196A91E292E7942F2FC2B2C64A3D6693E5085C6E013E"
 
-        const addressGenerator = new AddressGenerator("MEMORY_SLOT::BTC65::P2WSH", {
+        const addressGenerator = new AddressGenerator(InstructionSet.MEMORY_SLOT_BTC65_P2WSH, {
             injectedHexPrivateKey: privateKey,
             enableDebugging: enableDebugging,
         })
@@ -156,7 +156,7 @@ test.group("address_generator / generations", () => {
             "A4350884C406C5A639E4E79A58283F86C32B42955AFC7851FF26B3D94A4E936FF83DB39110A3FB6BD470D4EB1D2F4903B4B35360E2BC57C4DD8710E59FDEF32E"
         const keccak256 = "E41DF1704CFB51078E26C6E599B9B93254FCB5043CC43633DF49CFDB74109160"
 
-        const addressGenerator = new AddressGenerator("MEMORY_SLOT::EVM64", {
+        const addressGenerator = new AddressGenerator(InstructionSet.MEMORY_SLOT_EVM64, {
             injectedHexPrivateKey: privateKey,
             enableDebugging: enableDebugging,
         })
@@ -176,7 +176,7 @@ test.group("address_generator / generations", () => {
         const sha256v2 = "6E85B6E822591B7B9750A817B07D5AB13DB6B3DC112E21ED728F017FE9121B12" // Overwrites the previous sha256
         const address = "1Nwe2SPsFjNXHSex9NjEzDxjNqPBCzzupT"
 
-        const addressGenerator = new AddressGenerator("BTC33::P2PKH", {
+        const addressGenerator = new AddressGenerator(InstructionSet.BTC33_P2PKH, {
             injectedHexPrivateKey: privateKey,
             enableDebugging: enableDebugging,
         })
@@ -201,7 +201,7 @@ test.group("address_generator / generations", () => {
         const sha256v2 = "AA48256BEAFB6B9A387244912659A51F15470F508D8336171617812F50F72B67" // Overwrites the previous sha256
         const address = "1HNmmVLzJAy1c2ib6QJvSLeDBi51jwhAwC"
 
-        const addressGenerator = new AddressGenerator("BTC65::P2PKH", {
+        const addressGenerator = new AddressGenerator(InstructionSet.BTC65_P2PKH, {
             injectedHexPrivateKey: privateKey,
             enableDebugging: enableDebugging,
         })
@@ -228,7 +228,7 @@ test.group("address_generator / generations", () => {
         const sha256v3 = "B9A60F45A118DFCCC893DE763FE9A24391B437FEF75E7D1AAEBE708B301479D9"
         const address = "3CkStvUkL6ccCf6GWFRdMCRGyDtnJpmkzY"
 
-        const addressGenerator = new AddressGenerator("BTC33::P2SH", {
+        const addressGenerator = new AddressGenerator(InstructionSet.BTC33_P2SH, {
             injectedHexPrivateKey: privateKey,
             btcBase58NetworkByte: 0x05,
             enableDebugging: enableDebugging,
@@ -260,7 +260,7 @@ test.group("address_generator / generations", () => {
         const sha256v3 = "62A2708D9A9AB9CC485DC437BD3ABA36B59ACB6F3E4C8F1E39A35876F8FC5778"
         const address = "34y5mkrEcnnV92YZ9MdrFL8BdAQVb1NwNk"
 
-        const addressGenerator = new AddressGenerator("BTC65::P2SH", {
+        const addressGenerator = new AddressGenerator(InstructionSet.BTC65_P2SH, {
             injectedHexPrivateKey: privateKey,
             btcBase58NetworkByte: 0x05,
             enableDebugging: enableDebugging,
@@ -286,7 +286,7 @@ test.group("address_generator / generations", () => {
         const ripemd160 = "40A8DA869A6CF5B1277606CE8C612CB48B3ACA00"
         const address = "bc1qgz5d4p56dn6mzfmkqm8gccfvkj9n4jsql2n2pd"
 
-        const addressGenerator = new AddressGenerator("BTC33::P2WPKH", {
+        const addressGenerator = new AddressGenerator(InstructionSet.BTC33_P2WPKH, {
             injectedHexPrivateKey: privateKey,
             btcBech32Hrp: "bc",
             btcBech32WitnessVersion: 0,
@@ -309,7 +309,7 @@ test.group("address_generator / generations", () => {
         const ripemd160 = "1446A54940F651FDB59A72075123B422FF121EE2"
         const address = "bc1qz3r22j2q7eglmdv6wgr4zga5ytl3y8hz2faxvr"
 
-        const addressGenerator = new AddressGenerator("BTC65::P2WPKH", {
+        const addressGenerator = new AddressGenerator(InstructionSet.BTC65_P2WPKH, {
             injectedHexPrivateKey: privateKey,
             btcBech32Hrp: "bc",
             btcBech32WitnessVersion: 0,
@@ -332,7 +332,7 @@ test.group("address_generator / generations", () => {
         const sha256 = "1863143C14C5166804BD19203356DA136C985678CD4D27A1B8C6329604903262"
         const address = "bc1qrp33g0q5c5txsp9arysrx4k6zdkfs4nce4xj0gdcccefvpysxf3qccfmv3"
 
-        const addressGenerator = new AddressGenerator("BTC33::P2WSH", {
+        const addressGenerator = new AddressGenerator(InstructionSet.BTC33_P2WSH, {
             injectedHexPrivateKey: privateKey,
             btcBech32Hrp: "bc",
             enableDebugging: enableDebugging,
@@ -356,7 +356,7 @@ test.group("address_generator / generations", () => {
         const sha256 = "C37369B5BF8B3300E676A75FBA08EC018BEA9C483E1171DD815A39EACE607A3A"
         const address = "bc1qcdeknddl3vespenk5a0m5z8vqx9748zg8cghrhvptgu74nnq0gaq0yy64q"
 
-        const addressGenerator = new AddressGenerator("BTC65::P2WSH", {
+        const addressGenerator = new AddressGenerator(InstructionSet.BTC65_P2WSH, {
             injectedHexPrivateKey: privateKey,
             btcBech32Hrp: "bc",
             enableDebugging: enableDebugging,
@@ -378,7 +378,7 @@ test.group("address_generator / generations", () => {
         const keccak256 = "C11C2095CCE9804305D22A9EFE8EA0DEF858277355EBB74E9EB9979EA8CB42A2"
         const address = "0xFE8EA0DEF858277355EBB74E9EB9979EA8CB42A2"
 
-        const addressGenerator = new AddressGenerator("EVM64", {
+        const addressGenerator = new AddressGenerator(InstructionSet.EVM64, {
             injectedHexPrivateKey: privateKey,
             enableDebugging: enableDebugging,
         })
@@ -394,25 +394,25 @@ test.group("address_generator / generations", () => {
     test("Finished address sampling", () => {
         const privateKey = "0000000000000000000000000000000000000000000000000000000000000001"
 
-        const addressGenerator = new AddressGenerator("MEMORY_SLOT::BTC33", {
+        const addressGenerator = new AddressGenerator(InstructionSet.MEMORY_SLOT_BTC33_P2PKH, {
             injectedHexPrivateKey: privateKey,
             enableDebugging: false,
         })
 
         externalLogger.info(`${sep}Running sampling of the address generator:`)
 
-        for (const memoryInstructionSetName of memoryInstructionSetNames) {
-            addressGenerator.setInstructionSet(memoryInstructionSetName)
+        for (const memoryInstructionSet of memoryInstructionSets) {
+            addressGenerator.applyInstructionSet(memoryInstructionSet)
             const res = addressGenerator.executeInstructions() as MemorySlot
             externalLogger.debug(
-                `${sep}>> [${memoryInstructionSetName}] 0x${addressGenerator.cache.readHexString(res.start, res.length)}`
+                `${sep}>> [${memoryInstructionSet}] 0x${addressGenerator.cache.readHexString(res.start, res.length)}`
             )
         }
 
-        for (const addressInstructionSetName of addressInstructionSetNames) {
-            addressGenerator.setInstructionSet(addressInstructionSetName)
+        for (const addressInstructionSet of addressInstructionSets) {
+            addressGenerator.applyInstructionSet(addressInstructionSet)
             const res = addressGenerator.executeInstructions() as string
-            externalLogger.info(`${sep}>> [${addressInstructionSetName}] ${res}`)
+            externalLogger.info(`${sep}>> [${addressInstructionSet}] ${res}`)
         }
     })
 })

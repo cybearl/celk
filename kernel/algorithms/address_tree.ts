@@ -1,9 +1,7 @@
 import Cache from "#kernel/utils/cache"
+import { MemorySlot, MemorySlotWithCacheInstance } from "#kernel/utils/instructions"
 
-/**
- * The type of the address tree.
- */
-export type AddressTreeType = "base-58" | "bech-32" | "hex"
+// TODO
 
 /**
  * The `AddressNode` class ...
@@ -12,46 +10,39 @@ class AddressNode {
     /**
      * The parent node of the node.
      */
-    private readonly _parent: AddressNode | null
+    readonly parent: AddressNode | null
 
     /**
      * The value of the node.
      */
-    private readonly _value: number
+    readonly value: number
 
     /**
      * The children of the node.
      */
-    private readonly _children: AddressNode[]
+    readonly children: AddressNode[]
+
+    /**
+     * A flag indicating whether the node is the root node.
+     */
+    readonly isRoot: boolean
+
+    /**
+     * A flag indicating whether the node is a leaf node.
+     */
+    readonly isLeaf: boolean
 
     /**
      * Creates a new `AddressNode` instance.
      */
     constructor(parent: AddressNode | null, value: number, children: AddressNode[] = []) {
-        this._parent = parent
-        this._value = value
-        this._children = children
-    }
+        this.parent = parent
+        this.value = value
+        this.children = children
 
-    /**
-     * Gets the parent node of the node.
-     */
-    get parent(): AddressNode | null {
-        return this._parent
-    }
-
-    /**
-     * Gets the value of the node.
-     */
-    get value(): number {
-        return this._value
-    }
-
-    /**
-     * Gets the children of the node.
-     */
-    get children(): AddressNode[] {
-        return this._children
+        // Flags
+        this.isRoot = parent === null
+        this.isLeaf = children.length === 0
     }
 
     /**
@@ -60,7 +51,7 @@ class AddressNode {
      */
     addChild(value: number): AddressNode {
         const child = new AddressNode(this, value)
-        this._children.push(child)
+        this.children.push(child)
         return child
     }
 
@@ -70,13 +61,13 @@ class AddressNode {
      */
     getChild(value: number): AddressNode | null {
         let left = 0
-        let right = this._children.length - 1
+        let right = this.children.length - 1
 
         while (left <= right) {
             const middle = Math.floor((left + right) / 2)
 
-            if (this._children[middle].value === value) return this._children[middle]
-            if (this._children[middle].value < value) left = middle + 1
+            if (this.children[middle].value === value) return this.children[middle]
+            if (this.children[middle].value < value) left = middle + 1
             else right = middle - 1
         }
 
@@ -97,52 +88,33 @@ class AddressNode {
 
         return path.reverse()
     }
+
+    /**
+     * Gets the path from the node to the root as a string.
+     */
+    getPathAsString(): string {
+        return this.getPath().join("")
+    }
 }
 
 /**
  * The `AddressTree` class ...
  */
 export default class AddressTree {
-    private readonly _BASE58_CHARSET = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz"
-    private readonly _BECH32_CHARSET = "qpzry9x8gf2tvdw0s3jn54khce6mua7l"
-
-    /**
-     * The type of the address tree.
-     */
-    private _type: AddressTreeType
-
     /**
      * The depth of the tree.
      */
     private _depth: number
 
     /**
-     * The dictionary of the tree.
-     */
-    private _dictionary: Cache
-
-    /**
      * Creates a new `AddressTree` instance.
      * ...
      */
-    constructor(type: AddressTreeType, depth: number) {
-        this._type = type
+    constructor(depth: number) {
         this._depth = depth
-        this._dictionary = this._getDictionaryFromTreeType(type)
     }
 
-    /**
-     * Generates a dictionary from the specified tree type.
-     * @param type The type of the address tree.
-     */
-    private _getDictionaryFromTreeType(type: AddressTreeType): Cache {
-        switch (type) {
-            case "base-58":
-                return Cache.fromUtf8String(this._BASE58_CHARSET)
-            case "bech-32":
-                return Cache.fromUtf8String(this._BECH32_CHARSET)
-            case "hex":
-                return Cache.fromRange(0, 255)
-        }
+    addAddressFromMemorySlot(inputSlotWithCacheInstance: MemorySlotWithCacheInstance): void {
+        //
     }
 }

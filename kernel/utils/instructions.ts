@@ -61,114 +61,85 @@ export type InstructionWithFlags = Instruction & {
 }
 
 /**
- * The type definition of the available instruction sets.
+ * An enum containing all the available instruction sets to generate addresses from,
+ * such as BTC33, BTC65, EVM64, etc.
  */
-export type InstructionSetName =
-    | "MEMORY_SLOT::BTC33"
-    | "MEMORY_SLOT::BTC65"
-    | "MEMORY_SLOT::BTC33::P2SH"
-    | "MEMORY_SLOT::BTC65::P2SH"
-    | "MEMORY_SLOT::BTC33::P2WPKH" // = "MEMORY_SLOT::BTC33"
-    | "MEMORY_SLOT::BTC65::P2WPKH" // = "MEMORY_SLOT::BTC65"
-    | "MEMORY_SLOT::BTC33::P2WSH"
-    | "MEMORY_SLOT::BTC65::P2WSH"
-    | "MEMORY_SLOT::EVM64"
-    | "BTC33::P2PKH"
-    | "BTC65::P2PKH"
-    | "BTC33::P2SH"
-    | "BTC65::P2SH"
-    | "BTC33::P2WPKH"
-    | "BTC65::P2WPKH"
-    | "BTC33::P2WSH"
-    | "BTC65::P2WSH"
-    | "EVM64"
+export enum InstructionSet {
+    MEMORY_SLOT_BTC33_P2PKH = "MEMORY_SLOT::BTC33::P2PKH",
+    MEMORY_SLOT_BTC65_P2PKH = "MEMORY_SLOT::BTC65::P2PKH",
+    MEMORY_SLOT_BTC33_P2SH = "MEMORY_SLOT::BTC33::P2SH",
+    MEMORY_SLOT_BTC65_P2SH = "MEMORY_SLOT::BTC65::P2SH",
+    MEMORY_SLOT_BTC33_P2WPKH = "MEMORY_SLOT::BTC33::P2WPKH", // = "MEMORY_SLOT::BTC33::P2PKH"
+    MEMORY_SLOT_BTC65_P2WPKH = "MEMORY_SLOT::BTC65::P2WPKH", // = "MEMORY_SLOT::BTC65::P2PKH"
+    MEMORY_SLOT_BTC33_P2WSH = "MEMORY_SLOT::BTC33::P2WSH",
+    MEMORY_SLOT_BTC65_P2WSH = "MEMORY_SLOT::BTC65::P2WSH",
+    MEMORY_SLOT_BTC33_P2TR = "MEMORY_SLOT::BTC33::P2TR", // TODO
+    MEMORY_SLOT_BTC65_P2TR = "MEMORY_SLOT::BTC65::P2TR", // TODO
+    MEMORY_SLOT_EVM64 = "MEMORY_SLOT::EVM64",
+    BTC33_P2PKH = "BTC33::P2PKH",
+    BTC65_P2PKH = "BTC65::P2PKH",
+    BTC33_P2SH = "BTC33::P2SH",
+    BTC65_P2SH = "BTC65::P2SH",
+    BTC33_P2WPKH = "BTC33::P2WPKH",
+    BTC65_P2WPKH = "BTC65::P2WPKH",
+    BTC33_P2WSH = "BTC33::P2WSH",
+    BTC65_P2WSH = "BTC65::P2WSH",
+    BTC33_P2TR = "BTC33::P2TR", // TODO
+    BTC65_P2TR = "BTC65::P2TR", // TODO
+    EVM64 = "EVM64",
+}
 
 /**
- * An array containing all the available instruction set names.
+ * An array containing all the available instruction sets.
  */
-export const instructionSetNames: InstructionSetName[] = [
-    "MEMORY_SLOT::BTC33",
-    "MEMORY_SLOT::BTC65",
-    "MEMORY_SLOT::BTC33::P2SH",
-    "MEMORY_SLOT::BTC65::P2SH",
-    "MEMORY_SLOT::BTC33::P2WPKH", // = "MEMORY_SLOT::BTC33"
-    "MEMORY_SLOT::BTC65::P2WPKH", // = "MEMORY_SLOT::BTC65"
-    "MEMORY_SLOT::BTC33::P2WSH",
-    "MEMORY_SLOT::BTC65::P2WSH",
-    "MEMORY_SLOT::EVM64",
-    "BTC33::P2PKH",
-    "BTC65::P2PKH",
-    "BTC33::P2SH",
-    "BTC65::P2SH",
-    "BTC33::P2WPKH",
-    "BTC65::P2WPKH",
-    "BTC33::P2WSH",
-    "BTC65::P2WSH",
-    "EVM64",
+export const instructionSets: InstructionSet[] = Object.values(InstructionSet)
+
+/**
+ * An array containing all the available memory instruction sets.
+ */
+export const memoryInstructionSets: InstructionSet[] = [
+    ...instructionSets.filter((name) => name.startsWith("MEMORY_SLOT")),
 ]
 
 /**
- * An array containing all the available memory instruction set names.
+ * An array containing all the available address instruction sets.
  */
-export const memoryInstructionSetNames: InstructionSetName[] = [
-    "MEMORY_SLOT::BTC33",
-    "MEMORY_SLOT::BTC65",
-    "MEMORY_SLOT::BTC33::P2SH",
-    "MEMORY_SLOT::BTC65::P2SH",
-    "MEMORY_SLOT::BTC33::P2WPKH", // = "MEMORY_SLOT::BTC33"
-    "MEMORY_SLOT::BTC65::P2WPKH", // = "MEMORY_SLOT::BTC65"
-    "MEMORY_SLOT::BTC33::P2WSH",
-    "MEMORY_SLOT::BTC65::P2WSH",
-    "MEMORY_SLOT::EVM64",
+export const addressInstructionSets: InstructionSet[] = [
+    ...instructionSets.filter((name) => !name.startsWith("MEMORY_SLOT")),
 ]
 
 /**
- * An array containing all the available address instruction set names.
- */
-export const addressInstructionSetNames: InstructionSetName[] = [
-    "BTC33::P2PKH",
-    "BTC65::P2PKH",
-    "BTC33::P2SH",
-    "BTC65::P2SH",
-    "BTC33::P2WPKH",
-    "BTC65::P2WPKH",
-    "BTC33::P2WSH",
-    "BTC65::P2WSH",
-    "EVM64",
-]
-
-/**
- * Returns the proper instruction set with flags for a given instruction set name,
- * the number in the instruction set name represents the length of the public key.
+ * Returns the proper instructions with flags for a given instruction set.
+ * The number in the instruction set represents the length of the public key.
  *
  * Note that the instruction are written directly in the code for better readability
  * of the overall memory space management.
  *
- * @param instructionSetName The name of the instruction set.
+ * @param instructionSet The name (enum) of the instruction set to get the instruction set with flags for.
  * @returns The instruction set with the corresponding flags.
  * @sources
  * - [SecretScan.org](https://secretscan.org/)
  * - [Hiro.so](https://www.hiro.so/blog/understanding-the-differences-between-bitcoin-address-formats-when-developing-your-app)
  * - [RFC TOOLS](https://www.rfctools.com/bitcoin-address-test-tool/)
  */
-export function getInstructionSet(instructionSetName: InstructionSetName): InstructionWithFlags[] {
-    let instructionSet: Instruction[]
+export function getInstructions(instructionSet: InstructionSet): InstructionWithFlags[] {
+    let instructions: Instruction[]
 
-    switch (instructionSetName) {
-        case "MEMORY_SLOT::BTC33":
+    switch (instructionSet) {
+        case "MEMORY_SLOT::BTC33::P2PKH":
         case "MEMORY_SLOT::BTC33::P2WPKH":
             // prettier-ignore
-            instructionSet = [
+            instructions = [
                 { inputSlot:                                 null, outputSlot: { start:   0, end:  32, length: 32 }, operation: GenericOperation.PrivateKey },
                 { inputSlot: { start:   0, end:  32, length: 32 }, outputSlot: { start:  32, end:  65, length: 33 }, operation: GenericOperation.PublicKey },
                 { inputSlot: { start:  32, end:  65, length: 33 }, outputSlot: { start:  65, end:  97, length: 32 }, operation: GenericOperation.Sha256 },
                 { inputSlot: { start:  65, end:  97, length: 32 }, outputSlot: { start:  97, end: 117, length: 20 }, operation: GenericOperation.Ripemd160 },
             ]
             break
-        case "MEMORY_SLOT::BTC65":
+        case "MEMORY_SLOT::BTC65::P2PKH":
         case "MEMORY_SLOT::BTC65::P2WPKH":
             // prettier-ignore
-            instructionSet = [
+            instructions = [
                 { inputSlot:                                 null, outputSlot: { start:   0, end:  32, length: 32 }, operation: GenericOperation.PrivateKey },
                 { inputSlot: { start:   0, end:  32, length: 32 }, outputSlot: { start:  32, end:  97, length: 65 }, operation: GenericOperation.PublicKey },
                 { inputSlot: { start:  32, end:  97, length: 65 }, outputSlot: { start:  97, end: 129, length: 32 }, operation: GenericOperation.Sha256 },
@@ -177,7 +148,7 @@ export function getInstructionSet(instructionSetName: InstructionSetName): Instr
             break
         case "MEMORY_SLOT::BTC33::P2SH":
             // prettier-ignore
-            instructionSet = [
+            instructions = [
                 { inputSlot:                                 null, outputSlot: { start:   0, end:  32, length: 32 }, operation: GenericOperation.PrivateKey },
                 { inputSlot: { start:   0, end:  32, length: 32 }, outputSlot: { start:  32, end:  65, length: 33 }, operation: GenericOperation.PublicKey },
                 { inputSlot: { start:  32, end:  65, length: 33 }, outputSlot: { start:  65, end:  97, length: 32 }, operation: GenericOperation.Sha256 },
@@ -189,7 +160,7 @@ export function getInstructionSet(instructionSetName: InstructionSetName): Instr
             break
         case "MEMORY_SLOT::BTC65::P2SH":
             // prettier-ignore
-            instructionSet = [
+            instructions = [
                 { inputSlot:                                 null, outputSlot: { start:   0, end:  32, length: 32 }, operation: GenericOperation.PrivateKey },
                 { inputSlot: { start:   0, end:  32, length: 32 }, outputSlot: { start:  32, end:  97, length: 65 }, operation: GenericOperation.PublicKey },
                 { inputSlot: { start:  32, end:  97, length: 65 }, outputSlot: { start:  97, end: 129, length: 32 }, operation: GenericOperation.Sha256 },
@@ -201,7 +172,7 @@ export function getInstructionSet(instructionSetName: InstructionSetName): Instr
             break
         case "MEMORY_SLOT::BTC33::P2WSH":
             // prettier-ignore
-            instructionSet = [
+            instructions = [
                 { inputSlot:                                 null, outputSlot: { start:   0, end:  32, length: 32 }, operation: GenericOperation.PrivateKey },
                 { inputSlot: { start:   0, end:  32, length: 32 }, outputSlot: { start:  32, end:  65, length: 33 }, operation: GenericOperation.PublicKey },
                 { inputSlot: { start:  32, end:  65, length: 33 }, outputSlot: { start:  65, end:  97, length: 32 }, operation: GenericOperation.Sha256 },
@@ -209,7 +180,7 @@ export function getInstructionSet(instructionSetName: InstructionSetName): Instr
             break
         case "MEMORY_SLOT::BTC65::P2WSH":
             // prettier-ignore
-            instructionSet = [
+            instructions = [
                 { inputSlot:                                 null, outputSlot: { start:   0, end:  32, length: 32 }, operation: GenericOperation.PrivateKey },
                 { inputSlot: { start:   0, end:  32, length: 32 }, outputSlot: { start:  32, end:  97, length: 65 }, operation: GenericOperation.PublicKey },
                 { inputSlot: { start:  32, end:  97, length: 65 }, outputSlot: { start:  97, end: 129, length: 32 }, operation: GenericOperation.Sha256 },
@@ -217,7 +188,7 @@ export function getInstructionSet(instructionSetName: InstructionSetName): Instr
             break
         case "MEMORY_SLOT::EVM64":
             // prettier-ignore
-            instructionSet = [
+            instructions = [
                 { inputSlot:                                 null, outputSlot: { start:   0, end:  32, length: 32 }, operation: GenericOperation.PrivateKey },
                 { inputSlot: { start:   0, end:  32, length: 32 }, outputSlot: { start:  32, end:  96, length: 64 }, operation: GenericOperation.PublicKey },
                 { inputSlot: { start:  32, end:  96, length: 64 }, outputSlot: { start:  96, end: 128, length: 32 }, operation: GenericOperation.Keccak256 },
@@ -225,7 +196,7 @@ export function getInstructionSet(instructionSetName: InstructionSetName): Instr
             break
         case "BTC33::P2PKH":
             // prettier-ignore
-            instructionSet = [
+            instructions = [
                 { inputSlot:                                 null, outputSlot: { start:   0, end:  32, length: 32 }, operation: GenericOperation.PrivateKey },
                 { inputSlot: { start:   0, end:  32, length: 32 }, outputSlot: { start:  32, end:  65, length: 33 }, operation: GenericOperation.PublicKey },
                 { inputSlot: { start:  32, end:  65, length: 33 }, outputSlot: { start:  65, end:  97, length: 32 }, operation: GenericOperation.Sha256 },
@@ -238,7 +209,7 @@ export function getInstructionSet(instructionSetName: InstructionSetName): Instr
             break
         case "BTC65::P2PKH":
             // prettier-ignore
-            instructionSet = [
+            instructions = [
                 { inputSlot:                                 null, outputSlot: { start:   0, end:  32, length: 32 }, operation: GenericOperation.PrivateKey },
                 { inputSlot: { start:   0, end:  32, length: 32 }, outputSlot: { start:  32, end:  97, length: 65 }, operation: GenericOperation.PublicKey },
                 { inputSlot: { start:  32, end:  97, length: 65 }, outputSlot: { start:  97, end: 129, length: 32 }, operation: GenericOperation.Sha256 },
@@ -251,7 +222,7 @@ export function getInstructionSet(instructionSetName: InstructionSetName): Instr
             break
         case "BTC33::P2SH":
             // prettier-ignore
-            instructionSet = [
+            instructions = [
                 { inputSlot:                                 null, outputSlot: { start:   0, end:  32, length: 32 }, operation: GenericOperation.PrivateKey },
                 { inputSlot: { start:   0, end:  32, length: 32 }, outputSlot: { start:  32, end:  65, length: 33 }, operation: GenericOperation.PublicKey },
                 { inputSlot: { start:  32, end:  65, length: 33 }, outputSlot: { start:  65, end:  97, length: 32 }, operation: GenericOperation.Sha256 },
@@ -267,7 +238,7 @@ export function getInstructionSet(instructionSetName: InstructionSetName): Instr
             break
         case "BTC65::P2SH":
             // prettier-ignore
-            instructionSet = [
+            instructions = [
                 { inputSlot:                                 null, outputSlot: { start:   0, end:  32, length: 32 }, operation: GenericOperation.PrivateKey },
                 { inputSlot: { start:   0, end:  32, length: 32 }, outputSlot: { start:  32, end:  97, length: 65 }, operation: GenericOperation.PublicKey },
                 { inputSlot: { start:  32, end:  97, length: 65 }, outputSlot: { start:  97, end: 129, length: 32 }, operation: GenericOperation.Sha256 },
@@ -283,7 +254,7 @@ export function getInstructionSet(instructionSetName: InstructionSetName): Instr
             break
         case "BTC33::P2WPKH":
             // prettier-ignore
-            instructionSet = [
+            instructions = [
                 { inputSlot:                                 null, outputSlot: { start:   0, end:  32, length: 32 }, operation: GenericOperation.PrivateKey },
                 { inputSlot: { start:   0, end:  32, length: 32 }, outputSlot: { start:  32, end:  65, length: 33 }, operation: GenericOperation.PublicKey },
                 { inputSlot: { start:  32, end:  65, length: 33 }, outputSlot: { start:  65, end:  97, length: 32 }, operation: GenericOperation.Sha256 },
@@ -293,7 +264,7 @@ export function getInstructionSet(instructionSetName: InstructionSetName): Instr
             break
         case "BTC65::P2WPKH":
             // prettier-ignore
-            instructionSet = [
+            instructions = [
                 { inputSlot:                                 null, outputSlot: { start:   0, end:  32, length: 32 }, operation: GenericOperation.PrivateKey },
                 { inputSlot: { start:   0, end:  32, length: 32 }, outputSlot: { start:  32, end:  97, length: 65 }, operation: GenericOperation.PublicKey },
                 { inputSlot: { start:  32, end:  97, length: 65 }, outputSlot: { start:  97, end: 129, length: 32 }, operation: GenericOperation.Sha256 },
@@ -303,7 +274,7 @@ export function getInstructionSet(instructionSetName: InstructionSetName): Instr
             break
         case "BTC33::P2WSH":
             // prettier-ignore
-            instructionSet = [
+            instructions = [
                 { inputSlot:                                 null, outputSlot: { start:   0, end:  32, length: 32 }, operation: GenericOperation.PrivateKey },
                 { inputSlot:                                 null, outputSlot: { start:  32, end:  33, length:  1 }, operation: AddressOperation.BtcP2wshOpPush33Prefix },
                 { inputSlot: { start:   0, end:  32, length: 32 }, outputSlot: { start:  33, end:  66, length: 33 }, operation: GenericOperation.PublicKey },
@@ -314,7 +285,7 @@ export function getInstructionSet(instructionSetName: InstructionSetName): Instr
             break
         case "BTC65::P2WSH":
             // prettier-ignore
-            instructionSet = [
+            instructions = [
                 { inputSlot:                                 null, outputSlot: { start:   0, end:  32, length: 32 }, operation: GenericOperation.PrivateKey },
                 { inputSlot:                                 null, outputSlot: { start:  32, end:  33, length:  1 }, operation: AddressOperation.BtcP2wshOpPush33Prefix },
                 { inputSlot: { start:   0, end:  32, length: 32 }, outputSlot: { start:  33, end:  98, length: 65 }, operation: GenericOperation.PublicKey },
@@ -325,7 +296,7 @@ export function getInstructionSet(instructionSetName: InstructionSetName): Instr
             break
         case "EVM64":
             // prettier-ignore
-            instructionSet = [
+            instructions = [
                 { inputSlot:                                 null, outputSlot: { start:   0, end:  32, length: 32 }, operation: GenericOperation.PrivateKey },
                 { inputSlot: { start:   0, end:  32, length: 32 }, outputSlot: { start:  32, end:  96, length: 64 }, operation: GenericOperation.PublicKey },
                 { inputSlot: { start:  32, end:  96, length: 64 }, outputSlot: { start:  96, end: 128, length: 32 }, operation: GenericOperation.Keccak256 },
@@ -335,18 +306,18 @@ export function getInstructionSet(instructionSetName: InstructionSetName): Instr
         default:
             throw new Error(
                 cyGeneral.errors.stringifyError(KernelErrors.INSTRUCTION_SET_NOT_FOUND, undefined, {
-                    instructionSetName,
+                    instructionSet,
                 })
             )
     }
 
     // Verify that the lengths are correct
-    instructionSet.forEach((instruction) => {
+    instructions.forEach((instruction) => {
         const inputSlotCalculatedLength = (instruction.inputSlot?.end ?? 0) - (instruction.inputSlot?.start ?? 0)
         if (instruction.inputSlot && instruction.inputSlot.length !== inputSlotCalculatedLength) {
             throw new Error(
                 cyGeneral.errors.stringifyError(KernelErrors.INVALID_INSTRUCTION_LENGTH, undefined, {
-                    instructionSetName,
+                    instructionSet,
                     instructionOperation: instruction.operation,
                     inputSlotLength: instruction.inputSlot.length,
                     inputSlotCalculatedLength,
@@ -358,7 +329,7 @@ export function getInstructionSet(instructionSetName: InstructionSetName): Instr
         if (instruction.outputSlot && instruction.outputSlot.length !== outputSlotCalculatedLength) {
             throw new Error(
                 cyGeneral.errors.stringifyError(KernelErrors.INVALID_INSTRUCTION_LENGTH, undefined, {
-                    instructionSetName,
+                    instructions,
                     instructionOperation: instruction.operation,
                     outputSlotLength: instruction.outputSlot.length,
                     outputSlotCalculatedLength,
@@ -370,21 +341,21 @@ export function getInstructionSet(instructionSetName: InstructionSetName): Instr
     // Flags pre-computation:
     // - `isGenericOperation` flag based on whether the operation is from the `Operation` enum or not.
     // - `isEnd` flag based on whether the instruction is the final one in the instruction set.
-    return instructionSet.map((instruction) => ({
+    return instructions.map((instruction) => ({
         ...instruction,
         isGenericOperation: Object.values(GenericOperation).includes(instruction.operation as GenericOperation),
-        isEnd: instruction === instructionSet[instructionSet.length - 1],
+        isEnd: instruction === instructions[instructions.length - 1],
     }))
 }
 
 /**
- * Get the needed cache length for a given instruction set,
+ * Get the needed cache length for the given list of instructions
  * by finding the maximum end of the input and output slots.
  */
-export function getInstructionSetCacheLength(instructionSet: Instruction[]): number {
+export function getInstructionsNeededCacheLength(instructions: Instruction[]): number {
     return Math.max(
-        ...instructionSet.map((instruction) => instruction.inputSlot?.end || 0),
-        ...instructionSet.map((instruction) => instruction.outputSlot?.end || 0)
+        ...instructions.map((instruction) => instruction.inputSlot?.end || 0),
+        ...instructions.map((instruction) => instruction.outputSlot?.end || 0)
     )
 }
 

@@ -1,5 +1,5 @@
 import AddressGenerator from "#kernel/generators/address_generator"
-import { addressInstructionSetNames, memoryInstructionSetNames } from "#kernel/utils/instructions"
+import { InstructionSet, addressInstructionSets, memoryInstructionSets } from "#kernel/utils/instructions"
 import Bench from "#lib/utils/benchmark"
 import externalLogger from "#lib/utils/external_logger"
 
@@ -14,30 +14,33 @@ export default function executeAddressGeneratorBenchmark(benchmarkDuration: numb
     externalLogger.info(">> Benchmark input size: unused ('AddressGenerator' is not input-size dependent)")
 
     // Test AddressGenerator instances
-    const addressGenerator = new AddressGenerator("MEMORY_SLOT::BTC33")
+    const addressGenerator = new AddressGenerator(InstructionSet.MEMORY_SLOT_BTC33_P2PKH)
 
     // Benchmark
     const bench = new Bench(benchmarkDuration)
 
-    for (const memoryInstructionSetName of memoryInstructionSetNames) {
-        addressGenerator.setInstructionSet(memoryInstructionSetName)
+    for (const memoryInstructionSet of memoryInstructionSets) {
+        addressGenerator.applyInstructionSet(memoryInstructionSet)
 
         let name: string
-        switch (memoryInstructionSetName) {
-            case "MEMORY_SLOT::BTC33":
-                name = "MEMORY_SLOT::BTC33 / MEMORY_SLOT::BTC33::P2WPKH"
+        switch (memoryInstructionSet) {
+            case InstructionSet.MEMORY_SLOT_BTC33_P2PKH:
+                name = "MEMORY_SLOT::BTC33::P2PKH / MEMORY_SLOT::BTC33::P2WPKH"
                 break
-            case "MEMORY_SLOT::BTC65":
-                name = "MEMORY_SLOT::BTC65 / MEMORY_SLOT::BTC65::P2WPKH"
+
+            case InstructionSet.MEMORY_SLOT_BTC65_P2PKH:
+                name = "MEMORY_SLOT::BTC65::P2PKH / MEMORY_SLOT::BTC65::P2WPKH"
                 break
-            case "MEMORY_SLOT::BTC33::P2WPKH":
-                // Skip this one, as it is already covered by "MEMORY_SLOT::BTC33"
+
+            case InstructionSet.MEMORY_SLOT_BTC33_P2WPKH:
+                // Skip this one, as it is already covered by "MEMORY_SLOT::BTC33::P2PKH"
                 continue
-            case "MEMORY_SLOT::BTC65::P2WPKH":
-                // Skip this one, as it is already covered by "MEMORY_SLOT::BTC65"
+
+            case InstructionSet.MEMORY_SLOT_BTC65_P2WPKH:
+                // Skip this one, as it is already covered by "MEMORY_SLOT::BTC65::P2PKH"
                 continue
             default:
-                name = memoryInstructionSetName
+                name = memoryInstructionSet
                 break
         }
 
@@ -46,9 +49,9 @@ export default function executeAddressGeneratorBenchmark(benchmarkDuration: numb
 
     bench.print("Into memory")
 
-    for (const addressInstructionSetName of addressInstructionSetNames) {
-        addressGenerator.setInstructionSet(addressInstructionSetName)
-        bench.benchmark(() => addressGenerator.executeInstructions(), `[${addressInstructionSetName}]`)
+    for (const addressInstructionSet of addressInstructionSets) {
+        addressGenerator.applyInstructionSet(addressInstructionSet)
+        bench.benchmark(() => addressGenerator.executeInstructions(), `[${addressInstructionSet}]`)
     }
 
     bench.print("Into address")

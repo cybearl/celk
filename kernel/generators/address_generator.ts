@@ -6,11 +6,11 @@ import Cache from "#kernel/utils/cache"
 import Base58Encoder from "#kernel/encoders/base58"
 import Bech32Encoder from "#kernel/encoders/bech32"
 import {
-    InstructionSetName,
+    InstructionSet,
     MemorySlot,
     GenericOperation,
-    getInstructionSet,
-    getInstructionSetCacheLength,
+    getInstructions,
+    getInstructionsNeededCacheLength,
     InstructionWithFlags,
     AddressOperation,
     getPrivateKeyOutputMemorySlot,
@@ -50,8 +50,8 @@ export const defaultAddressGeneratorOptions: Required<Omit<AddressGeneratorOptio
  */
 export default class AddressGenerator {
     // Instructions
-    instructionSetName!: InstructionSetName
-    private _instructionSet!: InstructionWithFlags[]
+    instructionSet!: InstructionSet
+    private _instructions!: InstructionWithFlags[]
 
     // Pointer, used only when executing instructions one by one
     private _instructionPointer = 0
@@ -83,7 +83,7 @@ export default class AddressGenerator {
 
     /**
      * Creates a new `AddressGenerator` instance.
-     * @param instructionSetName The name of the instruction set to use.
+     * @param instructionSet The name (enum) of the instruction set to get the instruction set with flags for.
      * @param options The address generator options:
      * - `injectedHexPrivateKey`: The hexadecimal representation of the private key to inject (optional, used for testing,
      *   note that it prevents the private key generator from executing).
@@ -94,34 +94,34 @@ export default class AddressGenerator {
      *   defaults to 0).
      * - `enableDebugging`: Whether to enable debugging (defaults to `false`).
      */
-    constructor(instructionSetName: InstructionSetName, options?: AddressGeneratorOptions) {
-        this.setInstructionSet(instructionSetName)
+    constructor(instructionSet: InstructionSet, options?: AddressGeneratorOptions) {
+        this.applyInstructionSet(instructionSet)
         this.setOptions(options ?? defaultAddressGeneratorOptions)
     }
 
     /**
-     * Set the options for the address generator.
-     * @param instructionSetName The name of the instruction set to use.
+     * Applies the instruction set to the address generator.
+     * @param instructionSet The name (enum) of the instruction set to get the instruction set with flags for.
      */
-    setInstructionSet(instructionSetName: InstructionSetName): void {
+    applyInstructionSet(instructionSet: InstructionSet): void {
         // Instructions
-        this.instructionSetName = instructionSetName
-        this._instructionSet = getInstructionSet(instructionSetName)
+        this.instructionSet = instructionSet
+        this._instructions = getInstructions(instructionSet)
 
         // Pre-computed flags
-        this._isMemorySlotInstructionSet = instructionSetName.startsWith("MEMORY_SLOT::")
-        this._publicKeyGenerationMode = instructionSetName.includes("33")
+        this._isMemorySlotInstructionSet = instructionSet.startsWith("MEMORY_SLOT")
+        this._publicKeyGenerationMode = instructionSet.includes("33")
             ? "compressed"
-            : instructionSetName.includes("65")
+            : instructionSet.includes("65")
               ? "uncompressed"
               : "evm"
-        this._longestInstructionOperationNameLength = getLongestInstructionOperationNameLength(this._instructionSet)
+        this._longestInstructionOperationNameLength = getLongestInstructionOperationNameLength(this._instructions)
 
         // Memory
-        this.cache = new Cache(getInstructionSetCacheLength(this._instructionSet))
+        this.cache = new Cache(getInstructionsNeededCacheLength(this._instructions))
 
         // Generators
-        const privateKeyMemorySlot = getPrivateKeyOutputMemorySlot(this._instructionSet)
+        const privateKeyMemorySlot = getPrivateKeyOutputMemorySlot(this._instructions)
         this._privateKeyGenerator = new PrivateKeyGenerator({ ...privateKeyMemorySlot, cache: this.cache })
 
         // Algorithms
@@ -150,7 +150,7 @@ export default class AddressGenerator {
     setOptions(options: AddressGeneratorOptions): void {
         if (options.enableDebugging) {
             externalLogger.info(`Initialized Address Generator with debug mode enabled:`)
-            externalLogger.info(`Instruction Set: [${this._instructionSet.map((i) => i.operation).join(", ")}]`)
+            externalLogger.info(`Instructions: [${this._instructions.map((i) => i.operation).join(", ")}]`)
         }
 
         // Converts the injected private key to a cache instance to improve performances even
@@ -289,7 +289,7 @@ export default class AddressGenerator {
      * @param customIndex The custom index of the instruction to execute, replaces the instruction pointer.
      */
     executeInstruction(customIndex?: number): MemorySlot | string | null {
-        const instruction = this._instructionSet[customIndex ?? this._instructionPointer]
+        const instruction = this._instructions[customIndex ?? this._instructionPointer]
         if (!instruction) {
             throw new Error(
                 cyGeneral.errors.stringifyError(
@@ -338,7 +338,7 @@ export default class AddressGenerator {
         let result: MemorySlot | string | null = null
 
         try {
-            for (const instruction of this._instructionSet) {
+            for (const instruction of this._instructions) {
                 if (instruction.isGenericOperation) {
                     this._executeGenericOperation(
                         instruction.operation as GenericOperation,
