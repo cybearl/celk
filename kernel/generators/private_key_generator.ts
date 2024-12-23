@@ -222,7 +222,7 @@ export default class PrivateKeyGenerator {
      *   reached, if not, it will just return the private key outside the bounds (optional, defaults to true).
      */
     setOptions(options: PrivateKeyGeneratorOptions): void {
-        if (options.lowerBound || options.upperBound) {
+        if (options.lowerBound !== undefined || options.upperBound !== undefined) {
             this._verifyAndSetBounds(options.lowerBound ?? 0n, options.upperBound ?? this._maxValue)
         }
 

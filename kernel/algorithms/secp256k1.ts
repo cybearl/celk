@@ -54,11 +54,10 @@ export default class Secp256k1Algorithm {
      * given by an input `MemorySlot`, and writes the key to the same or another `Cache` instance
      * at a position given by an output `MemorySlot`.
      *
-     * Output Length: 33 bytes (compressed), 65 bytes (uncompressed) or 64 bytes (evm).
+     * Output Length: 33 bytes (compressed), 65 bytes (uncompressed) or 64 bytes (evm - no prefix).
      * @param mode The public key generation mode (`compressed`, `uncompressed` or `evm`).
-     * @param cache The `Cache` instance to read the data from and write the hash to.
-     * @param inputSlot The position of the data to read in the cache (optional, defaults to 0 => length).
-     * @param outputSlot The position to write the hash to in the cache (optional, defaults to 0 => data length).
+     * @param inputSlotWithCacheInstance The position of the data to read in the attached cache (optional, defaults to 0 => length),
+     * @param outputSlotWithCacheInstance The position to write the hash to in the attached cache (optional, defaults to 0 => data length).
      */
     generate(
         mode: PublicKeyGenerationMode,
@@ -95,7 +94,55 @@ export default class Secp256k1Algorithm {
             ),
             outputSlotWithCacheInstance?.start,
             undefined, // Dynamic, let the function decide
-            mode === "evm" ? 1 : 0
+            mode === "evm" ? 1 : 0 // Remove the prefix for EVM
+        )
+    }
+
+    /**
+     * Tweaks the public key stored inside a `Cache` instance at a certain position given by an input `MemorySlot`,
+     * using a tweak stored inside the same or another `Cache` instance at a position given by a tweak `MemorySlot`,
+     * and writes the tweaked public key to the same or another `Cache` instance at a position given.
+     * @param inputSlotWithCacheInstance The position of the public key to read in the attached cache.
+     * @param tweakSlotWithCacheInstance The position of the tweak to read in the attached cache.
+     * @param outputSlotWithCacheInstance The position to write the tweaked public key to in the attached cache.
+     */
+    tweak(
+        inputSlotWithCacheInstance: MemorySlotWithCacheInstance,
+        tweakSlotWithCacheInstance: MemorySlotWithCacheInstance,
+        outputSlotWithCacheInstance: MemorySlotWithCacheInstance
+    ): void {
+        if (inputSlotWithCacheInstance.length !== 33 && inputSlotWithCacheInstance.length !== 65) {
+            throw new Error(
+                cyGeneral.errors.stringifyError(KernelErrors.INVALID_PUBLIC_KEY_LENGTH, undefined, {
+                    length: inputSlotWithCacheInstance.length,
+                    expected: 33,
+                })
+            )
+        }
+
+        if (outputSlotWithCacheInstance.cache.length < inputSlotWithCacheInstance.length) {
+            throw new Error(
+                cyGeneral.errors.stringifyError(KernelErrors.INVALID_CACHE_LENGTH, undefined, {
+                    length: outputSlotWithCacheInstance.cache.length,
+                    expected: inputSlotWithCacheInstance.length,
+                })
+            )
+        }
+
+        const tweak = tweakSlotWithCacheInstance.cache.copy(
+            tweakSlotWithCacheInstance?.start,
+            tweakSlotWithCacheInstance?.length
+        )
+
+        outputSlotWithCacheInstance.cache.writeUint8Array(
+            secp256k1.publicKeyTweakAdd(
+                inputSlotWithCacheInstance.cache.copy(
+                    inputSlotWithCacheInstance?.start,
+                    inputSlotWithCacheInstance?.length
+                ),
+                tweak
+            ),
+            outputSlotWithCacheInstance?.start
         )
     }
 }

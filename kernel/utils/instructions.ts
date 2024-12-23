@@ -26,6 +26,11 @@ export enum GenericOperation {
     Sha256 = "sha-256",
     Ripemd160 = "ripemd-160",
     Keccak256 = "keccak-256",
+
+    // Opcodes
+    OP_PUSHBYTES_32 = "OP_PUSHBYTES_32",
+    OP_PUSHBYTES_33 = "OP_PUSHBYTES_33",
+    OP_CHECKSIG = "OP_CHECKSIG",
 }
 
 /**
@@ -36,9 +41,9 @@ export enum AddressOperation {
     BtcP2shPrefix = "btc-p2sh-prefix", // Pushing "0014" at the beginning of the ripemd160 hash
     BtcBase58NetworkByte = "btc-base58-network-byte", // Pushing network byte at the beginning of the ripemd160 hash
     BtcBase58Encoding = "base58-encoding",
-    BtcP2wshOpPush33Prefix = "btc-p2wsh-op-push33-prefix", // Pushing "21" at the beginning of the sha256 hash
-    BtcP2wshOpChecksigSuffix = "btc-p2wsh-op-checksig-suffix", // Pushing "ac" at the end of the sha256 hash
     BtcBech32Encoding = "btc-bech32-encoding",
+    BtcTaprootTweak = "btc-taproot-tweak", // Tweaking the public key for taproot
+    BtcBech32mEncoding = "btc-bech32m-encoding", // = "btc-bech32-encoding", with enforced version > 0
     HexEncoding = "hex-encoding",
 }
 
@@ -73,8 +78,7 @@ export enum InstructionSet {
     MEMORY_SLOT_BTC65_P2WPKH = "MEMORY_SLOT::BTC65::P2WPKH", // = "MEMORY_SLOT::BTC65::P2PKH"
     MEMORY_SLOT_BTC33_P2WSH = "MEMORY_SLOT::BTC33::P2WSH",
     MEMORY_SLOT_BTC65_P2WSH = "MEMORY_SLOT::BTC65::P2WSH",
-    MEMORY_SLOT_BTC33_P2TR = "MEMORY_SLOT::BTC33::P2TR", // TODO
-    MEMORY_SLOT_BTC65_P2TR = "MEMORY_SLOT::BTC65::P2TR", // TODO
+    MEMORY_SLOT_BTC_P2TR = "MEMORY_SLOT::BTC::P2TR",
     MEMORY_SLOT_EVM64 = "MEMORY_SLOT::EVM64",
     BTC33_P2PKH = "BTC33::P2PKH",
     BTC65_P2PKH = "BTC65::P2PKH",
@@ -84,8 +88,7 @@ export enum InstructionSet {
     BTC65_P2WPKH = "BTC65::P2WPKH",
     BTC33_P2WSH = "BTC33::P2WSH",
     BTC65_P2WSH = "BTC65::P2WSH",
-    BTC33_P2TR = "BTC33::P2TR", // TODO
-    BTC65_P2TR = "BTC65::P2TR", // TODO
+    // BTC_P2TR = "BTC::P2TR",
     EVM64 = "EVM64",
 }
 
@@ -121,6 +124,8 @@ export const addressInstructionSets: InstructionSet[] = [
  * - [SecretScan.org](https://secretscan.org/)
  * - [Hiro.so](https://www.hiro.so/blog/understanding-the-differences-between-bitcoin-address-formats-when-developing-your-app)
  * - [RFC TOOLS](https://www.rfctools.com/bitcoin-address-test-tool/)
+ * - [LearnMeABitcoin](https://learnmeabitcoin.com/technical/script/p2tr/)
+ * - [Oghenovo Usiwoma](https://dev.to/eunovo/more-on-taproot-41g8)
  */
 export function getInstructions(instructionSet: InstructionSet): InstructionWithFlags[] {
     let instructions: Instruction[]
@@ -184,6 +189,15 @@ export function getInstructions(instructionSet: InstructionSet): InstructionWith
                 { inputSlot:                                 null, outputSlot: { start:   0, end:  32, length: 32 }, operation: GenericOperation.PrivateKey },
                 { inputSlot: { start:   0, end:  32, length: 32 }, outputSlot: { start:  32, end:  97, length: 65 }, operation: GenericOperation.PublicKey },
                 { inputSlot: { start:  32, end:  97, length: 65 }, outputSlot: { start:  97, end: 129, length: 32 }, operation: GenericOperation.Sha256 },
+            ]
+            break
+        case "MEMORY_SLOT::BTC::P2TR":
+            // prettier-ignore
+            instructions = [
+                { inputSlot:                                 null, outputSlot: { start:   0, end:  32, length: 32 }, operation: GenericOperation.PrivateKey },
+                { inputSlot: { start:   0, end:  32, length: 32 }, outputSlot: { start:  32, end:  97, length: 65 }, operation: GenericOperation.PublicKey },
+                { inputSlot: { start:  32, end:  97, length: 65 }, outputSlot: { start:  32, end:  97, length: 65 }, operation: AddressOperation.BtcTaprootTweak },
+                // { inputSlot: { start:  32, end:  65, length: 33 }, outputSlot: { start:  65, end:  97, length: 32 }, operation: GenericOperation.OP_CHECKSIG },
             ]
             break
         case "MEMORY_SLOT::EVM64":
@@ -276,9 +290,9 @@ export function getInstructions(instructionSet: InstructionSet): InstructionWith
             // prettier-ignore
             instructions = [
                 { inputSlot:                                 null, outputSlot: { start:   0, end:  32, length: 32 }, operation: GenericOperation.PrivateKey },
-                { inputSlot:                                 null, outputSlot: { start:  32, end:  33, length:  1 }, operation: AddressOperation.BtcP2wshOpPush33Prefix },
+                { inputSlot:                                 null, outputSlot: { start:  32, end:  33, length:  1 }, operation: GenericOperation.OP_PUSHBYTES_33 },
                 { inputSlot: { start:   0, end:  32, length: 32 }, outputSlot: { start:  33, end:  66, length: 33 }, operation: GenericOperation.PublicKey },
-                { inputSlot:                                 null, outputSlot: { start:  66, end:  67, length:  1 }, operation: AddressOperation.BtcP2wshOpChecksigSuffix },
+                { inputSlot:                                 null, outputSlot: { start:  66, end:  67, length:  1 }, operation: GenericOperation.OP_CHECKSIG },
                 { inputSlot: { start:  32, end:  67, length: 35 }, outputSlot: { start:  68, end: 100, length: 32 }, operation: GenericOperation.Sha256 },
                 { inputSlot: { start:  68, end: 100, length: 32 }, outputSlot:                                 null, operation: AddressOperation.BtcBech32Encoding },
             ]
@@ -287,13 +301,20 @@ export function getInstructions(instructionSet: InstructionSet): InstructionWith
             // prettier-ignore
             instructions = [
                 { inputSlot:                                 null, outputSlot: { start:   0, end:  32, length: 32 }, operation: GenericOperation.PrivateKey },
-                { inputSlot:                                 null, outputSlot: { start:  32, end:  33, length:  1 }, operation: AddressOperation.BtcP2wshOpPush33Prefix },
+                { inputSlot:                                 null, outputSlot: { start:  32, end:  33, length:  1 }, operation: GenericOperation.OP_PUSHBYTES_33 },
                 { inputSlot: { start:   0, end:  32, length: 32 }, outputSlot: { start:  33, end:  98, length: 65 }, operation: GenericOperation.PublicKey },
-                { inputSlot:                                 null, outputSlot: { start:  98, end:  99, length:  1 }, operation: AddressOperation.BtcP2wshOpChecksigSuffix },
+                { inputSlot:                                 null, outputSlot: { start:  98, end:  99, length:  1 }, operation: GenericOperation.OP_CHECKSIG },
                 { inputSlot: { start:  32, end:  99, length: 67 }, outputSlot: { start: 100, end: 132, length: 32 }, operation: GenericOperation.Sha256 },
                 { inputSlot: { start: 100, end: 132, length: 32 }, outputSlot:                                 null, operation: AddressOperation.BtcBech32Encoding },
             ]
             break
+        // case "BTC::P2TR":
+        //     // TODO
+        //     // prettier-ignore
+        //     instructions = [
+
+        //     ]
+        //     break
         case "EVM64":
             // prettier-ignore
             instructions = [

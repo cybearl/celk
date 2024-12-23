@@ -40,7 +40,7 @@ export const defaultAddressGeneratorOptions: Required<Omit<AddressGeneratorOptio
     privateKeyGeneratorOptions: {},
     btcBase58NetworkByte: 0x00,
     btcBech32Hrp: "bc",
-    btcBech32WitnessVersion: 0x00,
+    btcBech32WitnessVersion: 0,
     enableDebugging: false,
 }
 
@@ -92,6 +92,7 @@ export default class AddressGenerator {
      * - `btcBech32Hrp`: The bech32 human-readable part (only for Bitcoin bech32-based addresses, defaults to "bc").
      * - `btcBech32WitnessVersion`: The bech32 witness version (only for Bitcoin bech32-based addresses, from 0 to 16,
      *   defaults to 0).
+     * - `btcTaprootTweak`: The taproot tweak (only for Bitcoin taproot-based addresses, defaults to 0).
      * - `enableDebugging`: Whether to enable debugging (defaults to `false`).
      */
     constructor(instructionSet: InstructionSet, options?: AddressGeneratorOptions) {
@@ -145,6 +146,7 @@ export default class AddressGenerator {
      * - `btcBech32Hrp`: The bech32 human-readable part (only for Bitcoin bech32-based addresses, defaults to "bc").
      * - `btcBech32WitnessVersion`: The bech32 witness version (only for Bitcoin bech32-based addresses, from 0 to 16,
      *   defaults to 0).
+     * - `btcTaprootTweak`: The taproot tweak (only for Bitcoin taproot-based addresses, defaults to 0).
      * - `enableDebugging`: Whether to enable debugging (defaults to `false`).
      */
     setOptions(options: AddressGeneratorOptions): void {
@@ -161,6 +163,18 @@ export default class AddressGenerator {
 
         if (options.privateKeyGeneratorOptions) {
             this._privateKeyGenerator.setOptions(options.privateKeyGeneratorOptions)
+        }
+
+        if (this.instructionSet.includes("P2TR")) {
+            // P2TR addresses should use Bech32m encoding (= witness version > 0)
+            if (options.btcBech32WitnessVersion && options.btcBech32WitnessVersion === 0) {
+                externalLogger.warn(
+                    `The provided bech32 witness version for P2TR addresses is 0, which is not allowed. ` +
+                        `Automatically setting it to 1 (Bech32m).`
+                )
+
+                options.btcBech32WitnessVersion = 1
+            }
         }
 
         this._options = { ...this._options, ...options }
@@ -231,6 +245,17 @@ export default class AddressGenerator {
             case GenericOperation.Keccak256:
                 this._keccak256Algorithm.hash({ cache: this.cache, ...inputSlot }, { cache: this.cache, ...outputSlot })
                 break
+
+            // Opcodes
+            case GenericOperation.OP_PUSHBYTES_32:
+                this.cache.writeUint8(0x20, outputSlot?.start)
+                break
+            case GenericOperation.OP_PUSHBYTES_33:
+                this.cache.writeUint8(0x21, outputSlot?.start)
+                break
+            case GenericOperation.OP_CHECKSIG:
+                this.cache.writeUint8(0xac, outputSlot?.start)
+                break
         }
     }
 
@@ -256,13 +281,30 @@ export default class AddressGenerator {
                 break
             case AddressOperation.BtcBase58Encoding:
                 return this._base58Encoder.encode(this.cache, inputSlot as MemorySlot)
-            case AddressOperation.BtcP2wshOpPush33Prefix:
-                this.cache.writeUint8(0x21, outputSlot?.start)
-                break
-            case AddressOperation.BtcP2wshOpChecksigSuffix:
-                this.cache.writeUint8(0xac, outputSlot?.start)
-                break
             case AddressOperation.BtcBech32Encoding:
+                return this._bech32Encoder.encode(
+                    this._options.btcBech32WitnessVersion,
+                    this._options.btcBech32Hrp,
+                    this.cache,
+                    inputSlot as MemorySlot
+                )
+            case AddressOperation.BtcTaprootTweak:
+                // Using the x-only public key as the tweak
+                const tweakMemorySlot: MemorySlot = {
+                    start: inputSlot?.start as number,
+                    length: 32,
+                    end: inputSlot?.end as number,
+                }
+
+                console.log("TWEAK", this.cache.readHexString(inputSlot?.start, inputSlot?.length))
+
+                // this._secp256k1Algorithm.tweak(
+                //     { cache: this.cache, ...inputSlot },
+                //     { cache: this.cache, ...tweakMemorySlot },
+                //     { cache: this.cache, ...outputSlot }
+                // )
+                break
+            case AddressOperation.BtcBech32mEncoding:
                 return this._bech32Encoder.encode(
                     this._options.btcBech32WitnessVersion,
                     this._options.btcBech32Hrp,
@@ -301,29 +343,35 @@ export default class AddressGenerator {
 
         let result: MemorySlot | string | null = null
 
-        if (instruction.isGenericOperation) {
-            this._executeGenericOperation(
-                instruction.operation as GenericOperation,
-                instruction.inputSlot,
-                instruction.outputSlot as MemorySlot
+        try {
+            if (instruction.isGenericOperation) {
+                this._executeGenericOperation(
+                    instruction.operation as GenericOperation,
+                    instruction.inputSlot,
+                    instruction.outputSlot as MemorySlot
+                )
+
+                if (instruction.outputSlot) result = instruction.outputSlot
+            } else {
+                const address = this._executeAddressOperation(
+                    instruction.operation as AddressOperation,
+                    instruction.inputSlot,
+                    instruction.outputSlot
+                )
+
+                if (address) result = address
+            }
+
+            if (this._options.enableDebugging) this._logInstruction(instruction, result)
+
+            if (!customIndex) {
+                if (instruction.isEnd) this._instructionPointer = 0
+                else this._instructionPointer++
+            }
+        } catch (e) {
+            externalLogger.error(
+                `Error while executing instruction (${instruction.operation.toString()}):\n>> ${e.message}`
             )
-
-            if (instruction.outputSlot) result = instruction.outputSlot
-        } else {
-            const address = this._executeAddressOperation(
-                instruction.operation as AddressOperation,
-                instruction.inputSlot,
-                instruction.outputSlot
-            )
-
-            if (address) result = address
-        }
-
-        if (this._options.enableDebugging) this._logInstruction(instruction, result)
-
-        if (!customIndex) {
-            if (instruction.isEnd) this._instructionPointer = 0
-            else this._instructionPointer++
         }
 
         return result
@@ -337,8 +385,8 @@ export default class AddressGenerator {
     executeInstructions(): MemorySlot | string | null {
         let result: MemorySlot | string | null = null
 
-        try {
-            for (const instruction of this._instructions) {
+        for (const instruction of this._instructions) {
+            try {
                 if (instruction.isGenericOperation) {
                     this._executeGenericOperation(
                         instruction.operation as GenericOperation,
@@ -358,9 +406,13 @@ export default class AddressGenerator {
                 }
 
                 if (this._options.enableDebugging) this._logInstruction(instruction, result)
+            } catch (e) {
+                externalLogger.error(
+                    `Error while executing instruction (${instruction.operation.toString()}):\n>> ${e.message}`
+                )
+
+                break
             }
-        } catch (e) {
-            externalLogger.error(`Error while executing instructions: ${e.message}`)
         }
 
         return result

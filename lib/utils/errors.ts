@@ -159,12 +159,6 @@ export const KernelErrors = {
         message: "The Bech32 string has no prefix.",
         data: null,
     },
-    INVALID_BECH32_DATA: {
-        status: 400,
-        name: "INVALID_BECH32_DATA",
-        message: "The Bech32 string contains invalid data.",
-        data: null,
-    },
     INVALID_CACHE_LENGTH: {
         status: 400,
         name: "INVALID_CACHE_LENGTH",
@@ -177,40 +171,22 @@ export const KernelErrors = {
         message: "The private key has an invalid length (must be 32 bytes).",
         data: null,
     },
+    INVALID_PUBLIC_KEY_LENGTH: {
+        status: 400,
+        name: "INVALID_PUBLIC_KEY_LENGTH",
+        message: "The public key has an invalid length.",
+        data: null,
+    },
     INVALID_BASE58_CHARACTER: {
         status: 400,
         name: "INVALID_BASE58_CHARACTER",
         message: "The Base58 string contains an invalid character.",
         data: null,
     },
-    UNSUPPORTED_PUBLIC_KEY_LENGTH: {
-        status: 400,
-        name: "UNSUPPORTED_PUBLIC_KEY_LENGTH",
-        message: "The public key length is not supported.",
-        data: null,
-    },
-    UNSUPPORTED_OPERATION: {
-        status: 400,
-        name: "UNSUPPORTED_OPERATION",
-        message: "This operation is not supported.",
-        data: null,
-    },
-    MISSING_ADDRESS_SPECIFIC_PARAMETERS: {
-        status: 400,
-        name: "MISSING_ADDRESS_SPECIFIC_PARAMETERS",
-        message: "Missing address specific parameters for the given instruction set.",
-        data: null,
-    },
     INVALID_PRIVATE_KEY_RANGE: {
         status: 400,
         name: "INVALID_PRIVATE_KEY_RANGE",
         message: "The private key range is invalid. it must be >= 0 & < Infinity.",
-        data: null,
-    },
-    INVALID_INJECTED_PRIVATE_KEY: {
-        status: 400,
-        name: "INVALID_INJECTED_PRIVATE_KEY",
-        message: "The injected private key is either null or invalid.",
         data: null,
     },
     INVALID_INSTRUCTION_INDEX: {

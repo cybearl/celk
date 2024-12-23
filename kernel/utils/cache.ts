@@ -336,18 +336,13 @@ export default class Cache extends Uint8Array {
      * @returns The cache instance.
      */
     writeHexString = (value: string, offset = 0, length = value.length / 2): this => {
-        if (length === 0) {
-            throw new RangeError(`[Cache - writeHexString] Invalid hexadecimal string length: '${length}'.`)
-        }
-        if (length % 2 !== 0) {
-            throw new RangeError(`[Cache - writeHexString] Invalid hexadecimal string length: '${length}'.`)
-        }
-
         // Remove any `0x` prefix before writing
         if (value.startsWith("0x")) {
             value = value.slice(2)
-            length -= 2
         }
+
+        console.log("value", value)
+        console.log("length", length)
 
         this.check(offset, length)
 

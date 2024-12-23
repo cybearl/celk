@@ -157,8 +157,8 @@ test.group("cache / read / readBigInt", (group) => {
     let cache: Cache
 
     const bigIntByteValues = [0xff, 0x01, 0xff, 0x01, 0xff, 0x11, 0xff, 0x11]
-    const bigIntsLE = [BigInt(0xff01ff01), BigInt(0xff11ff11)]
-    const bigIntsBE = [BigInt(0x01ff01ff), BigInt(0x11ff11ff)]
+    const bigIntsLE = [BigInt(0x01ff01ff), BigInt(0x11ff11ff)]
+    const bigIntsBE = [BigInt(0xff01ff01), BigInt(0xff11ff11)]
 
     group.each.setup(() => {
         cache = Cache.alloc(8)

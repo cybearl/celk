@@ -7,7 +7,7 @@ test.group("secp256k1 / generate", (group) => {
     let secp256k1Algorithm: Secp256k1Algorithm
     let cache: Cache
 
-    const privateKey = "0X6F737C2D39B4497F4A2556012F0C20E66608CB5D307555D646CE633425E38436"
+    const privateKey = "0x6F737C2D39B4497F4A2556012F0C20E66608CB5D307555D646CE633425E38436"
     const privateKeySlot: MemorySlot = { start: 0, length: 32, end: 32 }
 
     group.each.setup(() => {
