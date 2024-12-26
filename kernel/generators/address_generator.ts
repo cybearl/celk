@@ -15,6 +15,7 @@ import {
     AddressOperation,
     getPrivateKeyOutputMemorySlot,
     getLongestInstructionOperationNameLength,
+    MemorySlotWithCI,
 } from "#kernel/utils/instructions"
 import externalLogger from "#lib/utils/external_logger"
 import PrivateKeyGenerator, { PrivateKeyGeneratorOptions } from "#kernel/generators/private_key_generator"
@@ -30,6 +31,7 @@ export type AddressGeneratorOptions = {
     btcBase58NetworkByte?: number
     btcBech32Hrp?: string
     btcBech32WitnessVersion?: number
+    btcTaprootTweak?: string
     enableDebugging?: boolean
 }
 
@@ -41,6 +43,7 @@ export const defaultAddressGeneratorOptions: Required<Omit<AddressGeneratorOptio
     btcBase58NetworkByte: 0x00,
     btcBech32Hrp: "bc",
     btcBech32WitnessVersion: 0,
+    btcTaprootTweak: "TapTweak",
     enableDebugging: false,
 }
 
@@ -57,13 +60,14 @@ export default class AddressGenerator {
     private _instructionPointer = 0
 
     // Parameters
-    private _options = defaultAddressGeneratorOptions
+    private _options: AddressGeneratorOptions = defaultAddressGeneratorOptions
 
     // Pre-computed flags / values
     private _isMemorySlotInstructionSet!: boolean
     private _publicKeyGenerationMode!: PublicKeyGenerationMode
     private _longestInstructionOperationNameLength!: number
     private _injectedPrivateKey?: Cache
+    private _btcTaprootTweak!: Cache
 
     // Memory
     cache!: Cache
@@ -83,7 +87,7 @@ export default class AddressGenerator {
 
     /**
      * Creates a new `AddressGenerator` instance.
-     * @param instructionSet The name (enum) of the instruction set to get the instruction set with flags for.
+     * @param instructionSet The name (enum) of the instruction set.
      * @param options The address generator options:
      * - `injectedHexPrivateKey`: The hexadecimal representation of the private key to inject (optional, used for testing,
      *   note that it prevents the private key generator from executing).
@@ -92,17 +96,55 @@ export default class AddressGenerator {
      * - `btcBech32Hrp`: The bech32 human-readable part (only for Bitcoin bech32-based addresses, defaults to "bc").
      * - `btcBech32WitnessVersion`: The bech32 witness version (only for Bitcoin bech32-based addresses, from 0 to 16,
      *   defaults to 0).
-     * - `btcTaprootTweak`: The taproot tweak (only for Bitcoin taproot-based addresses, defaults to 0).
+     * - `btcTaprootTweakMemorySlotWithCI`: The taproot tweak (only for Bitcoin taproot-based addresses, defaults
+     *   to the x-only coordinate of the public key).
      * - `enableDebugging`: Whether to enable debugging (defaults to `false`).
      */
     constructor(instructionSet: InstructionSet, options?: AddressGeneratorOptions) {
+        if (!instructionSet) {
+            throw new Error(
+                cyGeneral.errors.stringifyError(
+                    KernelErrors.INVALID_INSTRUCTION_SET,
+                    "The instruction set must be provided."
+                )
+            )
+        }
+
+        if (!getInstructions(instructionSet)) {
+            throw new Error(
+                cyGeneral.errors.stringifyError(
+                    KernelErrors.INVALID_INSTRUCTION_SET,
+                    "The given instruction set does not exist."
+                )
+            )
+        }
+
         this.applyInstructionSet(instructionSet)
         this.setOptions(options ?? defaultAddressGeneratorOptions)
     }
 
     /**
+     * Recover the private key generation mode from the name of the instruction set.
+     * @param instructionSet The name (enum) of the instruction set.
+     * @returns The private key generation mode.
+     */
+    private _getPrivateKeyGenerationMode(instructionSet: InstructionSet): PublicKeyGenerationMode {
+        if (instructionSet.includes("33")) return "compressed"
+        if (instructionSet.includes("65")) return "uncompressed"
+        if (instructionSet.includes("P2TR")) return "uncompressed"
+        if (instructionSet.includes("EVM")) return "evm"
+
+        throw new Error(
+            cyGeneral.errors.stringifyError(
+                KernelErrors.INVALID_INSTRUCTION_SET,
+                "The given instruction set does not have a valid private key generation mode."
+            )
+        )
+    }
+
+    /**
      * Applies the instruction set to the address generator.
-     * @param instructionSet The name (enum) of the instruction set to get the instruction set with flags for.
+     * @param instructionSet The name (enum) of the instruction set.
      */
     applyInstructionSet(instructionSet: InstructionSet): void {
         // Instructions
@@ -111,11 +153,7 @@ export default class AddressGenerator {
 
         // Pre-computed flags
         this._isMemorySlotInstructionSet = instructionSet.startsWith("MEMORY_SLOT")
-        this._publicKeyGenerationMode = instructionSet.includes("33")
-            ? "compressed"
-            : instructionSet.includes("65")
-              ? "uncompressed"
-              : "evm"
+        this._publicKeyGenerationMode = this._getPrivateKeyGenerationMode(instructionSet)
         this._longestInstructionOperationNameLength = getLongestInstructionOperationNameLength(this._instructions)
 
         // Memory
@@ -146,7 +184,8 @@ export default class AddressGenerator {
      * - `btcBech32Hrp`: The bech32 human-readable part (only for Bitcoin bech32-based addresses, defaults to "bc").
      * - `btcBech32WitnessVersion`: The bech32 witness version (only for Bitcoin bech32-based addresses, from 0 to 16,
      *   defaults to 0).
-     * - `btcTaprootTweak`: The taproot tweak (only for Bitcoin taproot-based addresses, defaults to 0).
+     * - `btcTaprootTweakMemorySlotWithCI`: The taproot tweak (only for Bitcoin taproot-based addresses, defaults
+     *   to the x-only coordinate of the public key).
      * - `enableDebugging`: Whether to enable debugging (defaults to `false`).
      */
     setOptions(options: AddressGeneratorOptions): void {
@@ -175,6 +214,14 @@ export default class AddressGenerator {
 
                 options.btcBech32WitnessVersion = 1
             }
+        }
+
+        if (this._options.btcTaprootTweak) {
+            this._btcTaprootTweak = new Cache(32)
+
+            // Pre-compute the hash of the taproot tweak
+            const taprootTweakCache = Cache.fromHexString(this._options.btcTaprootTweak)
+            this._sha256Algorithm.hash({ cache: taprootTweakCache }, { cache: this._btcTaprootTweak })
         }
 
         this._options = { ...this._options, ...options }
@@ -277,37 +324,28 @@ export default class AddressGenerator {
                 this.cache.writeUint8(0x14, (outputSlot?.start ?? 0) + 1)
                 break
             case AddressOperation.BtcBase58NetworkByte:
-                this.cache.writeUint8(this._options.btcBase58NetworkByte, outputSlot?.start)
+                this.cache.writeUint8(this._options.btcBase58NetworkByte as number, outputSlot?.start)
                 break
             case AddressOperation.BtcBase58Encoding:
                 return this._base58Encoder.encode(this.cache, inputSlot as MemorySlot)
             case AddressOperation.BtcBech32Encoding:
                 return this._bech32Encoder.encode(
-                    this._options.btcBech32WitnessVersion,
-                    this._options.btcBech32Hrp,
+                    this._options.btcBech32WitnessVersion as number,
+                    this._options.btcBech32Hrp as string,
                     this.cache,
                     inputSlot as MemorySlot
                 )
             case AddressOperation.BtcTaprootTweak:
-                // Using the x-only public key as the tweak
-                const tweakMemorySlot: MemorySlot = {
-                    start: inputSlot?.start as number,
-                    length: 32,
-                    end: inputSlot?.end as number,
-                }
-
-                console.log("TWEAK", this.cache.readHexString(inputSlot?.start, inputSlot?.length))
-
-                // this._secp256k1Algorithm.tweak(
-                //     { cache: this.cache, ...inputSlot },
-                //     { cache: this.cache, ...tweakMemorySlot },
-                //     { cache: this.cache, ...outputSlot }
-                // )
+                this._secp256k1Algorithm.tweak(
+                    { cache: this.cache, ...outputSlot }, // Public key
+                    { cache: this._btcTaprootTweak },
+                    { cache: this.cache, ...outputSlot } // Public key
+                )
                 break
             case AddressOperation.BtcBech32mEncoding:
                 return this._bech32Encoder.encode(
-                    this._options.btcBech32WitnessVersion,
-                    this._options.btcBech32Hrp,
+                    this._options.btcBech32WitnessVersion as number,
+                    this._options.btcBech32Hrp as string,
                     this.cache,
                     inputSlot as MemorySlot
                 )

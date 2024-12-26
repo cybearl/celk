@@ -189,6 +189,12 @@ export const KernelErrors = {
         message: "The private key range is invalid. it must be >= 0 & < Infinity.",
         data: null,
     },
+    INVALID_INSTRUCTION_SET: {
+        status: 400,
+        name: "INVALID_INSTRUCTION_SET",
+        message: "The instruction set is invalid.",
+        data: null,
+    },
     INVALID_INSTRUCTION_INDEX: {
         status: 400,
         name: "INVALID_INSTRUCTION_INDEX",

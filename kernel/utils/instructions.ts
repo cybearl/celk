@@ -28,9 +28,10 @@ export enum GenericOperation {
     Keccak256 = "keccak-256",
 
     // Opcodes
-    OP_PUSHBYTES_32 = "OP_PUSHBYTES_32",
-    OP_PUSHBYTES_33 = "OP_PUSHBYTES_33",
-    OP_CHECKSIG = "OP_CHECKSIG",
+    OP_1 = "OP_1", // 0x51 = 81
+    OP_PUSHBYTES_32 = "OP_PUSHBYTES_32", // 0x20 = 32
+    OP_PUSHBYTES_33 = "OP_PUSHBYTES_33", // 0x21 = 33
+    OP_CHECKSIG = "OP_CHECKSIG", // 0xAC = 172
 }
 
 /**
@@ -88,7 +89,7 @@ export enum InstructionSet {
     BTC65_P2WPKH = "BTC65::P2WPKH",
     BTC33_P2WSH = "BTC33::P2WSH",
     BTC65_P2WSH = "BTC65::P2WSH",
-    // BTC_P2TR = "BTC::P2TR",
+    // BTC33_P2TR = "BTC::P2TR", // TODO
     EVM64 = "EVM64",
 }
 
@@ -196,8 +197,9 @@ export function getInstructions(instructionSet: InstructionSet): InstructionWith
             instructions = [
                 { inputSlot:                                 null, outputSlot: { start:   0, end:  32, length: 32 }, operation: GenericOperation.PrivateKey },
                 { inputSlot: { start:   0, end:  32, length: 32 }, outputSlot: { start:  32, end:  97, length: 65 }, operation: GenericOperation.PublicKey },
-                { inputSlot: { start:  32, end:  97, length: 65 }, outputSlot: { start:  32, end:  97, length: 65 }, operation: AddressOperation.BtcTaprootTweak },
-                // { inputSlot: { start:  32, end:  65, length: 33 }, outputSlot: { start:  65, end:  97, length: 32 }, operation: GenericOperation.OP_CHECKSIG },
+                { inputSlot: { start:  33, end:  65, length: 32 }, outputSlot: { start:  32, end:  97, length: 65 }, operation: AddressOperation.BtcTaprootTweak },
+                { inputSlot: { start:  33, end:  65, length: 32 }, outputSlot: { start:  97, end: 129, length: 32 }, operation: GenericOperation.Sha256 },
+                { inputSlot: { start:  97, end: 129, length: 32 }, outputSlot: { start: 129, end: 149, length: 20 }, operation: GenericOperation.Ripemd160 },
             ]
             break
         case "MEMORY_SLOT::EVM64":

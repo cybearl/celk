@@ -150,6 +150,10 @@ test.group("address_generator / generations", () => {
         expect(addressGenerator.cache.readHexString(97, 32)).toBe(sha256)
     })
 
+    test("MEMORY_SLOT::BTC::P2TR", ({ expect }) => {
+        //
+    })
+
     test("MEMORY_SLOT::EVM64", ({ expect }) => {
         const privateKey = "427D3D653001CF9999297890C19DD7A7D191F87E89A6E5B187C2723C14BEC281"
         const publicKey =

@@ -126,12 +126,10 @@ export default class Secp256k1Algorithm {
             )
         }
 
-        const tweak = tweakSlotWithCI.cache.copy(tweakSlotWithCI?.start, tweakSlotWithCI?.length)
-
         outputSlotWithCI.cache.writeUint8Array(
             secp256k1.publicKeyTweakAdd(
                 inputSlotWithCI.cache.copy(inputSlotWithCI?.start, inputSlotWithCI?.length),
-                tweak
+                tweakSlotWithCI.cache.copy(tweakSlotWithCI?.start, tweakSlotWithCI?.length)
             ),
             outputSlotWithCI?.start
         )
