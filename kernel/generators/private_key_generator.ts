@@ -1,6 +1,6 @@
 import { N_BIGINT } from "#kernel/algorithms/secp256k1"
 import Cache from "#kernel/utils/cache"
-import { MemorySlotWithCacheInstance } from "#kernel/utils/instructions"
+import { MemorySlotWithCI } from "#kernel/utils/instructions"
 import { KernelErrors } from "#lib/utils/errors"
 import externalLogger from "#lib/utils/external_logger"
 import { cyGeneral } from "@cybearl/cypack"
@@ -47,7 +47,7 @@ export default class PrivateKeyGenerator {
     /**
      * The output slot with cache instance passed to the generator.
      */
-    private _outputSlotWithCacheInstance!: MemorySlotWithCacheInstance
+    private _outputSlotWithCI!: MemorySlotWithCI
 
     /**
      * The highest possible value of the private key based on its size.
@@ -81,7 +81,7 @@ export default class PrivateKeyGenerator {
 
     /**
      * Creates a new `PrivateKeyGenerator` instance.
-     * @param outputSlotWithCacheInstance The cache instance to write the private key to, and its dedicated memory slot (optional, defaults to 0 => data length).
+     * @param outputSlotWithCI The cache instance to write the private key to, and its dedicated memory slot (optional, defaults to 0 => data length).
      * @param options The private key generator options:
      * - `lowerBound`: The lower bound of the private key to generate rounded to
      *   the nearest byte (optional, defaults to 1).
@@ -93,39 +93,36 @@ export default class PrivateKeyGenerator {
      * - `throwOnMaxRejections`: A flag indicating if an error should be thrown when the maximum number of rejections is
      *   reached, if not, it will just return the private key outside the bounds (optional, defaults to true).
      */
-    constructor(outputSlotWithCacheInstance: MemorySlotWithCacheInstance, options?: PrivateKeyGeneratorOptions) {
-        this.setCacheInstanceWithSlot(outputSlotWithCacheInstance)
+    constructor(outputSlotWithCI: MemorySlotWithCI, options?: PrivateKeyGeneratorOptions) {
+        this.setCacheInstanceWithSlot(outputSlotWithCI)
         this.setOptions(options ?? defaultPrivateKeyGeneratorOptions)
         this.generate()
     }
 
     /**
      * Set the output slot with cache instance to write the private key to.
-     * @param outputSlotWithCacheInstance The cache instance to write the private key to, and its dedicated memory slot.
+     * @param outputSlotWithCI The cache instance to write the private key to, and its dedicated memory slot.
      */
-    setCacheInstanceWithSlot(outputSlotWithCacheInstance: MemorySlotWithCacheInstance): void {
-        if (outputSlotWithCacheInstance.cache.length <= 0) {
+    setCacheInstanceWithSlot(outputSlotWithCI: MemorySlotWithCI): void {
+        if (outputSlotWithCI.cache.length <= 0) {
             throw new Error(
                 cyGeneral.errors.stringifyError(
                     KernelErrors.INVALID_PRIVATE_KEY_LENGTH,
                     "The private key size must be greater than 0.",
                     {
-                        length: outputSlotWithCacheInstance.cache.length,
+                        length: outputSlotWithCI.cache.length,
                     }
                 )
             )
         }
 
-        this._outputSlotWithCacheInstance = outputSlotWithCacheInstance
+        this._outputSlotWithCI = outputSlotWithCI
 
         // Initially clear the entire cache's memory slot
-        this._outputSlotWithCacheInstance.cache.clear(
-            this._outputSlotWithCacheInstance.start,
-            this._outputSlotWithCacheInstance.length
-        )
+        this._outputSlotWithCI.cache.clear(this._outputSlotWithCI.start, this._outputSlotWithCI.length)
 
         // Calculate the maximum value of the private key based on its size
-        this._maxValue = 2n ** BigInt(this._outputSlotWithCacheInstance.cache.length * 8) - 1n
+        this._maxValue = 2n ** BigInt(this._outputSlotWithCI.cache.length * 8) - 1n
     }
 
     /**
@@ -227,7 +224,7 @@ export default class PrivateKeyGenerator {
         }
 
         if (options.endianness) {
-            this._endianness = this._outputSlotWithCacheInstance.cache.normalizeEndianness(options.endianness)
+            this._endianness = this._outputSlotWithCI.cache.normalizeEndianness(options.endianness)
         }
 
         if (options.maxRejections !== undefined) {
@@ -263,10 +260,7 @@ export default class PrivateKeyGenerator {
         }
 
         // Clear the entire cache's memory slot to prevent any conflict / contamination
-        this._outputSlotWithCacheInstance.cache.clear(
-            this._outputSlotWithCacheInstance.start,
-            this._outputSlotWithCacheInstance.length
-        )
+        this._outputSlotWithCI.cache.clear(this._outputSlotWithCI.start, this._outputSlotWithCI.length)
     }
 
     /**
@@ -293,7 +287,7 @@ export default class PrivateKeyGenerator {
             // indicating if the random private key is greater than the lower bound
             for (let i = 0; i < this._lowerBound.bytesLength; i++) {
                 const lowerBoundByte = this._lowerBound.value.readUint8(i)
-                const randomByte = this._outputSlotWithCacheInstance.cache.readUint8(i)
+                const randomByte = this._outputSlotWithCI.cache.readUint8(i)
 
                 if (randomByte < lowerBoundByte) {
                     isWithinBounds = false
@@ -307,7 +301,7 @@ export default class PrivateKeyGenerator {
             // indicating if the random private key is less than the upper bound
             for (let i = 0; i < this._upperBound.bytesLength; i++) {
                 const upperBoundByte = this._upperBound.value.readUint8(i)
-                const randomByte = this._outputSlotWithCacheInstance.cache.readUint8(i)
+                const randomByte = this._outputSlotWithCI.cache.readUint8(i)
 
                 if (randomByte > upperBoundByte) {
                     isWithinBounds = false
@@ -352,15 +346,15 @@ export default class PrivateKeyGenerator {
 
             // Clean and refill the private key with random bytes
             if (this._endianness === "LE") {
-                this._outputSlotWithCacheInstance.cache.clear(0, this._upperBound.bytesLength)
-                this._outputSlotWithCacheInstance.cache.randomFill(0, randomBytesLength)
+                this._outputSlotWithCI.cache.clear(0, this._upperBound.bytesLength)
+                this._outputSlotWithCI.cache.randomFill(0, randomBytesLength)
             } else {
-                this._outputSlotWithCacheInstance.cache.clear(
-                    this._outputSlotWithCacheInstance.cache.length - this._upperBound.bytesLength,
+                this._outputSlotWithCI.cache.clear(
+                    this._outputSlotWithCI.cache.length - this._upperBound.bytesLength,
                     this._upperBound.bytesLength
                 )
-                this._outputSlotWithCacheInstance.cache.randomFill(
-                    this._outputSlotWithCacheInstance.cache.length - randomBytesLength,
+                this._outputSlotWithCI.cache.randomFill(
+                    this._outputSlotWithCI.cache.length - randomBytesLength,
                     randomBytesLength
                 )
             }
@@ -375,9 +369,9 @@ export default class PrivateKeyGenerator {
      * in hexadecimal format.
      */
     printPrivateKey(): void {
-        const privateKeyHex = this._outputSlotWithCacheInstance.cache
+        const privateKeyHex = this._outputSlotWithCI.cache
             .toHexString(undefined, this._endianness)
-            .replace(new RegExp(`.{${this._outputSlotWithCacheInstance.cache.length * 2}}`, "g"), "$& ")
+            .replace(new RegExp(`.{${this._outputSlotWithCI.cache.length * 2}}`, "g"), "$& ")
 
         externalLogger.info(`Private key: ${privateKeyHex}`)
     }

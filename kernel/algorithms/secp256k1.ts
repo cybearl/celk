@@ -1,4 +1,4 @@
-import { MemorySlotWithCacheInstance } from "#kernel/utils/instructions"
+import { MemorySlotWithCI } from "#kernel/utils/instructions"
 import { KernelErrors } from "#lib/utils/errors"
 import { cyGeneral } from "@cybearl/cypack"
 import secp256k1 from "secp256k1"
@@ -56,18 +56,18 @@ export default class Secp256k1Algorithm {
      *
      * Output Length: 33 bytes (compressed), 65 bytes (uncompressed) or 64 bytes (evm - no prefix).
      * @param mode The public key generation mode (`compressed`, `uncompressed` or `evm`).
-     * @param inputSlotWithCacheInstance The position of the data to read in the attached cache (optional, defaults to 0 => length),
-     * @param outputSlotWithCacheInstance The position to write the hash to in the attached cache (optional, defaults to 0 => data length).
+     * @param inputSlotWithCI The position of the data to read in the attached cache (optional, defaults to 0 => length),
+     * @param outputSlotWithCI The position to write the hash to in the attached cache (optional, defaults to 0 => data length).
      */
     generate(
         mode: PublicKeyGenerationMode,
-        inputSlotWithCacheInstance: MemorySlotWithCacheInstance,
-        outputSlotWithCacheInstance: MemorySlotWithCacheInstance
+        inputSlotWithCI: MemorySlotWithCI,
+        outputSlotWithCI: MemorySlotWithCI
     ): void {
-        if (inputSlotWithCacheInstance.length !== 32) {
+        if (inputSlotWithCI.length !== 32) {
             throw new Error(
                 cyGeneral.errors.stringifyError(KernelErrors.INVALID_PRIVATE_KEY_LENGTH, undefined, {
-                    length: inputSlotWithCacheInstance.length,
+                    length: inputSlotWithCI.length,
                     expected: 32,
                 })
             )
@@ -75,24 +75,21 @@ export default class Secp256k1Algorithm {
 
         const publicKeyLength = this.getPublicKeyLength(mode)
 
-        if (outputSlotWithCacheInstance.cache.length < publicKeyLength) {
+        if (outputSlotWithCI.cache.length < publicKeyLength) {
             throw new Error(
                 cyGeneral.errors.stringifyError(KernelErrors.INVALID_CACHE_LENGTH, undefined, {
-                    length: outputSlotWithCacheInstance.cache.length,
+                    length: outputSlotWithCI.cache.length,
                     expected: publicKeyLength,
                 })
             )
         }
 
-        outputSlotWithCacheInstance.cache.writeUint8Array(
+        outputSlotWithCI.cache.writeUint8Array(
             secp256k1.publicKeyCreate(
-                inputSlotWithCacheInstance.cache.copy(
-                    inputSlotWithCacheInstance?.start,
-                    inputSlotWithCacheInstance?.length
-                ),
+                inputSlotWithCI.cache.copy(inputSlotWithCI?.start, inputSlotWithCI?.length),
                 mode === "compressed"
             ),
-            outputSlotWithCacheInstance?.start,
+            outputSlotWithCI?.start,
             undefined, // Dynamic, let the function decide
             mode === "evm" ? 1 : 0 // Remove the prefix for EVM
         )
@@ -102,47 +99,41 @@ export default class Secp256k1Algorithm {
      * Tweaks the public key stored inside a `Cache` instance at a certain position given by an input `MemorySlot`,
      * using a tweak stored inside the same or another `Cache` instance at a position given by a tweak `MemorySlot`,
      * and writes the tweaked public key to the same or another `Cache` instance at a position given.
-     * @param inputSlotWithCacheInstance The position of the public key to read in the attached cache.
-     * @param tweakSlotWithCacheInstance The position of the tweak to read in the attached cache.
-     * @param outputSlotWithCacheInstance The position to write the tweaked public key to in the attached cache.
+     * @param inputSlotWithCI The position of the public key to read in the attached cache.
+     * @param tweakSlotWithCI The position of the tweak to read in the attached cache.
+     * @param outputSlotWithCI The position to write the tweaked public key to in the attached cache.
      */
     tweak(
-        inputSlotWithCacheInstance: MemorySlotWithCacheInstance,
-        tweakSlotWithCacheInstance: MemorySlotWithCacheInstance,
-        outputSlotWithCacheInstance: MemorySlotWithCacheInstance
+        inputSlotWithCI: MemorySlotWithCI,
+        tweakSlotWithCI: MemorySlotWithCI,
+        outputSlotWithCI: MemorySlotWithCI
     ): void {
-        if (inputSlotWithCacheInstance.length !== 33 && inputSlotWithCacheInstance.length !== 65) {
+        if (inputSlotWithCI.length !== 33 && inputSlotWithCI.length !== 65) {
             throw new Error(
                 cyGeneral.errors.stringifyError(KernelErrors.INVALID_PUBLIC_KEY_LENGTH, undefined, {
-                    length: inputSlotWithCacheInstance.length,
+                    length: inputSlotWithCI.length,
                     expected: 33,
                 })
             )
         }
 
-        if (outputSlotWithCacheInstance.cache.length < inputSlotWithCacheInstance.length) {
+        if (outputSlotWithCI.cache.length < inputSlotWithCI.length) {
             throw new Error(
                 cyGeneral.errors.stringifyError(KernelErrors.INVALID_CACHE_LENGTH, undefined, {
-                    length: outputSlotWithCacheInstance.cache.length,
-                    expected: inputSlotWithCacheInstance.length,
+                    length: outputSlotWithCI.cache.length,
+                    expected: inputSlotWithCI.length,
                 })
             )
         }
 
-        const tweak = tweakSlotWithCacheInstance.cache.copy(
-            tweakSlotWithCacheInstance?.start,
-            tweakSlotWithCacheInstance?.length
-        )
+        const tweak = tweakSlotWithCI.cache.copy(tweakSlotWithCI?.start, tweakSlotWithCI?.length)
 
-        outputSlotWithCacheInstance.cache.writeUint8Array(
+        outputSlotWithCI.cache.writeUint8Array(
             secp256k1.publicKeyTweakAdd(
-                inputSlotWithCacheInstance.cache.copy(
-                    inputSlotWithCacheInstance?.start,
-                    inputSlotWithCacheInstance?.length
-                ),
+                inputSlotWithCI.cache.copy(inputSlotWithCI?.start, inputSlotWithCI?.length),
                 tweak
             ),
-            outputSlotWithCacheInstance?.start
+            outputSlotWithCI?.start
         )
     }
 }

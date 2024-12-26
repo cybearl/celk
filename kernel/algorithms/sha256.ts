@@ -1,6 +1,6 @@
 import { rotr32, safeAdd32, safeAdd32x4, safeAdd32x5 } from "#kernel/utils/bitwise"
 import Cache from "#kernel/utils/cache"
-import { MemorySlotWithCacheInstance } from "#kernel/utils/instructions"
+import { MemorySlotWithCI } from "#kernel/utils/instructions"
 
 /**
  * The `Sha256Algorithm` class is used to hash data coming from a `Cache` instance at a certain position given by an
@@ -155,14 +155,11 @@ export default class Sha256Algorithm {
      *
      * The optimization strategy here, is to reuse the same array if the input data length is the same,
      * so, no need to allocate a new array every time so the algorithm becomes faster for same length inputs.
-     * @param inputSlotWithCacheInstance The position of the data to read in the attached cache (optional, defaults to 0 => length),
+     * @param inputSlotWithCI The position of the data to read in the attached cache (optional, defaults to 0 => length),
      * @param verifyAlignment Whether to verify that the offset is aligned to 4 bytes (optional).
      */
-    private _manageBlocks = (
-        inputSlotWithCacheInstance: MemorySlotWithCacheInstance,
-        verifyAlignment?: boolean
-    ): void => {
-        const length = inputSlotWithCacheInstance?.length || inputSlotWithCacheInstance.cache.length
+    private _manageBlocks = (inputSlotWithCI: MemorySlotWithCI, verifyAlignment?: boolean): void => {
+        const length = inputSlotWithCI?.length || inputSlotWithCI.cache.length
         const bitLength = length * 8
 
         // Allocate a new array ONLY if the input data length is different
@@ -178,10 +175,7 @@ export default class Sha256Algorithm {
 
         // Copy the input data to the block
         for (let i = 0; i < length; i += 4) {
-            const value = inputSlotWithCacheInstance.cache.readUint32BE(
-                (inputSlotWithCacheInstance?.start || 0) + i,
-                verifyAlignment
-            )
+            const value = inputSlotWithCI.cache.readUint32BE((inputSlotWithCI?.start || 0) + i, verifyAlignment)
 
             if (i + 4 <= length) {
                 this._block[i >> 2] = value
@@ -206,16 +200,12 @@ export default class Sha256Algorithm {
      * and writes the hash to the same or another `Cache` instance at a position given by an output `MemorySlot`.
      *
      * Output Length: 32 bytes.
-     * @param inputSlotWithCacheInstance The position of the data to read in the attached cache (optional, defaults to 0 => length),
-     * @param outputSlotWithCacheInstance The position to write the hash to in the attached cache (optional, defaults to 0 => data length).
+     * @param inputSlotWithCI The position of the data to read in the attached cache (optional, defaults to 0 => length),
+     * @param outputSlotWithCI The position to write the hash to in the attached cache (optional, defaults to 0 => data length).
      * @param verifyAlignment Whether to verify that the offset is aligned to 4 bytes (optional, defaults to `false`).
      */
-    hash(
-        inputSlotWithCacheInstance: MemorySlotWithCacheInstance,
-        outputSlotWithCacheInstance: MemorySlotWithCacheInstance,
-        verifyAlignment = false
-    ): void {
-        this._manageBlocks(inputSlotWithCacheInstance, verifyAlignment)
-        this._sha256(outputSlotWithCacheInstance.cache, outputSlotWithCacheInstance?.start || 0, verifyAlignment)
+    hash(inputSlotWithCI: MemorySlotWithCI, outputSlotWithCI: MemorySlotWithCI, verifyAlignment = false): void {
+        this._manageBlocks(inputSlotWithCI, verifyAlignment)
+        this._sha256(outputSlotWithCI.cache, outputSlotWithCI?.start || 0, verifyAlignment)
     }
 }

@@ -12,9 +12,9 @@ export type MemorySlot = {
 }
 
 /**
- * The type definition of a memory slot extended with a cache instance.
+ * The type definition of a memory slot extended with a cache instance (Cache Instance = `CI`),
  */
-export type MemorySlotWithCacheInstance = Partial<MemorySlot> & { cache: Cache }
+export type MemorySlotWithCI = Partial<MemorySlot> & { cache: Cache }
 
 /**
  * An enum containing all the generic operations for the instruction sets,

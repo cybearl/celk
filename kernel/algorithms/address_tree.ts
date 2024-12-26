@@ -1,5 +1,5 @@
 import Cache from "#kernel/utils/cache"
-import { MemorySlot, MemorySlotWithCacheInstance } from "#kernel/utils/instructions"
+import { MemorySlot, MemorySlotWithCI } from "#kernel/utils/instructions"
 
 // TODO
 
@@ -114,7 +114,7 @@ export default class AddressTree {
         this._depth = depth
     }
 
-    addAddressFromMemorySlot(inputSlotWithCacheInstance: MemorySlotWithCacheInstance): void {
+    addAddressFromMemorySlot(inputSlotWithCI: MemorySlotWithCI): void {
         //
     }
 }
