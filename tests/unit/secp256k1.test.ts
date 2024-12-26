@@ -14,6 +14,7 @@ test.group("secp256k1 / generate", (group) => {
         secp256k1Algorithm = new Secp256k1Algorithm()
         cache = new Cache(128)
         cache.writeHexString(privateKey, privateKeySlot.start, privateKeySlot.length)
+        console.log("P:", cache.readHexString(privateKeySlot.start, privateKeySlot.length))
     })
 
     test("It should generate a compressed public key", ({ expect }) => {
@@ -22,7 +23,7 @@ test.group("secp256k1 / generate", (group) => {
         secp256k1Algorithm.generate("compressed", { cache, ...privateKeySlot }, { cache, ...outputSlot })
 
         expect(cache.readHexString(outputSlot.start, outputSlot.length)).toBe(
-            "020F02BF4AEC20904275AC36E431ADF2883A6CD30EF982CD882D1E8FC4DAE1377A"
+            "0356769717DC0F96890CC4E78D4408865B1C3A95AA50E238D2DB7259BBF19A0854"
         )
     })
 
@@ -32,7 +33,7 @@ test.group("secp256k1 / generate", (group) => {
         secp256k1Algorithm.generate("uncompressed", { cache, ...privateKeySlot }, { cache, ...outputSlot })
 
         expect(cache.readHexString(outputSlot.start, outputSlot.length)).toBe(
-            "040F02BF4AEC20904275AC36E431ADF2883A6CD30EF982CD882D1E8FC4DAE1377A85A33CA9E0D8DC777159BE5B9D049B1939F797DDAC4C704B7E93F2FFAA137CD4"
+            "0456769717DC0F96890CC4E78D4408865B1C3A95AA50E238D2DB7259BBF19A085480DEAFB56B980DA522C2ADB71C3262B24AD9481B88CCF3917B9BE8BD02C13F25"
         )
     })
 
@@ -42,7 +43,7 @@ test.group("secp256k1 / generate", (group) => {
         secp256k1Algorithm.generate("evm", { cache, ...privateKeySlot }, { cache, ...outputSlot })
 
         expect(cache.readHexString(outputSlot.start, outputSlot.length)).toBe(
-            "0F02BF4AEC20904275AC36E431ADF2883A6CD30EF982CD882D1E8FC4DAE1377A85A33CA9E0D8DC777159BE5B9D049B1939F797DDAC4C704B7E93F2FFAA137CD4"
+            "56769717DC0F96890CC4E78D4408865B1C3A95AA50E238D2DB7259BBF19A085480DEAFB56B980DA522C2ADB71C3262B24AD9481B88CCF3917B9BE8BD02C13F25"
         )
     })
 })

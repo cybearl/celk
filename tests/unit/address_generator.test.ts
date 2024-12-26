@@ -5,14 +5,14 @@ import externalLogger from "#lib/utils/external_logger"
 
 const sep = "    "
 const enableDebugging = false
-const fixedPrivateKey1 = "0000000000000000000000000000000000000000000000000000000000000001"
+const fixedPrivateKey = "0000000000000000000000000000000000000000000000000000000000000001"
 
 test.group("address_generator / private key injection for testing", (group) => {
     let addressGenerator: AddressGenerator
 
     group.each.setup(() => {
         addressGenerator = new AddressGenerator(InstructionSet.MEMORY_SLOT_BTC33_P2PKH, {
-            injectedHexPrivateKey: fixedPrivateKey1,
+            injectedHexPrivateKey: fixedPrivateKey,
             enableDebugging: enableDebugging,
         })
     })
@@ -21,7 +21,7 @@ test.group("address_generator / private key injection for testing", (group) => {
         expect,
     }) => {
         addressGenerator.executeInstruction(0)
-        expect(addressGenerator.cache.readHexString(0, 32)).toBe(fixedPrivateKey1)
+        expect(addressGenerator.cache.readHexString(0, 32)).toBe(fixedPrivateKey)
     })
 })
 
@@ -325,7 +325,6 @@ test.group("address_generator / generations", () => {
     })
 
     test("BTC33::P2WSH", ({ expect }) => {
-        const privateKey = "0000000000000000000000000000000000000000000000000000000000000001"
         const opPush33 = "21"
         const publicKey = "0279BE667EF9DCBBAC55A06295CE870B07029BFCDB2DCE28D959F2815B16F81798"
         const opChecksig = "AC"
@@ -333,13 +332,13 @@ test.group("address_generator / generations", () => {
         const address = "bc1qrp33g0q5c5txsp9arysrx4k6zdkfs4nce4xj0gdcccefvpysxf3qccfmv3"
 
         const addressGenerator = new AddressGenerator(InstructionSet.BTC33_P2WSH, {
-            injectedHexPrivateKey: privateKey,
+            injectedHexPrivateKey: fixedPrivateKey,
             btcBech32Hrp: "bc",
             enableDebugging: enableDebugging,
         })
 
         const result = addressGenerator.executeInstructions()
-        expect(addressGenerator.cache.readHexString(0, 32)).toBe(privateKey)
+        expect(addressGenerator.cache.readHexString(0, 32)).toBe(fixedPrivateKey)
         expect(addressGenerator.cache.readHexString(32, 1)).toBe(opPush33)
         expect(addressGenerator.cache.readHexString(33, 33)).toBe(publicKey)
         expect(addressGenerator.cache.readHexString(66, 1)).toBe(opChecksig)
@@ -348,7 +347,6 @@ test.group("address_generator / generations", () => {
     })
 
     test("BTC65::P2WSH", ({ expect }) => {
-        const privateKey = "0000000000000000000000000000000000000000000000000000000000000001"
         const opPush33 = "21"
         const publicKey =
             "0479BE667EF9DCBBAC55A06295CE870B07029BFCDB2DCE28D959F2815B16F81798483ADA7726A3C4655DA4FBFC0E1108A8FD17B448A68554199C47D08FFB10D4B8"
@@ -357,13 +355,13 @@ test.group("address_generator / generations", () => {
         const address = "bc1qcdeknddl3vespenk5a0m5z8vqx9748zg8cghrhvptgu74nnq0gaq0yy64q"
 
         const addressGenerator = new AddressGenerator(InstructionSet.BTC65_P2WSH, {
-            injectedHexPrivateKey: privateKey,
+            injectedHexPrivateKey: fixedPrivateKey,
             btcBech32Hrp: "bc",
             enableDebugging: enableDebugging,
         })
 
         const result = addressGenerator.executeInstructions()
-        expect(addressGenerator.cache.readHexString(0, 32)).toBe(privateKey)
+        expect(addressGenerator.cache.readHexString(0, 32)).toBe(fixedPrivateKey)
         expect(addressGenerator.cache.readHexString(32, 1)).toBe(opPush33)
         expect(addressGenerator.cache.readHexString(33, 65)).toBe(publicKey)
         expect(addressGenerator.cache.readHexString(98, 1)).toBe(opChecksig)
@@ -392,10 +390,8 @@ test.group("address_generator / generations", () => {
 
     // Not a test, just returning a sample of all addresses for fun
     test("Finished address sampling", () => {
-        const privateKey = "0000000000000000000000000000000000000000000000000000000000000001"
-
         const addressGenerator = new AddressGenerator(InstructionSet.MEMORY_SLOT_BTC33_P2PKH, {
-            injectedHexPrivateKey: privateKey,
+            injectedHexPrivateKey: fixedPrivateKey,
             enableDebugging: false,
         })
 

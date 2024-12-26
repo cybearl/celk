@@ -19,6 +19,14 @@ test.group("cache / write / writeHexString", (group) => {
         }
     })
 
+    test("It should write a hex string starting with 0x to the cache", ({ expect }) => {
+        cache.writeHexString(`0x${hexString}`)
+
+        for (let i = 0; i < cache.length; i++) {
+            expect(cache.readUint8(i)).toBe(hexStringByteValues[i])
+        }
+    })
+
     test("It should write a hex string to the cache at the specified offset", ({ expect }) => {
         cache.writeHexString("1F1F", 2)
         expect(cache.readUint8(0)).toBe(0x00)
