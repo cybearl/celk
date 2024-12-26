@@ -127,6 +127,7 @@ export const addressInstructionSets: InstructionSet[] = [
  * - [RFC TOOLS](https://www.rfctools.com/bitcoin-address-test-tool/)
  * - [LearnMeABitcoin](https://learnmeabitcoin.com/technical/script/p2tr/)
  * - [Oghenovo Usiwoma](https://dev.to/eunovo/more-on-taproot-41g8)
+ * - [Bitcoin StackExchange](https://bitcoin.stackexchange.com/questions/116384/what-are-the-steps-to-convert-a-private-key-to-a-taproot-address)
  */
 export function getInstructions(instructionSet: InstructionSet): InstructionWithFlags[] {
     let instructions: Instruction[]
