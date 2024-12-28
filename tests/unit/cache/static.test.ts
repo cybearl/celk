@@ -75,6 +75,31 @@ test.group("cache / static / fromUtf8String", () => {
     })
 })
 
+test.group("cache / static / fromString", (group) => {
+    let cache: Cache
+
+    const string = "Hello, world!"
+    const stringByteValues = [0x48, 0x65, 0x6c, 0x6c, 0x6f, 0x2c, 0x20, 0x77, 0x6f, 0x72, 0x6c, 0x64, 0x21]
+
+    group.each.setup(() => {
+        cache = Cache.fromString(string)
+    })
+
+    test("It should create a cache from a string", ({ expect }) => {
+        expect(cache).toBeInstanceOf(Cache)
+    })
+
+    test("It should create a cache with the correct length", ({ expect }) => {
+        expect(cache.length).toBe(string.length)
+    })
+
+    test("It should create a cache with the correct values", ({ expect }) => {
+        for (let i = 0; i < cache.length; i++) {
+            expect(cache.readUint8(i)).toBe(stringByteValues[i])
+        }
+    })
+})
+
 test.group("cache / static / fromBits", (group) => {
     let cache: Cache
 

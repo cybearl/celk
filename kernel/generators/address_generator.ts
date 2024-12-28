@@ -220,7 +220,7 @@ export default class AddressGenerator {
             this._btcTaprootTweak = new Cache(32)
 
             // Pre-compute the hash of the taproot tweak
-            const taprootTweakCache = Cache.fromHexString(this._options.btcTaprootTweak)
+            const taprootTweakCache = Cache.fromString(this._options.btcTaprootTweak)
             this._sha256Algorithm.hash({ cache: taprootTweakCache }, { cache: this._btcTaprootTweak })
         }
 
