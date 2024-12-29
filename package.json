@@ -23,7 +23,7 @@
         "lint": "eslint .",
         "lint:fix": "eslint . --fix",
         "format": "prettier --write .",
-        "typecheck": "tsc --noEmit"
+        "check-types": "tsc --noEmit"
     },
     "imports": {
         "#config/*": "./config/*.js",
