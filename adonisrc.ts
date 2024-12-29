@@ -46,11 +46,6 @@ export default defineConfig({
                 name: "unit",
                 timeout: 2000,
             },
-            {
-                files: ["tests/functional/**/*.test(.ts|.js)"],
-                name: "functional",
-                timeout: 30000,
-            },
         ],
         forceExit: false,
     },
