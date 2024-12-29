@@ -15,7 +15,6 @@
         "generate:key": "cross-env NO_LC=true node ace generate:key",
         "build": "cross-env NO_LC=true node ace build",
         "dev": "node ace serve --watch",
-        "test": "node ace test",
         "test:bench": "node --no-warnings=ExperimentalWarning --loader ts-node/esm ./tests/bench.ts",
         "test:unit": "node ace test unit",
         "test:functional": "node ace test functional",
@@ -24,7 +23,7 @@
         "lint": "eslint .",
         "lint:fix": "eslint . --fix",
         "format": "prettier --write .",
-        "check-types": "tsc --noEmit"
+        "typecheck": "tsc --noEmit"
     },
     "imports": {
         "#config/*": "./config/*.js",
