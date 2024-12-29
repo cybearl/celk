@@ -17,7 +17,6 @@
         "dev": "node ace serve --watch",
         "test:bench": "node --no-warnings=ExperimentalWarning --loader ts-node/esm ./tests/bench.ts",
         "test:unit": "node ace test unit",
-        "test:functional": "node ace test functional",
         "sandbox": "node --no-warnings=ExperimentalWarning --loader ts-node/esm ./tests/sandbox.ts",
         "start": "node bin/server.js",
         "lint": "eslint .",
