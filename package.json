@@ -16,7 +16,7 @@
         "dev": "node ace serve --watch",
         "start": "node bin/server.js",
         "build": "cross-env NO_LC=true node ace build",
-        "bench": "tsx ./tests/bench.ts",
+        "benchmark": "tsx ./tests/benchmark.ts",
         "sandbox": "tsx ./tests/sandbox.ts",
         "test:unit": "node ace test unit",
         "lint": "eslint .",

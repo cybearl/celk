@@ -1,7 +1,7 @@
 import Secp256k1Algorithm from "#kernel/algorithms/secp256k1"
 import Cache from "#kernel/utils/cache"
 import { MemorySlot } from "#kernel/utils/instructions"
-import Bench from "#lib/utils/benchmark"
+import Bench from "#lib/utils/bench"
 import externalLogger from "#lib/utils/external_logger"
 
 /**
