@@ -14,7 +14,15 @@ import minimist from "minimist"
 /**
  * The help message.
  */
-const helpMessage = dedent``
+const helpMessage = dedent`
+    Usage: yarn bench [options]
+
+    Options:
+        -b, --benchmark <name>          Run a specific benchmark.
+        -c, --cacheBenchmarkInputSize   The input size for the cache benchmark.
+        -d, --benchmarkDuration         The duration of the benchmark in milliseconds.
+        -h, --help                      Display this help message.
+`
 
 /**
  * The type definition for a benchmark function.
