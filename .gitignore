@@ -26,8 +26,5 @@ yarn-error.log
 # Development PostgreSQL data directory
 database/docker
 
-# VS Code
-.vscode/settings.json
-
 # NPM RC
 .npmrc
