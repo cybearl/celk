@@ -2,7 +2,6 @@ import externalLogger from "#lib/utils/external_logger"
 import executeAddressGeneratorBenchmark from "#tests/benchmarks/address_generator"
 import executeBase58EncoderBenchmark from "#tests/benchmarks/base58"
 import executeBech32EncoderBenchmark from "#tests/benchmarks/bech32"
-import executeCacheBenchmark from "#tests/benchmarks/cache"
 import executeKeccak256AlgorithmBenchmark from "#tests/benchmarks/keccak256"
 import executePrivateKeyGeneratorBenchmark from "#tests/benchmarks/private_key_generator"
 import executeRipemd160AlgorithmBenchmark from "#tests/benchmarks/ripemd160"
@@ -36,7 +35,6 @@ const benchmarks: { [key: string]: BenchmarkFunction } = {
     address_generator: executeAddressGeneratorBenchmark,
     base58: executeBase58EncoderBenchmark,
     bech32: executeBech32EncoderBenchmark,
-    cache: executeCacheBenchmark,
     keccak256: executeKeccak256AlgorithmBenchmark,
     private_key_generator: executePrivateKeyGeneratorBenchmark,
     ripemd160: executeRipemd160AlgorithmBenchmark,
