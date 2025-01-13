@@ -1,5 +1,5 @@
 import { BaseSchema } from "@adonisjs/lucid/schema"
-import { cyGeneral } from "@cybearl/cypack"
+import { constants } from "@cybearl/cypack"
 
 export default class extends BaseSchema {
     protected tableName = "auth_access_tokens"
@@ -9,7 +9,7 @@ export default class extends BaseSchema {
             table.increments("id").primary()
 
             table.string("type").notNullable()
-            table.string("name", cyGeneral.constants.MAX_NAME_LENGTH).notNullable()
+            table.string("name", constants.MAX_NAME_LENGTH).notNullable()
             table.string("hash").notNullable()
             table.text("abilities").notNullable()
 

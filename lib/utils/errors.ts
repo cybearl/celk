@@ -1,10 +1,10 @@
-import { cyGeneral } from "@cybearl/cypack"
+import { BaseErrors } from "@cybearl/cypack"
 
 /**
  * Contains all the available errors for the application.
  */
 export const AppErrors = {
-    ...cyGeneral.errors.BaseErrors,
+    ...BaseErrors,
     //=====//
     // 400 //
     //=====//

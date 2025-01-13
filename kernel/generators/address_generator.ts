@@ -15,12 +15,11 @@ import {
     AddressOperation,
     getPrivateKeyOutputMemorySlot,
     getLongestInstructionOperationNameLength,
-    MemorySlotWithCI,
 } from "#kernel/utils/instructions"
 import externalLogger from "#lib/utils/external_logger"
 import PrivateKeyGenerator, { PrivateKeyGeneratorOptions } from "#kernel/generators/private_key_generator"
-import { cyGeneral } from "@cybearl/cypack"
 import { KernelErrors } from "#lib/utils/errors"
+import { stringifyError } from "@cybearl/cypack"
 
 /**
  * The type definition of the address generator options.
@@ -103,19 +102,13 @@ export default class AddressGenerator {
     constructor(instructionSet: InstructionSet, options?: AddressGeneratorOptions) {
         if (!instructionSet) {
             throw new Error(
-                cyGeneral.errors.stringifyError(
-                    KernelErrors.INVALID_INSTRUCTION_SET,
-                    "The instruction set must be provided."
-                )
+                stringifyError(KernelErrors.INVALID_INSTRUCTION_SET, "The instruction set must be provided.")
             )
         }
 
         if (!getInstructions(instructionSet)) {
             throw new Error(
-                cyGeneral.errors.stringifyError(
-                    KernelErrors.INVALID_INSTRUCTION_SET,
-                    "The given instruction set does not exist."
-                )
+                stringifyError(KernelErrors.INVALID_INSTRUCTION_SET, "The given instruction set does not exist.")
             )
         }
 
@@ -135,7 +128,7 @@ export default class AddressGenerator {
         if (instructionSet.includes("EVM")) return "evm"
 
         throw new Error(
-            cyGeneral.errors.stringifyError(
+            stringifyError(
                 KernelErrors.INVALID_INSTRUCTION_SET,
                 "The given instruction set does not have a valid private key generation mode."
             )
@@ -372,7 +365,7 @@ export default class AddressGenerator {
         const instruction = this._instructions[customIndex ?? this._instructionPointer]
         if (!instruction) {
             throw new Error(
-                cyGeneral.errors.stringifyError(
+                stringifyError(
                     KernelErrors.INVALID_INSTRUCTION_INDEX,
                     "The given instruction index leads to either a non-existent or invalid instruction."
                 )

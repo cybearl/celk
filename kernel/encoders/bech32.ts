@@ -1,7 +1,7 @@
 import Cache from "#kernel/utils/cache"
 import { MemorySlot } from "#kernel/utils/instructions"
 import { KernelErrors } from "#lib/utils/errors"
-import { cyGeneral } from "@cybearl/cypack"
+import { stringifyError } from "@cybearl/cypack"
 
 /**
  * The Bech32 encoding type.
@@ -216,7 +216,7 @@ export default class Bech32Encoder {
     decode(bech32String: string, cache: Cache, slot?: MemorySlot): Uint8Array {
         if (bech32String.length < 8) {
             throw new Error(
-                cyGeneral.errors.stringifyError(
+                stringifyError(
                     KernelErrors.INVALID_BECH32_LENGTH,
                     "The Bech32 string is too short (less than 8 characters)."
                 )
@@ -225,7 +225,7 @@ export default class Bech32Encoder {
 
         if (bech32String.length > 90) {
             throw new Error(
-                cyGeneral.errors.stringifyError(
+                stringifyError(
                     KernelErrors.INVALID_BECH32_LENGTH,
                     "The Bech32 string is too long (more than 90 characters)."
                 )
@@ -237,7 +237,7 @@ export default class Bech32Encoder {
 
         for (const char of bech32String) {
             if (char.charCodeAt(0) < 33 || char.charCodeAt(0) > 126) {
-                throw new Error(cyGeneral.errors.stringifyError(KernelErrors.INVALID_BECH32_CHARACTER))
+                throw new Error(stringifyError(KernelErrors.INVALID_BECH32_CHARACTER))
             }
 
             if (char >= "a" && char <= "z") hasLowercase = true
@@ -245,14 +245,13 @@ export default class Bech32Encoder {
         }
 
         if (hasLowercase && hasUppercase) {
-            throw new Error(cyGeneral.errors.stringifyError(KernelErrors.INVALID_BECH32_CASE))
+            throw new Error(stringifyError(KernelErrors.INVALID_BECH32_CASE))
         }
 
         bech32String = bech32String.toLowerCase()
         const separatorPosition = bech32String.lastIndexOf("1")
-        if (separatorPosition === -1)
-            throw new Error(cyGeneral.errors.stringifyError(KernelErrors.BECH32_SEPARATOR_NOT_FOUND))
-        if (separatorPosition === 0) throw new Error(cyGeneral.errors.stringifyError(KernelErrors.EMPTY_BECH32_HRP))
+        if (separatorPosition === -1) throw new Error(stringifyError(KernelErrors.BECH32_SEPARATOR_NOT_FOUND))
+        if (separatorPosition === 0) throw new Error(stringifyError(KernelErrors.EMPTY_BECH32_HRP))
 
         const hrp = bech32String.substring(0, separatorPosition)
         const data = new Array(bech32String.length - separatorPosition - 1)
@@ -261,21 +260,21 @@ export default class Bech32Encoder {
             const charIndex = this._CHARSET.indexOf(bech32String[i])
 
             if (charIndex === -1) {
-                throw new Error(cyGeneral.errors.stringifyError(KernelErrors.INVALID_BECH32_CHARACTER))
+                throw new Error(stringifyError(KernelErrors.INVALID_BECH32_CHARACTER))
             }
 
             data[i - separatorPosition - 1] = charIndex
         }
 
         if (!this._verifyChecksum(hrp, data)) {
-            throw new Error(cyGeneral.errors.stringifyError(KernelErrors.INVALID_BECH32_CHECKSUM))
+            throw new Error(stringifyError(KernelErrors.INVALID_BECH32_CHECKSUM))
         }
 
         const decodedCache = this._convertFrom5BitArray(data.slice(1, data.length - 6))
 
         if (cache.length < decodedCache.length) {
             throw new Error(
-                cyGeneral.errors.stringifyError(
+                stringifyError(
                     KernelErrors.INVALID_BECH32_LENGTH,
                     "The Bech32 string data is too long for the given cache.",
                     {
@@ -288,7 +287,7 @@ export default class Bech32Encoder {
 
         if (slot && (slot.length < decodedCache.length || slot.end < decodedCache.length)) {
             throw new Error(
-                cyGeneral.errors.stringifyError(
+                stringifyError(
                     KernelErrors.INVALID_BECH32_LENGTH,
                     "The Bech32 string data is too long for the given slot.",
                     {

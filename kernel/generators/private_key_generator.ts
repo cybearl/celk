@@ -3,7 +3,8 @@ import Cache from "#kernel/utils/cache"
 import { MemorySlotWithCI } from "#kernel/utils/instructions"
 import { KernelErrors } from "#lib/utils/errors"
 import externalLogger from "#lib/utils/external_logger"
-import { cyGeneral } from "@cybearl/cypack"
+import { stringifyError } from "@cybearl/cypack"
+
 import os from "node:os"
 
 /**
@@ -106,7 +107,7 @@ export default class PrivateKeyGenerator {
     setCacheInstanceWithSlot(outputSlotWithCI: MemorySlotWithCI): void {
         if (outputSlotWithCI.cache.length <= 0) {
             throw new Error(
-                cyGeneral.errors.stringifyError(
+                stringifyError(
                     KernelErrors.INVALID_PRIVATE_KEY_LENGTH,
                     "The private key size must be greater than 0.",
                     {
@@ -131,7 +132,7 @@ export default class PrivateKeyGenerator {
     private _verifyAndSetBounds(lowerBound: bigint, upperBound: bigint): void {
         if (lowerBound < 0n) {
             throw new Error(
-                cyGeneral.errors.stringifyError(
+                stringifyError(
                     KernelErrors.INVALID_PRIVATE_KEY_RANGE,
                     "The lower bound must be greater than or equal to 0.",
                     {
@@ -143,7 +144,7 @@ export default class PrivateKeyGenerator {
 
         if (upperBound < 1n) {
             throw new Error(
-                cyGeneral.errors.stringifyError(
+                stringifyError(
                     KernelErrors.INVALID_PRIVATE_KEY_RANGE,
                     "The upper bound must be greater than or equal to 1.",
                     {
@@ -155,7 +156,7 @@ export default class PrivateKeyGenerator {
 
         if (upperBound <= lowerBound) {
             throw new Error(
-                cyGeneral.errors.stringifyError(
+                stringifyError(
                     KernelErrors.INVALID_PRIVATE_KEY_RANGE,
                     "The upper bound must be greater than the lower bound.",
                     {
@@ -168,7 +169,7 @@ export default class PrivateKeyGenerator {
 
         if (upperBound > this._maxValue) {
             throw new Error(
-                cyGeneral.errors.stringifyError(
+                stringifyError(
                     KernelErrors.INVALID_PRIVATE_KEY_RANGE,
                     "The upper bound must be less than or equal to the maximum value of the private key based on its size.",
                     {
@@ -181,7 +182,7 @@ export default class PrivateKeyGenerator {
 
         if (upperBound > N_BIGINT) {
             throw new Error(
-                cyGeneral.errors.stringifyError(
+                stringifyError(
                     KernelErrors.INVALID_PRIVATE_KEY_RANGE,
                     "The upper bound must be less than or equal to the order of the secp256k1 curve.",
                     {
@@ -230,7 +231,7 @@ export default class PrivateKeyGenerator {
         if (options.maxRejections !== undefined) {
             if (options.maxRejections < -1) {
                 throw new Error(
-                    cyGeneral.errors.stringifyError(
+                    stringifyError(
                         KernelErrors.INVALID_MAX_REJECTION_THRESHOLD,
                         "The maximum number of rejections must be greater than (> 0) or equal to -1.",
                         {
@@ -242,7 +243,7 @@ export default class PrivateKeyGenerator {
 
             if (options.maxRejections === 0) {
                 throw new Error(
-                    cyGeneral.errors.stringifyError(
+                    stringifyError(
                         KernelErrors.INVALID_MAX_REJECTION_THRESHOLD,
                         "The maximum number of rejections must be greater than 0.",
                         {
@@ -327,7 +328,7 @@ export default class PrivateKeyGenerator {
             if (this._maxRejections !== -1 && rejections >= this._maxRejections) {
                 if (this._throwOnMaxRejections) {
                     throw new Error(
-                        cyGeneral.errors.stringifyError(
+                        stringifyError(
                             KernelErrors.PRIVATE_KEY_GENERATION_FAILED,
                             "The private key generation failed due to too many rejections."
                         )

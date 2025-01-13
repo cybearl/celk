@@ -1,6 +1,6 @@
 import { MemorySlotWithCI } from "#kernel/utils/instructions"
 import { KernelErrors } from "#lib/utils/errors"
-import { cyGeneral } from "@cybearl/cypack"
+import { stringifyError } from "@cybearl/cypack"
 import secp256k1 from "secp256k1"
 
 /**
@@ -66,7 +66,7 @@ export default class Secp256k1Algorithm {
     ): void {
         if (inputSlotWithCI.length !== 32) {
             throw new Error(
-                cyGeneral.errors.stringifyError(KernelErrors.INVALID_PRIVATE_KEY_LENGTH, undefined, {
+                stringifyError(KernelErrors.INVALID_PRIVATE_KEY_LENGTH, undefined, {
                     length: inputSlotWithCI.length,
                     expected: 32,
                 })
@@ -77,7 +77,7 @@ export default class Secp256k1Algorithm {
 
         if (outputSlotWithCI.cache.length < publicKeyLength) {
             throw new Error(
-                cyGeneral.errors.stringifyError(KernelErrors.INVALID_CACHE_LENGTH, undefined, {
+                stringifyError(KernelErrors.INVALID_CACHE_LENGTH, undefined, {
                     length: outputSlotWithCI.cache.length,
                     expected: publicKeyLength,
                 })
@@ -110,7 +110,7 @@ export default class Secp256k1Algorithm {
     ): void {
         if (inputSlotWithCI.length !== 33 && inputSlotWithCI.length !== 65) {
             throw new Error(
-                cyGeneral.errors.stringifyError(KernelErrors.INVALID_PUBLIC_KEY_LENGTH, undefined, {
+                stringifyError(KernelErrors.INVALID_PUBLIC_KEY_LENGTH, undefined, {
                     length: inputSlotWithCI.length,
                     expected: 33,
                 })
@@ -119,7 +119,7 @@ export default class Secp256k1Algorithm {
 
         if (outputSlotWithCI.cache.length < inputSlotWithCI.length) {
             throw new Error(
-                cyGeneral.errors.stringifyError(KernelErrors.INVALID_CACHE_LENGTH, undefined, {
+                stringifyError(KernelErrors.INVALID_CACHE_LENGTH, undefined, {
                     length: outputSlotWithCI.cache.length,
                     expected: inputSlotWithCI.length,
                 })

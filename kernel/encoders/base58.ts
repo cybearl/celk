@@ -1,7 +1,7 @@
 import Cache from "#kernel/utils/cache"
 import { MemorySlot } from "#kernel/utils/instructions"
 import { KernelErrors } from "#lib/utils/errors"
-import { cyGeneral } from "@cybearl/cypack"
+import { stringifyError } from "@cybearl/cypack"
 
 /**
  * The `Base58Encoder` class is used to encode data coming from a
@@ -88,7 +88,7 @@ export default class Base58Encoder {
             // Get the index of the character in the charset
             const index = this._CHARSET.indexOf(char)
 
-            if (index === -1) throw new Error(cyGeneral.errors.stringifyError(KernelErrors.INVALID_BASE58_CHARACTER))
+            if (index === -1) throw new Error(stringifyError(KernelErrors.INVALID_BASE58_CHARACTER))
 
             // Multiply all bytes by 58
             for (let i = 0; i < bytes.length; i++) {

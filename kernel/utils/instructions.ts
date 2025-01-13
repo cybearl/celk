@@ -1,6 +1,6 @@
 import Cache from "#kernel/utils/cache"
 import { KernelErrors } from "#lib/utils/errors"
-import { cyGeneral } from "@cybearl/cypack"
+import { stringifyError } from "@cybearl/cypack"
 
 /**
  * The type definition of a memory slot, containing the start, end and length of the slot.
@@ -329,7 +329,7 @@ export function getInstructions(instructionSet: InstructionSet): InstructionWith
             break
         default:
             throw new Error(
-                cyGeneral.errors.stringifyError(KernelErrors.INSTRUCTION_SET_NOT_FOUND, undefined, {
+                stringifyError(KernelErrors.INSTRUCTION_SET_NOT_FOUND, undefined, {
                     instructionSet,
                 })
             )
@@ -340,7 +340,7 @@ export function getInstructions(instructionSet: InstructionSet): InstructionWith
         const inputSlotCalculatedLength = (instruction.inputSlot?.end ?? 0) - (instruction.inputSlot?.start ?? 0)
         if (instruction.inputSlot && instruction.inputSlot.length !== inputSlotCalculatedLength) {
             throw new Error(
-                cyGeneral.errors.stringifyError(KernelErrors.INVALID_INSTRUCTION_LENGTH, undefined, {
+                stringifyError(KernelErrors.INVALID_INSTRUCTION_LENGTH, undefined, {
                     instructionSet,
                     instructionOperation: instruction.operation,
                     inputSlotLength: instruction.inputSlot.length,
@@ -352,7 +352,7 @@ export function getInstructions(instructionSet: InstructionSet): InstructionWith
         const outputSlotCalculatedLength = (instruction.outputSlot?.end ?? 0) - (instruction.outputSlot?.start ?? 0)
         if (instruction.outputSlot && instruction.outputSlot.length !== outputSlotCalculatedLength) {
             throw new Error(
-                cyGeneral.errors.stringifyError(KernelErrors.INVALID_INSTRUCTION_LENGTH, undefined, {
+                stringifyError(KernelErrors.INVALID_INSTRUCTION_LENGTH, undefined, {
                     instructions,
                     instructionOperation: instruction.operation,
                     outputSlotLength: instruction.outputSlot.length,
