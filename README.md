@@ -9,9 +9,9 @@
 
 This project intends to see how much I can optimize the generation of Bitcoin and Ethereum addresses.
 I'm mostly doing that for fun, and will implement new methods (headless-gl, workers, etc..) just to
-see how much I can improve the performances on Node.js only (with the exception of shaders, if any),
+see how much I can improve the performances while staying in the JS/TS world.
 
-We're still far away from VanitySearch (+- 3,000 MK/s on modern GPUs), but it's a fun project to work on.
+Still far away from VanitySearch (+- 3,000 MK/s on modern GPUs), but it's a fun project to work on.
 
 ### Benchmarking of the generator
 
