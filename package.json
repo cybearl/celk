@@ -22,7 +22,8 @@
         "lint": "eslint .",
         "lint:fix": "eslint . --fix",
         "format": "prettier --write .",
-        "check-types": "tsc --noEmit"
+        "check-types": "tsc --noEmit",
+        "knip": "knip"
     },
     "imports": {
         "#config/*": "./config/*.js",
@@ -55,6 +56,7 @@
         "dedent-js": "^1.0.1",
         "ethers": "^6.13.5",
         "ioredis": "^5.4.2",
+        "knip": "^5.43.6",
         "luxon": "^3.5.0",
         "minimist": "^1.2.8",
         "pg": "^8.13.1",
