@@ -5,16 +5,16 @@
   <p align="center">A brute-forcing tool to work with Bitcoin and Ethereum<br />addresses, entirely written in Typescript.</p>
 </p>
 
-### Introduction
-
+Introduction
+------------
 This project intends to see how much I can optimize the generation of Bitcoin and Ethereum addresses.
 I'm mostly doing that for fun, and will implement new methods (headless-gl, workers, etc..) just to
 see how much I can improve the performances while staying in the JS/TS world.
 
 Still far away from VanitySearch (+- 3,000 MK/s on modern GPUs), but it's a fun project to work on.
 
-### Benchmarking of the generator
-
+Benchmarking of the generator
+-----------------------------
 | Version      | Addresses per second (K/s) | Upgrade description                                               |
 | -------------| -------------------------- | ------------------------------------------------------------------|
 | `v2024.12.2` | 23.05 kK/s                 | **Replacing Noble Curves by secp256k1-node binding**              |
@@ -37,8 +37,8 @@ Still far away from VanitySearch (+- 3,000 MK/s on modern GPUs), but it's a fun 
 | `v1.0.1`     | 792 K/s                    | **Improved benchmarking precision**                               |
 | `v1.0.0`     | 396 K/s                    | **Basic algorithm implementations**                               |
 
-### Updates
-
+Updates
+-------
 #### Latest update (v2024.12.2-alpha):
 A simple upgrade that replaces the Noble Curves library by the `secp256k1-node` binding for the `Secp256k1Algorithm` class.
 
