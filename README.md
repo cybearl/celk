@@ -5,6 +5,18 @@
   <p align="center">A brute-forcing tool to work with Bitcoin and Ethereum<br />addresses, entirely written in Typescript.</p>
 </p>
 
+Installation
+------------
+1. Clone the repository
+2. Install dependencies
+    ```typescript
+    $ npm install // yarn
+    ```
+3. Start the development server
+    ```typescript
+    $ npm run dev // yarn dev
+    ```
+
 Introduction
 ------------
 This project intends to see how much I can optimize the generation of Bitcoin and Ethereum addresses.
@@ -97,3 +109,7 @@ A simple upgrade that replaces the Noble Curves library by the `secp256k1-node` 
 -   **v1.0.2**: Ghost executions + Better benchmark measures.
 -   **v1.0.1**: Improved benchmarking precision.
 -   **v1.0.0**: Basic algorithm implementations.
+
+Dev notes
+---------
+*N/A*
