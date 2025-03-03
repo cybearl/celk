@@ -411,16 +411,19 @@
   dependencies:
     "@jridgewell/trace-mapping" "0.3.9"
 
-"@cybearl/cypack@^2025.1.2":
-  version "2025.1.2"
-  resolved "https://npm.pkg.github.com/download/@cybearl/cypack/2025.1.2/5665a42f6375345d6fc8725ad018bab02a6d5110#5665a42f6375345d6fc8725ad018bab02a6d5110"
-  integrity sha512-6OfCGc8Xrekgub8Or1U9cMlBS8tytWMrHObaE1hWLr2fCAg4s/3/cVf+aqWmZk9/Cat8Rb9DKCbS6Nc9BASoZg==
+"@cybearl/cypack@^1.2.3":
+  version "1.2.3"
+  resolved "https://registry.yarnpkg.com/@cybearl/cypack/-/cypack-1.2.3.tgz#6c6d651ea9b728786d5d2e7250c34c00e5d6d1b3"
+  integrity sha512-wU3DvukYZXtoqFJeYzOxV+huBTJbCwSHFvA7gyKUB1XLhr55rY4NI+hs4R1dekLc+d/Ux8KpPdxnwlRNMh/41A==
   dependencies:
+    colorette "^2.0.20"
+    dateformat "^5.0.3"
     dedent-js "^1.0.1"
-    logform "^2.7.0"
-    loglevel "^1.9.2"
-    server-only "^0.0.1"
-    winston "^3.17.0"
+    pino "^9.6.0"
+    pino-pretty "^13.0.0"
+  optionalDependencies:
+    "@rollup/rollup-linux-x64-gnu" "^4.34.0"
+    "@rollup/rollup-win32-x64-msvc" "^4.34.1"
 
 "@dabh/diagnostics@^2.0.2":
   version "2.0.3"
@@ -1061,6 +1064,16 @@
   version "2.0.1"
   resolved "https://registry.yarnpkg.com/@poppinss/validator-lite/-/validator-lite-2.0.1.tgz#2dae3e375d0096cd55c4d7e1a5a7b095e580d007"
   integrity sha512-jdmx+7RsQL4iHscjEfC9TE6xGYUVug680VqwF8ICYdasxcTHODgQLv6ukCUTNVRFu/Xz70SLPNqXD0dA6MTMVQ==
+
+"@rollup/rollup-linux-x64-gnu@^4.34.0":
+  version "4.34.9"
+  resolved "https://registry.yarnpkg.com/@rollup/rollup-linux-x64-gnu/-/rollup-linux-x64-gnu-4.34.9.tgz#7193cbd8d128212b8acda37e01b39d9e96259ef8"
+  integrity sha512-FwBHNSOjUTQLP4MG7y6rR6qbGw4MFeQnIBrMe161QGaQoBQLqSUEKlHIiVgF3g/mb3lxlxzJOpIBhaP+C+KP2A==
+
+"@rollup/rollup-win32-x64-msvc@^4.34.1":
+  version "4.34.9"
+  resolved "https://registry.yarnpkg.com/@rollup/rollup-win32-x64-msvc/-/rollup-win32-x64-msvc-4.34.9.tgz#1973871850856ae72bc678aeb066ab952330e923"
+  integrity sha512-AyleYRPU7+rgkMWbEh71fQlrzRfeP6SyMnRf9XX4fCdDPAJumdSBqYEcWPMzVQ4ScAl7E4oFfK0GUVn77xSwbw==
 
 "@sec-ant/readable-stream@^0.4.1":
   version "0.4.1"
@@ -1974,7 +1987,7 @@ colorette@2.0.19:
   resolved "https://registry.yarnpkg.com/colorette/-/colorette-2.0.19.tgz#cdf044f47ad41a0f4b56b3a0d5b4e6e1a2d5a798"
   integrity sha512-3tlv/dIP7FWvj3BsbHrGLJ6l/oKh1O3TcgBqMn+yyCagOxc23fyzDS6HypQbgxWbkpDnf52p1LuR4eWDQ/K9WQ==
 
-colorette@^2.0.7:
+colorette@^2.0.20, colorette@^2.0.7:
   version "2.0.20"
   resolved "https://registry.yarnpkg.com/colorette/-/colorette-2.0.20.tgz#9eb793e6833067f7235902fcd3b09917a000a95a"
   integrity sha512-IfEDxwoWIjkeXL1eXcDiow4UbKjhLdq6/EuSVR9GMN7KVH3r9gQ83e73hsz1Nd1T3ijd5xv1wcWRYO+D6kCI2w==
@@ -2128,6 +2141,11 @@ dateformat@^4.6.3:
   version "4.6.3"
   resolved "https://registry.yarnpkg.com/dateformat/-/dateformat-4.6.3.tgz#556fa6497e5217fedb78821424f8a1c22fa3f4b5"
   integrity sha512-2P0p0pFGzHS5EMnhdxQi7aJN+iMheud0UhG4dlE1DLAlvL8JHjJJTX/CSm4JXwV0Ka5nGk3zC5mcb5bUQUxxMA==
+
+dateformat@^5.0.3:
+  version "5.0.3"
+  resolved "https://registry.yarnpkg.com/dateformat/-/dateformat-5.0.3.tgz#fe2223eff3cc70ce716931cb3038b59a9280696e"
+  integrity sha512-Kvr6HmPXUMerlLcLF+Pwq3K7apHpYmGDVqrxcDasBg86UcKeTSNWbEzU8bwdXnxnR44FtMhJAxI4Bov6Y/KUfA==
 
 dayjs@^1.11.13:
   version "1.11.13"
@@ -3544,11 +3562,6 @@ logform@^2.7.0:
     safe-stable-stringify "^2.3.1"
     triple-beam "^1.3.0"
 
-loglevel@^1.9.2:
-  version "1.9.2"
-  resolved "https://registry.yarnpkg.com/loglevel/-/loglevel-1.9.2.tgz#c2e028d6c757720107df4e64508530db6621ba08"
-  integrity sha512-HgMmCqIJSAKqo68l0rS2AanEWfkxaZ5wNiEFb5ggm08lDs9Xl2KxBlX3PTcaD2chBM1gXAYf491/M2Rv8Jwayg==
-
 loupe@^3.1.0:
   version "3.1.1"
   resolved "https://registry.yarnpkg.com/loupe/-/loupe-3.1.1.tgz#71d038d59007d890e3247c5db97c1ec5a92edc54"
@@ -4143,6 +4156,23 @@ pino@^9.5.0:
     sonic-boom "^4.0.1"
     thread-stream "^3.0.0"
 
+pino@^9.6.0:
+  version "9.6.0"
+  resolved "https://registry.yarnpkg.com/pino/-/pino-9.6.0.tgz#6bc628159ba0cc81806d286718903b7fc6b13169"
+  integrity sha512-i85pKRCt4qMjZ1+L7sy2Ag4t1atFcdbEt76+7iRJn1g2BvsnRMGu9p8pivl9fs63M2kF/A0OacFZhTub+m/qMg==
+  dependencies:
+    atomic-sleep "^1.0.0"
+    fast-redact "^3.1.1"
+    on-exit-leak-free "^2.1.0"
+    pino-abstract-transport "^2.0.0"
+    pino-std-serializers "^7.0.0"
+    process-warning "^4.0.0"
+    quick-format-unescaped "^4.0.3"
+    real-require "^0.2.0"
+    safe-stable-stringify "^2.3.1"
+    sonic-boom "^4.0.1"
+    thread-stream "^3.0.0"
+
 pkg-dir@^7.0.0:
   version "7.0.0"
   resolved "https://registry.yarnpkg.com/pkg-dir/-/pkg-dir-7.0.0.tgz#8f0c08d6df4476756c5ff29b3282d0bab7517d11"
@@ -4522,11 +4552,6 @@ serialize-error@^12.0.0:
   integrity sha512-ZYkZLAvKTKQXWuh5XpBw7CdbSzagarX39WyZ2H07CDLC5/KfsRGlIXV8d4+tfqX1M7916mRqR1QfNHSij+c9Pw==
   dependencies:
     type-fest "^4.31.0"
-
-server-only@^0.0.1:
-  version "0.0.1"
-  resolved "https://registry.yarnpkg.com/server-only/-/server-only-0.0.1.tgz#0f366bb6afb618c37c9255a314535dc412cd1c9e"
-  integrity sha512-qepMx2JxAa5jjfzxG79yPPq+8BuFToHd1hm7kI+Z4zAq1ftQiP7HcxMhDDItrbtwVeLg/cY2JnKnrcFkmiswNA==
 
 set-cookie-parser@^2.7.1:
   version "2.7.1"

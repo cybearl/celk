@@ -2,7 +2,7 @@ import BaseController from "#controllers/templates/base_controller"
 import { rootPath } from "#lib/utils/paths"
 import env from "#start/env"
 import { HttpContext } from "@adonisjs/core/http"
-import { getCGASStatus } from "@cybearl/cypack"
+import { generateCGASStatus } from "@cybearl/cypack/backend"
 import { createRequire } from "node:module"
 import path from "node:path"
 
@@ -14,7 +14,7 @@ export default class GeneralController extends BaseController {
      * Get the status of the service.
      */
     async status({ response }: HttpContext) {
-        const status = getCGASStatus(
+        const status = generateCGASStatus(
             env.get("APP_STATUS"),
             env.get("CGAS_MARKER"),
             pck.version,

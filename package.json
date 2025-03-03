@@ -51,7 +51,7 @@
         "@adonisjs/core": "^6.17.2",
         "@adonisjs/cors": "^2.2.1",
         "@adonisjs/lucid": "^21.6.0",
-        "@cybearl/cypack": "^2025.1.2",
+        "@cybearl/cypack": "^1.2.3",
         "@noble/hashes": "^1.7.0",
         "@vinejs/vine": "^3.0.0",
         "bullmq": "^5.39.2",

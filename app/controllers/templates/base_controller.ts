@@ -1,6 +1,6 @@
 import { inject } from "@adonisjs/core"
 import { HttpContext } from "@adonisjs/core/http"
-import { ErrorObj, ErrorObjAdditionalData, FailedRequest } from "@cybearl/cypack"
+import { ErrorObj, FailedRequest } from "@cybearl/cypack"
 
 @inject()
 export default class BaseController {
@@ -47,7 +47,7 @@ export default class BaseController {
      * @param data Additional data to be sent in the response (optional).
      * @param message Error message to be sent in the response (optional, defaults to the internal error message).
      */
-    async errorResponse(error: ErrorObj, data: ErrorObjAdditionalData | null = null, message?: string) {
+    async errorResponse(error: ErrorObj, data: unknown | null = null, message?: string) {
         const response: FailedRequest = {
             success: false,
             message: message ?? error.message,
