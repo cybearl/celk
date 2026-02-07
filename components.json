@@ -1,20 +1,24 @@
 {
     "$schema": "https://ui.shadcn.com/schema.json",
-    "aliases": {
-        "components": "@/components",
-        "hooks": "@/hooks",
-        "lib": "@/lib",
-        "ui": "@/components/ui",
-        "utils": "@/lib/utils/styling"
-    },
-    "rsc": false,
     "style": "default",
+    "rsc": false,
+    "tsx": true,
     "tailwind": {
-        "baseColor": "slate",
         "config": "tailwind.config.ts",
         "css": "styles/globals.css",
+        "baseColor": "slate",
         "cssVariables": false,
         "prefix": ""
     },
-    "tsx": true
+    "iconLibrary": "lucide",
+    "aliases": {
+        "components": "@/components",
+        "utils": "@/lib/utils/styling",
+        "ui": "@/components/ui",
+        "lib": "@/lib",
+        "hooks": "@/hooks"
+    },
+    "registries": {
+        "@magicui": "https://magicui.design/r/{name}"
+    }
 }
