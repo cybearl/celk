@@ -1,11 +1,11 @@
 {
-    "name": "@cybearl/frontend",
+    "name": "@cybearl/nano-celk",
     "version": "0.0.7",
     "author": "Cybearl <contact@cybearl.com> (https://www.cybearl.com/)",
     "license": "MIT",
     "private": true,
     "packageManager": "yarn@1.22.22",
-    "homepage": "https://github.com/cybearl/nano-celk/tree/main/packages/frontend",
+    "homepage": "https://github.com/cybearl/nano-celk",
     "repository": {
         "type": "git",
         "url": "git+https://github.com/cybearl/nano-celk.git"
