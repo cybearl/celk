@@ -1,4 +1,4 @@
-import { PRIVATE_ENV, PUBLIC_ENV } from "@app/lib/utils/env"
+import { PRIVATE_ENV, PUBLIC_ENV } from "@app/config/env"
 import { fullyPermissiveCspHeader } from "@cybearl/cypack"
 import type { NextRequest } from "next/server"
 import { NextResponse } from "next/server"

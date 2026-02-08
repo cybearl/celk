@@ -1,0 +1,17 @@
+BasedOnStyle: Webkit
+Standard: Latest
+IndentWidth: 4
+ColumnLimit: 120
+
+# File ending
+InsertNewlineAtEOF: true
+
+# Braces & Spacing
+BreakBeforeBraces: Attach
+SpaceBeforeParens: ControlStatements
+PointerAlignment: Left
+
+# Modern C++ / "Prettier" style wrapping
+BinPackArguments: false
+BinPackParameters: false
+AllowShortFunctionsOnASingleLine: Inline

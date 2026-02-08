@@ -1,5 +1,5 @@
 import NonceProvider from "@app/components/contexts/Nonce"
-import { Rubik } from "@app/lib/fonts"
+import { SourceCodePro } from "@app/config/fonts"
 import { cn } from "@app/lib/utils/styling"
 import type { AppContext as NextAppContext, AppProps as NextAppProps } from "next/app"
 import NextApp from "next/app"
@@ -20,7 +20,7 @@ type AppProps = NextAppProps & AppGetInitialPropsReturnType
 export default function App({ Component, pageProps, nonce }: AppProps) {
     return (
         <NonceProvider nonce={nonce}>
-            <div className={cn(Rubik.variable, "font-rubik h-full w-full")}>
+            <div className={cn(SourceCodePro.variable, "font-source-code-pro h-full w-full")}>
                 <Component {...pageProps} />
             </div>
         </NonceProvider>
