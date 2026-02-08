@@ -3,7 +3,7 @@
  */
 export const REQUIRED_ENV_VARS = {
     PUBLIC: ["NODE_ENV", "NEXT_PUBLIC_APP_URL", "NEXT_PUBLIC_CGAS_MARKER", "NEXT_PUBLIC_APP_STATUS"],
-    PRIVATE: ["NODE_ENV", "BETTER_AUTH_SECRET"],
+    PRIVATE: ["NODE_ENV", "BETTER_AUTH_SECRET", "DATABASE_URL"],
 }
 
 /**
@@ -23,4 +23,5 @@ export const PRIVATE_ENV = {
     port: process.env.PORT ? Number(process.env.PORT) : 3000,
     nodeEnv: process.env.NODE_ENV as "development" | "production" | "test",
     betterAuthSecret: process.env.BETTER_AUTH_SECRET as string,
+    databaseUrl: process.env.DATABASE_URL as string,
 }

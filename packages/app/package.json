@@ -21,6 +21,7 @@
         "knip": "knip",
         "lint": "biome check",
         "lint:fix": "biome check --fix && biome format --write",
+        "db:generate": "drizzle-kit generate",
         "components": "npx shadcn@2.3.0",
         "test": "echo 'Unit testing is not configured for now, skipping..'",
         "dev": "dotenv -- next dev --turbopack",
@@ -30,6 +31,7 @@
     "dependencies": {
         "@bprogress/next": "^3.2.12",
         "@cybearl/cypack": "^1.10.7",
+        "@hookform/resolvers": "^5.2.2",
         "@radix-ui/react-avatar": "^1.1.10",
         "@radix-ui/react-collapsible": "^1.1.12",
         "@radix-ui/react-dialog": "^1.1.15",
@@ -47,6 +49,7 @@
         "dedent": "^1.7.0",
         "dotenv": "^17.2.4",
         "drizzle-orm": "^0.45.1",
+        "drizzle-zod": "^0.8.3",
         "lodash.throttle": "^4.1.1",
         "lucide-react": "^0.544.0",
         "motion": "^12.33.0",
@@ -55,6 +58,7 @@
         "pg": "^8.18.0",
         "react": "^19.1.1",
         "react-dom": "^19.1.1",
+        "react-hook-form": "^7.71.1",
         "react-markdown": "^10.1.0",
         "scrollreveal": "^4.0.9",
         "shadcn": "2.10.0",
@@ -65,7 +69,8 @@
         "tailwindcss": "^4.1.13",
         "typed.js": "^2.1.0",
         "use-debounce": "^10.0.6",
-        "wildcard-match": "^5.1.4"
+        "wildcard-match": "^5.1.4",
+        "zod": "^4.3.6"
     },
     "devDependencies": {
         "@biomejs/biome": "^2.3.14",
