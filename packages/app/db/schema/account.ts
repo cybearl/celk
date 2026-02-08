@@ -1,11 +1,14 @@
 import scUser from "@app/db/schema/user"
 import { pgTable, text, timestamp } from "drizzle-orm/pg-core"
+import { v4 as uuidv4 } from "uuid"
 
 /**
  * The schema for user accounts.
  */
 const scAccount = pgTable("accounts", {
-    id: text("id").primaryKey(),
+    id: text("id")
+        .primaryKey()
+        .$defaultFn(() => uuidv4()),
 
     accountId: text("account_id").notNull(),
     providerId: text("provider_id").notNull(),

@@ -7,6 +7,9 @@ import { migrate } from "drizzle-orm/node-postgres/migrator"
 // this is outside of the Next.js runtime
 config({ path: "../.env" })
 
+/**
+ * Run all the database migrations.
+ */
 async function main() {
     await migrate(drizzle(dbClient), {
         migrationsFolder: "./db/migrations",
@@ -16,6 +19,6 @@ async function main() {
 }
 
 main().catch(err => {
-    console.error(err)
+    console.error(`An error occurred while trying to migrate the database: ${err.message}`)
     process.exit(1)
 })

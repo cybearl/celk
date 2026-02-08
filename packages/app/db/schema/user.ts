@@ -1,10 +1,13 @@
 import { boolean, pgTable, text, timestamp } from "drizzle-orm/pg-core"
+import { v4 as uuidv4 } from "uuid"
 
 /**
  * The schema for users.
  */
 const scUser = pgTable("users", {
-    id: text("id").primaryKey(),
+    id: text("id")
+        .primaryKey()
+        .$defaultFn(() => uuidv4()),
 
     username: text("username").notNull().unique(),
     displayUsername: text("display_username").notNull().unique(),

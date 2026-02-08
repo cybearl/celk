@@ -24,4 +24,7 @@ export const PRIVATE_ENV = {
     nodeEnv: process.env.NODE_ENV as "development" | "production" | "test",
     betterAuthSecret: process.env.BETTER_AUTH_SECRET as string,
     databaseUrl: process.env.DATABASE_URL as string,
+    defaultAdminEmail: process.env.DEFAULT_ADMIN_EMAIL as string | undefined,
+    defaultAdminUsername: process.env.DEFAULT_ADMIN_USERNAME as string | undefined,
+    defaultAdminPassword: process.env.DEFAULT_ADMIN_PASSWORD as string | undefined,
 }

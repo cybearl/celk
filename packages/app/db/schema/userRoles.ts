@@ -1,14 +1,17 @@
 import scRoles from "@app/db/schema/role"
 import scUser from "@app/db/schema/user"
-import { integer, pgTable, text, timestamp } from "drizzle-orm/pg-core"
+import { pgTable, text, timestamp } from "drizzle-orm/pg-core"
+import { v4 as uuidv4 } from "uuid"
 
-export const pvtUserRoles = pgTable("pvt_user_roles", {
-    id: text("id").primaryKey(),
+export const pvtUserRoles = pgTable("user_roles", {
+    id: text("id")
+        .primaryKey()
+        .$defaultFn(() => uuidv4()),
 
-    userId: integer("user_id")
+    userId: text("user_id")
         .notNull()
         .references(() => scUser.id),
-    roleId: integer("role_id")
+    roleId: text("role_id")
         .notNull()
         .references(() => scRoles.id),
 

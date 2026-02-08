@@ -1,10 +1,13 @@
 import { pgTable, text, timestamp } from "drizzle-orm/pg-core"
+import { v4 as uuidv4 } from "uuid"
 
 /**
  * The schema for user roles.
  */
 const scRoles = pgTable("roles", {
-    id: text("id").primaryKey(),
+    id: text("id")
+        .primaryKey()
+        .$defaultFn(() => uuidv4()),
 
     name: text("name").notNull().unique(),
     description: text("description").notNull(),
