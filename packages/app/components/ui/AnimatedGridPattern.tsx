@@ -1,7 +1,6 @@
+import { cn } from "@app/lib/utils/styling"
 import { motion } from "motion/react"
 import { type ComponentPropsWithoutRef, useCallback, useEffect, useId, useRef, useState } from "react"
-
-import { cn } from "@/lib/utils/styling"
 
 export interface AnimatedGridPatternProps extends ComponentPropsWithoutRef<"svg"> {
     width?: number

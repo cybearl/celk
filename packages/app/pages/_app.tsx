@@ -1,11 +1,11 @@
+import NonceProvider from "@app/components/contexts/Nonce"
+import { Rubik } from "@app/lib/fonts"
+import { cn } from "@app/lib/utils/styling"
 import type { AppContext as NextAppContext, AppProps as NextAppProps } from "next/app"
 import NextApp from "next/app"
-import NonceProvider from "@/components/contexts/Nonce"
-import { Rubik } from "@/lib/fonts"
-import { cn } from "@/lib/utils/styling"
 
 // Styles
-import "@/styles/globals.css"
+import "@app/styles/globals.css"
 
 /**
  * The returned values from the `getInitialProps` method of the App component.

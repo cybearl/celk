@@ -1,6 +1,6 @@
+import type { CSSDelay } from "@app/types/miscellaneous"
 import { type ClassValue, clsx } from "clsx"
 import { twMerge } from "tailwind-merge"
-import type { CSSDelay } from "@/types/miscellaneous"
 
 /**
  * An utility function to efficiently merge Tailwind CSS classes

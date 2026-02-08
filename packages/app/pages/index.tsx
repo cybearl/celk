@@ -1,4 +1,4 @@
-import MainBackground from "@/components/backgrounds/Main"
+import MainBackground from "@app/components/backgrounds/Main"
 
 export default function Homepage() {
     return (

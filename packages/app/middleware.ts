@@ -1,7 +1,7 @@
+import { PRIVATE_ENV, PUBLIC_ENV } from "@app/lib/utils/env"
 import { fullyPermissiveCspHeader } from "@cybearl/cypack"
 import type { NextRequest } from "next/server"
 import { NextResponse } from "next/server"
-import { PRIVATE_ENV, PUBLIC_ENV } from "@/lib/utils/env"
 
 /**
  * Generate the Content Security Policy (CSP) header value.

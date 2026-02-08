@@ -1,0 +1,19 @@
+{
+    "name": "@cybearl/nano-celk-workers",
+    "version": "0.0.1",
+    "author": "Cybearl <contact@cybearl.com> (https://www.cybearl.com/)",
+    "license": "MIT",
+    "private": true,
+    "packageManager": "yarn@1.22.22",
+    "homepage": "https://github.com/cybearl/nano-celk/tree/main/packages/workers",
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/cybearl/nano-celk.git"
+    },
+    "bugs": {
+        "url": "https://github.com/cybearl/nano-celk/issues"
+    },
+    "scripts": {
+        "v-bump": "yarn version --patch"
+    }
+}

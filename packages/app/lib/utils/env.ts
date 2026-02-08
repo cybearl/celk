@@ -1,4 +1,4 @@
-import { REQUIRED_ENV_VARS } from "@/config/env"
+import { REQUIRED_ENV_VARS } from "@app/config/env"
 
 /**
  * Public environment variables accessible on the frontend (`NEXT_PUBLIC_`).
