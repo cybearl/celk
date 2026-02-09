@@ -2,14 +2,15 @@ import { PUBLIC_ENV } from "@app/config/env"
 import schema from "@app/db/schema"
 import { db } from "@app/lib/connectors/db"
 import { CyCONSTANTS } from "@cybearl/cypack"
-import { betterAuth } from "better-auth"
+import { type BetterAuthOptions, betterAuth } from "better-auth"
 import { drizzleAdapter } from "better-auth/adapters/drizzle"
 import { username } from "better-auth/plugins"
 
 /**
- * The Better Auth configuration.
+ * Options for Better Auth with type inference,
+ * as shown [here](https://www.better-auth.com/docs/concepts/session-management#caveats-on-customizing-session-response).
  */
-const auth = betterAuth({
+export const betterAuthOptions = {
     appName: "nano-celk",
     baseURL: PUBLIC_ENV.appUrl,
 
@@ -24,20 +25,6 @@ const auth = betterAuth({
         usePlural: true,
         schema,
     }),
-
-    // User table with additional fields
-    user: {
-        additionalFields: {
-            //test: {
-            //    type: ["user", "admin"],
-            //    required: false,
-            //    defaultValue: "user",
-            //    input: false,
-            //},
-        },
-    },
-
-    // Plugins
     plugins: [
         username({
             minUsernameLength: CyCONSTANTS.MIN_USERNAME_LENGTH,
@@ -47,6 +34,14 @@ const auth = betterAuth({
             },
         }),
     ],
+} satisfies BetterAuthOptions
+
+/**
+ * The Better Auth configuration.
+ */
+const auth = betterAuth({
+    ...betterAuthOptions,
+    plugins: [...(betterAuthOptions.plugins ?? [])],
 })
 
 export default auth

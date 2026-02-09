@@ -1,5 +1,5 @@
-import auth from "@app/auth"
 import { PRIVATE_ENV } from "@app/config/env"
+import auth from "@app/lib/auth"
 import type { SignUpResponse } from "@app/types/auth"
 
 /**

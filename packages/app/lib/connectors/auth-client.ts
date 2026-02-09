@@ -1,5 +1,5 @@
-import type auth from "@app/auth"
 import { PUBLIC_ENV } from "@app/config/env"
+import type auth from "@app/lib/auth"
 import { inferAdditionalFields, usernameClient } from "better-auth/client/plugins"
 import { createAuthClient } from "better-auth/react"
 
