@@ -20,8 +20,8 @@ const scSession = pgTable("sessions", {
         .references(() => scUser.id, { onDelete: "cascade" }),
 
     // Timestamps
-    createdAt: timestamp("created_at").notNull(),
-    updatedAt: timestamp("updated_at").notNull(),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+    updatedAt: timestamp("updated_at").notNull().defaultNow(),
     expiresAt: timestamp("expires_at").notNull(),
 
     test: text("test").notNull(),

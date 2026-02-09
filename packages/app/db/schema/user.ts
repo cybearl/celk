@@ -13,12 +13,12 @@ const scUser = pgTable("users", {
     displayUsername: text("display_username").notNull().unique(),
     name: text("name").notNull(),
     email: text("email").notNull().unique(),
-    emailVerified: boolean("email_verified").notNull(),
+    emailVerified: boolean("email_verified").notNull().default(false),
     imageUrl: text("image_url"),
 
     // Timestamps
-    createdAt: timestamp("created_at").notNull(),
-    updatedAt: timestamp("updated_at").notNull(),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+    updatedAt: timestamp("updated_at").notNull().defaultNow(),
 })
 
 export default scUser

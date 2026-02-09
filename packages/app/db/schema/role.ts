@@ -13,8 +13,8 @@ const scRoles = pgTable("roles", {
     description: text("description").notNull(),
 
     // Timestamps
-    createdAt: timestamp("created_at").notNull(),
-    updatedAt: timestamp("updated_at").notNull(),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+    updatedAt: timestamp("updated_at").notNull().defaultNow(),
 })
 
 export default scRoles

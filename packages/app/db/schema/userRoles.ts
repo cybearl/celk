@@ -16,6 +16,6 @@ export const pvtUserRoles = pgTable("user_roles", {
         .references(() => scRoles.id),
 
     // Timestamps
-    createdAt: timestamp("created_at").notNull(),
-    updatedAt: timestamp("updated_at").notNull(),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+    updatedAt: timestamp("updated_at").notNull().defaultNow(),
 })

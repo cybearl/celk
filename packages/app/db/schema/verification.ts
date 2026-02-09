@@ -13,8 +13,8 @@ const scVerification = pgTable("verifications", {
     value: text("value").notNull(),
 
     // Timestamps
-    createdAt: timestamp("created_at"),
-    updatedAt: timestamp("updated_at"),
+    createdAt: timestamp("created_at").notNull().defaultNow(),
+    updatedAt: timestamp("updated_at").notNull().defaultNow(),
     expiresAt: timestamp("expires_at").notNull(),
 })
 
