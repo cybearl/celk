@@ -6,7 +6,7 @@ import NextApp from "next/app"
 
 // Styles
 import "@app/styles/globals.css"
-//import { checkEnvironmentVariables } from "@app/lib/utils/env"
+import { checkEnvironmentVariables } from "@app/lib/utils/env"
 import { useEffect } from "react"
 
 /**
@@ -20,7 +20,7 @@ export type AppGetInitialPropsReturnType = {
 type AppProps = NextAppProps & AppGetInitialPropsReturnType
 
 export default function App({ Component, pageProps, nonce }: AppProps) {
-    //useEffect(() => checkEnvironmentVariables(), [])
+    useEffect(() => checkEnvironmentVariables(), [])
 
     return (
         <NonceProvider nonce={nonce}>

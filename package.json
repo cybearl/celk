@@ -21,14 +21,7 @@
         "packages": [
             "packages/*"
         ],
-        "nohoist": [
-            "**/react",
-            "**/react/**",
-            "**/react-dom",
-            "**/react-dom/**",
-            "**/tslib",
-            "**/tslib/**"
-        ]
+        "nohoist": []
     },
     "scripts": {
         "v-bump": "yarn version --patch",
@@ -40,11 +33,11 @@
     },
     "devDependencies": {
         "@biomejs/biome": "^2.3.14",
-        "@types/node": "^24.6.0",
-        "@types/react": "^18.3.25",
-        "@types/react-dom": "^18.3.7",
+        "@types/node": "^24.10.12",
+        "@types/react": "^19.2.13",
+        "@types/react-dom": "^19.1.1",
         "concurrently": "^9.2.1",
-        "knip": "^5.64.1",
+        "knip": "^5.83.1",
         "tsconfig-paths": "^4.2.0",
         "typescript": "^5.8.3",
         "yarn": "^1.22.22"

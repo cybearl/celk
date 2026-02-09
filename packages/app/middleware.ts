@@ -1,4 +1,4 @@
-import { PRIVATE_ENV, PUBLIC_ENV } from "@app/config/env"
+import { PUBLIC_ENV } from "@app/config/env"
 import { fullyPermissiveCspHeader } from "@cybearl/cypack"
 import type { NextRequest } from "next/server"
 import { NextResponse } from "next/server"
@@ -47,7 +47,7 @@ function getCSPHeader(nonce: string) {
         .trim()
 
     // Use fully permissive CSP header in non-production environments
-    const header = PRIVATE_ENV.nodeEnv !== "production" ? fullyPermissiveCspHeader : cspHeader
+    const header = PUBLIC_ENV.nodeEnv !== "production" ? fullyPermissiveCspHeader : cspHeader
 
     return header
 }

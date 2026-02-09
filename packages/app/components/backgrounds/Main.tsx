@@ -1,20 +1,33 @@
+import MainBackgroundSection from "@app/components/sections/MainBackground"
 import { AnimatedGridPattern } from "@app/components/ui/AnimatedGridPattern"
 import { cn } from "@app/lib/utils/styling"
+import type { ReactNode } from "react"
 
-export default function MainBackground() {
+type MainBackgroundProps = {
+    topLeftSection?: ReactNode
+    topRightSection?: ReactNode
+    bottomLeftSection?: ReactNode
+    bottomRightSection?: ReactNode
+}
+
+export default function MainBackground({
+    topLeftSection,
+    topRightSection,
+    bottomLeftSection,
+    bottomRightSection,
+}: MainBackgroundProps) {
     return (
         <div className="absolute inset-0 overflow-hidden opacity-50">
-            <div className="border-2 border-foreground absolute inset-8 z-20" />
+            <div className="border-2 border-foreground absolute inset-8 z-0" />
 
-            <div className="absolute bottom-7 right-16 w-24 h-4 z-20">
-                <div className="absolute inset-0 flex items-center">
-                    <div className="bg-background w-full h-1 mt-1.5" />
-                </div>
-
-                <div className="absolute inset-0 flex justify-center items-center">
-                    <p className="text-foreground font-medium">nano-celk</p>
-                </div>
-            </div>
+            {topLeftSection && <MainBackgroundSection position="top-left">{topLeftSection}</MainBackgroundSection>}
+            {topRightSection && <MainBackgroundSection position="top-right">{topRightSection}</MainBackgroundSection>}
+            {bottomLeftSection && (
+                <MainBackgroundSection position="bottom-left">{bottomLeftSection}</MainBackgroundSection>
+            )}
+            {bottomRightSection && (
+                <MainBackgroundSection position="bottom-right">{bottomRightSection}</MainBackgroundSection>
+            )}
 
             <AnimatedGridPattern
                 numSquares={30}
