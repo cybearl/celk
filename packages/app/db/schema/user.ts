@@ -1,5 +1,5 @@
+import type { InferInsertModel, InferSelectModel } from "drizzle-orm"
 import { boolean, pgTable, text, timestamp } from "drizzle-orm/pg-core"
-import { v4 as uuidv4 } from "uuid"
 
 /**
  * The schema for users.
@@ -7,14 +7,14 @@ import { v4 as uuidv4 } from "uuid"
 const scUser = pgTable("users", {
     id: text("id")
         .primaryKey()
-        .$defaultFn(() => uuidv4()),
+        .$defaultFn(() => crypto.randomUUID()),
 
     username: text("username").notNull().unique(),
     displayUsername: text("display_username").notNull().unique(),
     name: text("name").notNull(),
     email: text("email").notNull().unique(),
     emailVerified: boolean("email_verified").notNull().default(false),
-    imageUrl: text("image_url"),
+    image: text("image"),
 
     // Timestamps
     createdAt: timestamp("created_at").notNull().defaultNow(),
@@ -23,3 +23,5 @@ const scUser = pgTable("users", {
 
 export default scUser
 export type UserSchema = typeof scUser
+export type UserSelectModel = InferSelectModel<typeof scUser>
+export type UserInsertModel = InferInsertModel<typeof scUser>

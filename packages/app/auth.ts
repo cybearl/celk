@@ -1,3 +1,4 @@
+import { PUBLIC_ENV } from "@app/config/env"
 import schema from "@app/db/schema"
 import { db } from "@app/lib/connectors/db"
 import { CyCONSTANTS } from "@cybearl/cypack"
@@ -10,6 +11,7 @@ import { username } from "better-auth/plugins"
  */
 const auth = betterAuth({
     appName: "nano-celk",
+    baseURL: PUBLIC_ENV.appUrl,
 
     // Auth methods
     emailAndPassword: {
@@ -23,14 +25,8 @@ const auth = betterAuth({
         schema,
     }),
 
-    // Custom table names
-    session: { modelName: "sessions" },
-    account: { modelName: "accounts" },
-    verification: { modelName: "verifications" },
-
     // User table with additional fields
     user: {
-        modelName: "users",
         additionalFields: {
             //test: {
             //    type: ["user", "admin"],

@@ -6,6 +6,8 @@ import NextApp from "next/app"
 
 // Styles
 import "@app/styles/globals.css"
+//import { checkEnvironmentVariables } from "@app/lib/utils/env"
+import { useEffect } from "react"
 
 /**
  * The returned values from the `getInitialProps` method of the App component.
@@ -18,6 +20,8 @@ export type AppGetInitialPropsReturnType = {
 type AppProps = NextAppProps & AppGetInitialPropsReturnType
 
 export default function App({ Component, pageProps, nonce }: AppProps) {
+    //useEffect(() => checkEnvironmentVariables(), [])
+
     return (
         <NonceProvider nonce={nonce}>
             <div className={cn(SourceCodePro.variable, "font-source-code-pro h-full w-full")}>

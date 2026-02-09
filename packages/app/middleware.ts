@@ -58,7 +58,7 @@ function getCSPHeader(nonce: string) {
  * @returns The response.
  */
 export function middleware(request: NextRequest) {
-    const nonce = crypto.randomUUID()
+    const nonce = globalThis.crypto.randomUUID()
     const cspHeader = getCSPHeader(nonce)
 
     // Request headers

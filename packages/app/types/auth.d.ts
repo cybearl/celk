@@ -1,3 +1,5 @@
+import type { UserSelectModel } from "@app/db/schema/user"
+
 /**
  * The basic type for a session inside BetterAuth.
  */
@@ -19,4 +21,9 @@ export type BetterAuthSession = {
 export type BetterAuthExtendedUserSession = AuthenticatedUser & {
     isAdmin: boolean | undefined
     session: BetterAuthSession
+}
+
+export type SignUpResponse = {
+    token: string | null
+    user: UserSelectModel
 }
