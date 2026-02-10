@@ -1,10 +1,9 @@
 import { PUBLIC_ENV } from "@app/config/env"
 import schema from "@app/db/schema"
-import type { SessionSelectModel } from "@app/db/schema/session"
-import type { UserSelectModel } from "@app/db/schema/user"
 import { db } from "@app/lib/connectors/db"
+import { getCustomSession } from "@app/lib/utils/auth"
 import { CyCONSTANTS } from "@cybearl/cypack"
-import { type BetterAuthOptions, betterAuth, type InferSession, type InferUser } from "better-auth"
+import { type BetterAuthOptions, betterAuth } from "better-auth"
 import { drizzleAdapter } from "better-auth/adapters/drizzle"
 import { customSession, username } from "better-auth/plugins"
 
@@ -48,25 +47,6 @@ export const authOptions = {
         }),
     ],
 } satisfies BetterAuthOptions
-
-/**
- * Maps the original badly named Better Auth properties to standard-following
- * user & session models:
- * - `emailVerified` => `isEmailVerified`.
- * - `image` => `imageUrl`.
- * @param session The original session object from Better Auth.
- * @param user The original user object from Better Auth.
- */
-function getCustomSession({
-    session,
-    user,
-}: {
-    session: InferSession<typeof authOptions>
-    user: InferUser<typeof authOptions>
-}) {
-    const customUser: UserSelectModel = {}
-    const customSession: SessionSelectModel = {}
-}
 
 /**
  * The Better Auth configuration.
