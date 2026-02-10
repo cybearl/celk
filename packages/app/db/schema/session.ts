@@ -1,4 +1,5 @@
 import scUser from "@app/db/schema/user"
+import type { InferInsertModel, InferSelectModel } from "drizzle-orm"
 import { pgTable, text, timestamp } from "drizzle-orm/pg-core"
 
 /**
@@ -26,3 +27,5 @@ const scSession = pgTable("sessions", {
 
 export default scSession
 export type SessionSchema = typeof scSession
+export type SessionSelectModel = InferSelectModel<typeof scSession>
+export type SessionInsertModel = InferInsertModel<typeof scSession>

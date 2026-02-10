@@ -1,4 +1,5 @@
 import type { betterAuthOptions } from "@app/lib/auth"
+import { authClient } from "@app/lib/connectors/auth-client"
 import type { InferSession } from "better-auth"
 import type { ReactNode } from "react"
 import { createContext } from "react"
@@ -20,5 +21,7 @@ type SessionProviderProps = {
  * Provides the current user's session information to the component tree.
  */
 export default function SessionProvider({ initialSession, children }: SessionProviderProps) {
+    const { data: session } = authClient.useSession()
+
     return <SessionContext.Provider value={undefined}>{children}</SessionContext.Provider>
 }

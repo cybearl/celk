@@ -1,6 +1,6 @@
 import { PUBLIC_ENV } from "@app/config/env"
-import type auth from "@app/lib/auth"
-import { inferAdditionalFields, usernameClient } from "better-auth/client/plugins"
+import type { Auth } from "@app/lib/auth"
+import { customSessionClient, usernameClient } from "better-auth/client/plugins"
 import { createAuthClient } from "better-auth/react"
 
 /**
@@ -8,5 +8,5 @@ import { createAuthClient } from "better-auth/react"
  */
 export const authClient = createAuthClient({
     baseURL: PUBLIC_ENV.appUrl,
-    plugins: [inferAdditionalFields<typeof auth>(), usernameClient()],
+    plugins: [customSessionClient<Auth>(), usernameClient()],
 })

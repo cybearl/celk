@@ -4,7 +4,7 @@ import type { SignUpResponse } from "@app/types/auth"
 
 /**
  * Seeds the default admin user.
- * @returns The response from the BetterAuth sign-up API endpoint.
+ * @returns The response from the Better Auth sign-up API endpoint.
  */
 export async function seedDefaultAdminUser() {
     if (!PRIVATE_ENV.defaultAdmin.email || !PRIVATE_ENV.defaultAdmin.username || !PRIVATE_ENV.defaultAdmin.password) {

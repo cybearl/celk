@@ -1,4 +1,5 @@
 import scUser from "@app/db/schema/user"
+import type { InferInsertModel, InferSelectModel } from "drizzle-orm"
 import { pgTable, text, timestamp } from "drizzle-orm/pg-core"
 
 /**
@@ -31,3 +32,5 @@ const scAccount = pgTable("accounts", {
 
 export default scAccount
 export type AccountSchema = typeof scAccount
+export type AccountSelectModel = InferSelectModel<typeof scAccount>
+export type AccountInsertModel = InferInsertModel<typeof scAccount>

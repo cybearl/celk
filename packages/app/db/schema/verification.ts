@@ -1,3 +1,4 @@
+import type { InferInsertModel, InferSelectModel } from "drizzle-orm"
 import { pgTable, text, timestamp } from "drizzle-orm/pg-core"
 
 /**
@@ -19,3 +20,5 @@ const scVerification = pgTable("verifications", {
 
 export default scVerification
 export type VerificationSchema = typeof scVerification
+export type VerificationSelectModel = InferSelectModel<typeof scVerification>
+export type VerificationInsertModel = InferInsertModel<typeof scVerification>

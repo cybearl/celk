@@ -1,3 +1,4 @@
+import type { InferInsertModel, InferSelectModel } from "drizzle-orm"
 import { pgTable, text, timestamp } from "drizzle-orm/pg-core"
 
 /**
@@ -18,3 +19,5 @@ const scRoles = pgTable("roles", {
 
 export default scRoles
 export type RoleSchema = typeof scRoles
+export type RoleSelectModel = InferSelectModel<typeof scRoles>
+export type RoleInsertModel = InferInsertModel<typeof scRoles>
