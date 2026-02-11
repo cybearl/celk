@@ -1,17 +1,15 @@
 import NonceProvider from "@app/components/contexts/Nonce"
+import SessionProvider from "@app/components/contexts/Session"
 import { SourceCodePro } from "@app/config/fonts"
-import { cn } from "@app/lib/utils/styling"
+import { checkEnvironmentVariables } from "@app/lib/base/utils/env"
+import { cn } from "@app/lib/client/utils/styling"
+import type { Session } from "@app/types/auth"
 import type { AppContext as NextAppContext, AppProps as NextAppProps } from "next/app"
 import NextApp from "next/app"
+import { useEffect } from "react"
 
 // Styles
 import "@app/styles/globals.css"
-import SessionProvider from "@app/components/contexts/Session"
-import auth from "@app/lib/auth"
-import { checkEnvironmentVariables } from "@app/lib/utils/env"
-import { convertNodeHeadersToWebHeaders } from "@app/lib/utils/headers"
-import type { Session } from "@app/types/auth"
-import { useEffect } from "react"
 
 /**
  * The returned values from the `getInitialProps` method of the App component.
@@ -57,8 +55,12 @@ App.getInitialProps = async (appContext: NextAppContext) => {
         }
     }
 
-    if (req && res) {
+    if (typeof window === "undefined" && req && res) {
         try {
+            // Import dynamically to avoid the client-side from importing these modules
+            const { default: auth } = await import("@app/lib/auth")
+            const { convertNodeHeadersToWebHeaders } = await import("@app/lib/server/utils/headers")
+
             // Convert incoming headers into Web headers format
             const headers = convertNodeHeadersToWebHeaders(req.headers)
 

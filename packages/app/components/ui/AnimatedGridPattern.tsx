@@ -1,4 +1,4 @@
-import { cn } from "@app/lib/utils/styling"
+import { cn } from "@app/lib/client/utils/styling"
 import { motion } from "motion/react"
 import { type ComponentPropsWithoutRef, useCallback, useEffect, useId, useRef, useState } from "react"
 

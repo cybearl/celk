@@ -1,8 +1,28 @@
 import type { SessionSelectModel } from "@app/db/schema/session"
 import type { UserSelectModel } from "@app/db/schema/user"
-import type { authOptions } from "@app/lib/auth"
+import type { AuthOptions } from "@app/lib/auth"
 import type { Session } from "@app/types/auth"
 import type { InferSession, InferUser } from "better-auth"
+
+/**
+ * Maps the original badly named Better Auth properties to a standard-following
+ * user model.
+ * @param user The original user object from Better Auth.
+ * @returns The mapped user object for the database.
+ */
+export function mapBetterAuthUserToDbUser(user: InferUser<AuthOptions>): UserSelectModel {
+    return {
+        id: user.id,
+        username: user.username!,
+        displayUsername: user.displayUsername!,
+        name: user.name,
+        email: user.email,
+        isEmailVerified: user.emailVerified,
+        imageUrl: user.image ?? null,
+        createdAt: user.createdAt,
+        updatedAt: user.updatedAt,
+    }
+}
 
 /**
  * Maps the original badly named Better Auth properties to standard-following
@@ -13,12 +33,12 @@ import type { InferSession, InferUser } from "better-auth"
  * @param user The original user object from Better Auth.
  */
 // biome-ignore lint/suspicious/useAwait: Required for type inference in Better Auth's custom session plugin
-export async function getCustomSession({
+export async function mapBetterAuthSessionToDbSession({
     session,
     user,
 }: {
-    session: InferSession<typeof authOptions>
-    user: InferUser<typeof authOptions>
+    session: InferSession<AuthOptions>
+    user: InferUser<AuthOptions>
 }): Promise<Session> {
     const customSession: SessionSelectModel = {
         id: session.id,
@@ -31,20 +51,8 @@ export async function getCustomSession({
         expiresAt: session.expiresAt,
     }
 
-    const customUser: UserSelectModel = {
-        id: user.id,
-        username: user.username!,
-        displayUsername: user.displayUsername!,
-        name: user.name,
-        email: user.email,
-        isEmailVerified: user.emailVerified,
-        imageUrl: user.image ?? null,
-        createdAt: user.createdAt,
-        updatedAt: user.updatedAt,
-    }
-
     return {
         ...customSession,
-        user: customUser,
+        user: mapBetterAuthUserToDbUser(user),
     }
 }

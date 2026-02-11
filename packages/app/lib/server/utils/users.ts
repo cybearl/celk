@@ -1,5 +1,6 @@
 import { PRIVATE_ENV } from "@app/config/env"
 import auth from "@app/lib/auth"
+import { mapBetterAuthUserToDbUser } from "@app/lib/base/utils/auth"
 import type { SignUpResponse } from "@app/types/auth"
 
 /**
@@ -15,7 +16,7 @@ export async function seedDefaultAdminUser() {
     let response: SignUpResponse | null = null
 
     try {
-        response = (await auth.api.signUpEmail({
+        const rawResponse = await auth.api.signUpEmail({
             body: {
                 username: PRIVATE_ENV.defaultAdmin.username,
                 displayUsername: PRIVATE_ENV.defaultAdmin.displayUsername || PRIVATE_ENV.defaultAdmin.username,
@@ -23,7 +24,12 @@ export async function seedDefaultAdminUser() {
                 email: PRIVATE_ENV.defaultAdmin.email,
                 password: PRIVATE_ENV.defaultAdmin.password,
             },
-        })) as SignUpResponse
+        })
+
+        response = {
+            token: rawResponse.token,
+            user: mapBetterAuthUserToDbUser(rawResponse.user),
+        }
 
         if (response) console.log("The default admin user has successfully been seeded")
     } catch (error) {

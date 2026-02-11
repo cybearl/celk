@@ -1,7 +1,7 @@
 {
     "name": "@cybearl/nano-celk",
     "productName": "nano-celk",
-    "version": "0.0.1",
+    "version": "0.0.2",
     "author": "Cybearl <contact@cybearl.com> (https://www.cybearl.com/)",
     "license": "MIT",
     "private": true,

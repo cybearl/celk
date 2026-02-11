@@ -1,6 +1,6 @@
 import MainBackgroundSection from "@app/components/sections/MainBackground"
 import { AnimatedGridPattern } from "@app/components/ui/AnimatedGridPattern"
-import { cn } from "@app/lib/utils/styling"
+import { cn } from "@app/lib/client/utils/styling"
 import type { ReactNode } from "react"
 
 type MainBackgroundProps = {

@@ -1,4 +1,4 @@
-import { cn } from "@app/lib/utils/styling"
+import { cn } from "@app/lib/client/utils/styling"
 import { cva, type VariantProps } from "class-variance-authority"
 import { Tabs as TabsPrimitive } from "radix-ui"
 import * as React from "react"

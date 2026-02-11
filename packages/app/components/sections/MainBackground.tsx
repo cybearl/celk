@@ -1,4 +1,4 @@
-import { cn } from "@app/lib/utils/styling"
+import { cn } from "@app/lib/client/utils/styling"
 import { type ReactNode, useMemo } from "react"
 
 type MainBackgroundSectionProps = {

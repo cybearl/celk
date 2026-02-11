@@ -1,7 +1,7 @@
 import { PUBLIC_ENV } from "@app/config/env"
 import schema from "@app/db/schema"
-import { db } from "@app/lib/connectors/db"
-import { getCustomSession } from "@app/lib/utils/auth"
+import { mapBetterAuthSessionToDbSession } from "@app/lib/base/utils/auth"
+import { db } from "@app/lib/server/connectors/db"
 import { CyCONSTANTS } from "@cybearl/cypack"
 import { type BetterAuthOptions, betterAuth } from "better-auth"
 import { drizzleAdapter } from "better-auth/adapters/drizzle"
@@ -53,7 +53,7 @@ export const authOptions = {
  */
 const auth = betterAuth({
     ...authOptions,
-    plugins: [...(authOptions.plugins ?? []), customSession(getCustomSession, authOptions)],
+    plugins: [...(authOptions.plugins ?? []), customSession(mapBetterAuthSessionToDbSession, authOptions)],
 })
 
 export default auth

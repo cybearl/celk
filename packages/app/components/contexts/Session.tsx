@@ -1,7 +1,7 @@
-import { authClient } from "@app/lib/connectors/auth-client"
+import { authClient } from "@app/lib/client/connectors/auth-client"
 import type { Session } from "@app/types/auth"
 import type { ReactNode } from "react"
-import { createContext, useContext } from "react"
+import { createContext, useContext, useEffect } from "react"
 
 /**
  * The `Session` context, providing the current user's session information.
@@ -20,9 +20,11 @@ type SessionProviderProps = {
  * Provides the current user's session information to the component tree.
  */
 export default function SessionProvider({ initialSession, children }: SessionProviderProps) {
-    const { data: session } = authClient.useSession()
+    const { data: session, error } = authClient.useSession()
 
     const activeSession = session !== undefined ? (session as Session | null) : initialSession
+
+    useEffect(() => console.log("Active session:", session, error), [session, error])
 
     return <SessionContext.Provider value={activeSession ?? undefined}>{children}</SessionContext.Provider>
 }
