@@ -1,4 +1,5 @@
 import NonceProvider from "@app/components/contexts/Nonce"
+import PageProvider from "@app/components/contexts/Page"
 import SessionProvider from "@app/components/contexts/Session"
 import { SourceCodePro } from "@app/config/fonts"
 import { checkEnvironmentVariables } from "@app/lib/base/utils/env"
@@ -17,20 +18,22 @@ import "@app/styles/globals.css"
  */
 export type AppGetInitialPropsReturnType = {
     nonce: string | undefined
-    session: Session | null
+    initialSession: Session | null
 }
 
 type AppProps = NextAppProps & AppGetInitialPropsReturnType
 
-export default function App({ Component, pageProps, nonce, session }: AppProps) {
+export default function App({ Component, pageProps, nonce, initialSession }: AppProps) {
     useEffect(() => checkEnvironmentVariables(), [])
 
     return (
         <NonceProvider nonce={nonce}>
-            <SessionProvider initialSession={session}>
-                <div className={cn(SourceCodePro.variable, "font-source-code-pro h-full w-full")}>
-                    <Component {...pageProps} />
-                </div>
+            <SessionProvider initialSession={initialSession}>
+                <PageProvider>
+                    <div className={cn(SourceCodePro.variable, "font-source-code-pro h-full w-full")}>
+                        <Component {...pageProps} />
+                    </div>
+                </PageProvider>
             </SessionProvider>
         </NonceProvider>
     )
@@ -40,7 +43,7 @@ App.getInitialProps = async (appContext: NextAppContext) => {
     const appProps = await NextApp.getInitialProps(appContext)
     const { req, res } = appContext.ctx
 
-    let session: Session | null = null
+    let initialSession: Session | null = null
     const nonce = req?.headers?.["x-nonce"] as string | undefined
 
     // Auto-redirect to home page if the requested page is not found
@@ -51,7 +54,7 @@ App.getInitialProps = async (appContext: NextAppContext) => {
         return {
             ...appProps,
             nonce,
-            session,
+            initialSession,
         }
     }
 
@@ -66,7 +69,7 @@ App.getInitialProps = async (appContext: NextAppContext) => {
 
             // Attempt to load the session on the server-side using the auth API
             const sessionData = await auth.api.getSession({ headers })
-            if (sessionData) session = sessionData
+            if (sessionData) initialSession = sessionData
         } catch (error) {
             console.debug("Failed to load session on server-side:", error)
         }
@@ -75,6 +78,6 @@ App.getInitialProps = async (appContext: NextAppContext) => {
     return {
         ...appProps,
         nonce,
-        session,
+        initialSession,
     } satisfies AppGetInitialPropsReturnType
 }

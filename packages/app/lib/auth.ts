@@ -18,6 +18,10 @@ export const authOptions = {
     // Auth methods
     emailAndPassword: {
         enabled: true,
+        autoSignIn: true,
+        requireEmailVerification: true,
+        minPasswordLength: CyCONSTANTS.MIN_PASSWORD_LENGTH,
+        maxPasswordLength: CyCONSTANTS.MAX_PASSWORD_LENGTH,
     },
 
     // Database access
@@ -41,9 +45,7 @@ export const authOptions = {
         username({
             minUsernameLength: CyCONSTANTS.MIN_USERNAME_LENGTH,
             maxUsernameLength: CyCONSTANTS.MAX_USERNAME_LENGTH,
-            displayUsernameValidator: displayUsername => {
-                return CyCONSTANTS.USERNAME_REGEX.test(displayUsername)
-            },
+            usernameValidator: username => CyCONSTANTS.USERNAME_REGEX.test(username),
         }),
     ],
 } satisfies BetterAuthOptions

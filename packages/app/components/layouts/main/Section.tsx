@@ -1,12 +1,12 @@
 import { cn } from "@app/lib/client/utils/styling"
 import { type ReactNode, useMemo } from "react"
 
-type MainBackgroundSectionProps = {
+type MainLayoutSectionProps = {
     position: "top-left" | "top-right" | "bottom-left" | "bottom-right"
     children: ReactNode
 }
 
-export default function MainBackgroundSection({ position, children }: MainBackgroundSectionProps) {
+export default function MainLayoutSection({ position, children }: MainLayoutSectionProps) {
     const positionClassName = useMemo(() => {
         switch (position) {
             case "top-left":
@@ -38,10 +38,6 @@ export default function MainBackgroundSection({ position, children }: MainBackgr
             <div className="absolute inset-0 flex items-center">
                 <div className={cn("bg-background w-full h-0.5 -translate-y-1/2", backgroundHiderClassName)} />
             </div>
-
-            {/*<div className="absolute inset-0 flex justify-center items-center">
-                <p className="text-foreground font-medium">nano-celk</p>
-            </div>*/}
 
             <div className="relative flex justify-center items-center">{children}</div>
         </div>

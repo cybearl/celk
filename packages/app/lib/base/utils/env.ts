@@ -20,14 +20,7 @@ export function checkEnvironmentVariables() {
 
     if (missingVars.length > 0) {
         throw new Error(`Missing required environment variables: ${missingVars.join(", ")}`)
-    } else {
-        if (environment === "server") {
-            console.log(" ✓ All environment variables are loaded.")
-        } else {
-            console.log("All environment variables are loaded.")
-        }
     }
-
     // Check if any private env vars somehow ended up in the public vars
     if (environment === "client") {
         const privateVarsInPublic = REQUIRED_ENV_VARS.PRIVATE.filter(varName => envRuntimeValues[varName] !== undefined)
