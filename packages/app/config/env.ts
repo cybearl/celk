@@ -10,7 +10,7 @@ export const REQUIRED_ENV_VARS = {
         "NEXT_PUBLIC_APP_STATUS",
         "NEXT_PUBLIC_ALLOW_SIGN_UP",
     ],
-    PRIVATE: ["BETTER_AUTH_SECRET", "DATABASE_URL"],
+    PRIVATE: ["BETTER_AUTH_SECRET", "DATABASE_URL", "SMTP_HOST", "SMTP_PORT", "SMTP_USER", "SMTP_PASSWORD"],
 }
 
 /**
@@ -38,6 +38,12 @@ export const PRIVATE_ENV = {
         name: process.env.DEFAULT_ADMIN_NAME as string | undefined,
         email: process.env.DEFAULT_ADMIN_EMAIL as string | undefined,
         password: process.env.DEFAULT_ADMIN_PASSWORD as string | undefined,
+    },
+    smtp: {
+        host: process.env.SMTP_HOST as string | undefined,
+        port: process.env.SMTP_PORT ? Number(process.env.SMTP_PORT) : 465,
+        user: process.env.SMTP_USER as string | undefined,
+        password: process.env.SMTP_PASSWORD as string | undefined,
     },
 }
 
