@@ -1,7 +1,8 @@
+//import { authClient } from "@app/lib/client/connectors/auth-client"
 import { authClient } from "@app/lib/client/connectors/auth-client"
 import type { Session } from "@app/types/auth"
 import type { ReactNode } from "react"
-import { createContext, useContext } from "react"
+import { createContext, useContext, useEffect, useState } from "react"
 
 /**
  * The type for the session context.
@@ -27,19 +28,33 @@ type SessionProviderProps = {
 
 /**
  * Provides the current user's session information to the component tree.
+ *
+ * Note: Does not use the session hook to prevent any flash on the client-side, it instead handles
+ * the session state via the `getSession` function and the initially passed `initialSession` prop.
  */
 export default function SessionProvider({ initialSession, children }: SessionProviderProps) {
-    const { data: session, isPending: isSessionLoading, error: sessionError } = authClient.useSession()
+    const [session, setSession] = useState<Session | null>(initialSession)
+    const [isLoading, setIsLoading] = useState(true)
+    const [error, setError] = useState<Error | null>(null)
 
-    // Prefer loading the client-side session if available
-    const activeSession = session !== undefined ? (session as Session | null) : initialSession
+    // Fetch the session from the client
+    useEffect(() => {
+        setIsLoading(true)
+        authClient
+            .getSession()
+            .then(({ data: clientSession, error }) => {
+                setSession(clientSession ?? null)
+                setError(error ? new Error(error.message) : null)
+            })
+            .finally(() => setIsLoading(false))
+    }, [])
 
     return (
         <SessionContext.Provider
             value={{
-                session: activeSession,
-                isLoading: isSessionLoading,
-                error: sessionError,
+                session,
+                isLoading,
+                error,
             }}
         >
             {children}
