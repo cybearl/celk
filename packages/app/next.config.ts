@@ -13,7 +13,6 @@ const nextConfig: NextConfig = {
     distDir: "build",
     reactStrictMode: true,
     transpilePackages: ["@cybearl/backend"],
-    //serverExternalPackages: ["pino", "pino-pretty"],
     env: {
         VERSION: version,
     },
@@ -33,10 +32,6 @@ const nextConfig: NextConfig = {
             ".mjs": [".mts", ".mjs"],
             ".cjs": [".cts", ".cjs"],
         }
-
-        // Resolves client-side module resolution error
-        // see https://github.com/pinojs/pino/issues/1841#issuecomment-2244564289
-        //config.externals.push({ "thread-stream": "commonjs thread-stream" })
 
         return config
     },

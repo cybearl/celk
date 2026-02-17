@@ -1,4 +1,4 @@
-import { dbClient } from "@app/lib/connectors/db"
+import { dbClient } from "@app/lib/server/connectors/db"
 import { config } from "dotenv"
 import { drizzle } from "drizzle-orm/node-postgres"
 import { migrate } from "drizzle-orm/node-postgres/migrator"

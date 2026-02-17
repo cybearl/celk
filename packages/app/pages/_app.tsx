@@ -1,5 +1,4 @@
 import NonceProvider from "@app/components/contexts/Nonce"
-import PageProvider from "@app/components/contexts/Page"
 import SessionProvider from "@app/components/contexts/Session"
 import { SourceCodePro } from "@app/config/fonts"
 import { checkEnvironmentVariables } from "@app/lib/base/utils/env"
@@ -29,11 +28,9 @@ export default function App({ Component, pageProps, nonce, initialSession }: App
     return (
         <NonceProvider nonce={nonce}>
             <SessionProvider initialSession={initialSession}>
-                <PageProvider>
-                    <div className={cn(SourceCodePro.variable, "font-source-code-pro h-full w-full")}>
-                        <Component {...pageProps} />
-                    </div>
-                </PageProvider>
+                <div className={cn(SourceCodePro.variable, "font-source-code-pro h-full w-full")}>
+                    <Component {...pageProps} />
+                </div>
             </SessionProvider>
         </NonceProvider>
     )

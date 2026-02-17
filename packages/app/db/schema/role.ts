@@ -10,6 +10,7 @@ const scRoles = pgTable("roles", {
         .$defaultFn(() => crypto.randomUUID()),
 
     name: text("name").notNull().unique(),
+    slug: text("slug").notNull().unique(),
     description: text("description").notNull(),
 
     // Timestamps

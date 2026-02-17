@@ -2,6 +2,7 @@ import { PUBLIC_ENV } from "@app/config/env"
 import schema from "@app/db/schema"
 import { mapBetterAuthSessionToDbSession } from "@app/lib/base/utils/auth"
 import { db } from "@app/lib/server/connectors/db"
+import { sendPasswordResetEmail, sendVerificationEmail } from "@app/lib/server/utils/emails"
 import { CyCONSTANTS } from "@cybearl/cypack"
 import { type BetterAuthOptions, betterAuth } from "better-auth"
 import { drizzleAdapter } from "better-auth/adapters/drizzle"
@@ -12,16 +13,24 @@ import { customSession, username } from "better-auth/plugins"
  * as shown [here](https://www.better-auth.com/docs/concepts/session-management#caveats-on-customizing-session-response).
  */
 export const authOptions = {
-    appName: "nano-celk",
+    appName: "celk",
     baseURL: PUBLIC_ENV.appUrl,
 
     // Auth methods
     emailAndPassword: {
         enabled: true,
-        autoSignIn: true,
+        autoSignIn: false,
         requireEmailVerification: true,
         minPasswordLength: CyCONSTANTS.MIN_PASSWORD_LENGTH,
         maxPasswordLength: CyCONSTANTS.MAX_PASSWORD_LENGTH,
+        sendResetPassword: sendPasswordResetEmail,
+    },
+
+    emailVerification: {
+        autoSignInAfterVerification: true,
+        // beforeEmailVerification
+        sendVerificationEmail: sendVerificationEmail,
+        // afterEmailVerification
     },
 
     // Database access
@@ -35,8 +44,8 @@ export const authOptions = {
     user: {
         // Custom field names
         fields: {
-            emailVerified: "is_email_verified",
-            image: "image_url",
+            emailVerified: "isEmailVerified",
+            image: "imageUrl",
         },
     },
 

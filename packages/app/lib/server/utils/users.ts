@@ -1,7 +1,13 @@
 import { PRIVATE_ENV } from "@app/config/env"
+import scRoles from "@app/db/schema/role"
+import scUser from "@app/db/schema/user"
+import scUserRoles from "@app/db/schema/userRoles"
+import { SeededUserRoleSlugs } from "@app/db/seeders/roles"
 import auth from "@app/lib/auth"
 import { mapBetterAuthUserToDbUser } from "@app/lib/base/utils/auth"
+import { db } from "@app/lib/server/connectors/db"
 import type { SignUpResponse } from "@app/types/auth"
+import { eq } from "drizzle-orm"
 
 /**
  * Seeds the default admin user.
@@ -37,6 +43,23 @@ export async function seedDefaultAdminUser() {
         if (!(error instanceof Error) || !error.message.includes("Username is already taken.")) {
             console.error("An error occurred while trying to seed the default admin user:", error)
         }
+    }
+
+    if (response) {
+        // Automatically verifies the email address of the default admin user
+        await db.update(scUser).set({ isEmailVerified: true }).where(eq(scUser.id, response.user.id))
+
+        // Get the admin role ID from its slug
+        const adminRole = await db.select().from(scRoles).where(eq(scRoles.slug, SeededUserRoleSlugs.Admin)).limit(1)
+        if (!adminRole || adminRole.length === 0) {
+            throw new Error("An error occurred while trying to fetch the admin role, is it seeded?")
+        }
+
+        // Attribute the administrator role to that user
+        await db.insert(scUserRoles).values({
+            userId: response.user.id,
+            roleId: adminRole[0].id,
+        })
     }
 
     return response

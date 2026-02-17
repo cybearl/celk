@@ -1,5 +1,5 @@
 import seeders from "@app/db/seeders"
-import { dbClient } from "@app/lib/connectors/db"
+import { dbClient } from "@app/lib/server/connectors/db"
 import { config } from "dotenv"
 
 // Manually loading environment variables as
@@ -23,13 +23,14 @@ async function main() {
 
     // Run all seeders
     for (const [name, seeder] of Object.entries(seeders)) {
-        console.log(`Running seeder: '${name}'`)
-
         try {
             await seeder()
         } catch (error: any) {
             console.error(`An error occurred while running seeder '${name}': ${error.message}`)
+            continue
         }
+
+        console.log(`Seeder '${name}' completed successfully.`)
     }
 
     await dbClient.end()

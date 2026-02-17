@@ -1,10 +1,23 @@
-import { type Page, usePageContext } from "@app/components/contexts/Page"
+import { useSessionContext } from "@app/components/contexts/Session"
 import MainLayoutSection from "@app/components/layouts/main/Section"
-import PageTriggers from "@app/components/triggers/Pages"
+import MainLayoutPageTriggers from "@app/components/triggers/MainLayoutPage"
 import { AnimatedGridPattern } from "@app/components/ui/AnimatedGridPattern"
 import { Tabs } from "@app/components/ui/Tabs"
+import useTabs from "@app/hooks/useTabs"
 import { cn } from "@app/lib/client/utils/styling"
 import type { ReactNode } from "react"
+
+/**
+ * The pages for the main layout.
+ */
+export enum MainLayoutPage {
+    HOME = "home",
+    DASHBOARD = "dashboard",
+    SETTINGS = "settings",
+    PROFILE = "profile",
+    SIGN_UP = "sign-up",
+    SIGN_IN = "sign-in",
+}
 
 type MainLayoutProps = {
     topRightSection?: ReactNode
@@ -19,7 +32,13 @@ export default function MainLayout({
     bottomRightSection,
     children,
 }: MainLayoutProps) {
-    const { currentPage, setCurrentPage } = usePageContext()
+    const { session } = useSessionContext()
+
+    const {
+        initialTab: initialPage,
+        currentTab: currentPage,
+        onTabChange: onPageChange,
+    } = useTabs(MainLayoutPage, session ? MainLayoutPage.DASHBOARD : MainLayoutPage.HOME, "url", "page")
 
     return (
         <div className="h-screen w-screen overflow-hidden absolute opacity-80">
@@ -41,9 +60,9 @@ export default function MainLayout({
             {bottomLeftSection && <MainLayoutSection position="bottom-left">{bottomLeftSection}</MainLayoutSection>}
             {bottomRightSection && <MainLayoutSection position="bottom-right">{bottomRightSection}</MainLayoutSection>}
 
-            <Tabs value={currentPage} onValueChange={value => setCurrentPage(value as Page)}>
+            <Tabs defaultValue={initialPage} onValueChange={value => onPageChange(value as MainLayoutPage)}>
                 <MainLayoutSection position="top-left">
-                    <PageTriggers />
+                    <MainLayoutPageTriggers currentPage={currentPage} />
                 </MainLayoutSection>
 
                 <div className="absolute inset-14 overflow-hidden z-10">{children}</div>
