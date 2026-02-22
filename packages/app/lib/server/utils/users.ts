@@ -50,7 +50,7 @@ export async function seedDefaultAdminUser() {
         await db.update(scUser).set({ isEmailVerified: true }).where(eq(scUser.id, response.user.id))
 
         // Get the admin role ID from its slug
-        const adminRole = await db.select().from(scRoles).where(eq(scRoles.slug, SeededUserRoleSlugs.Admin)).limit(1)
+        const adminRole = await db.select().from(scRoles).where(eq(scRoles.slug, SeededUserRoleSlugs.ADMIN)).limit(1)
         if (!adminRole || adminRole.length === 0) {
             throw new Error("An error occurred while trying to fetch the admin role, is it seeded?")
         }

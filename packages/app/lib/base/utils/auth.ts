@@ -56,3 +56,17 @@ export async function mapBetterAuthSessionToDbSession({
         user: mapBetterAuthUserToDbUser(user),
     }
 }
+
+/**
+ * Normalize a username into a display username:
+ * - `username` => `Username`.
+ * - `displayUsername` => `Display Username`.
+ * - `user-name` => `User Name`.
+ * - `user_name` => `User Name`.
+ * - `user.name` => `User Name`.
+ * @param username The original username to normalize.
+ * @returns The normalized display username.
+ */
+export function normalizeUsername(username: string): string {
+    return username.replace(/[-_.]/g, " ").replace(/\b\w/g, char => char.toUpperCase())
+}

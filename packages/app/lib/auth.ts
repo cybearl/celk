@@ -1,6 +1,6 @@
 import { PUBLIC_ENV } from "@app/config/env"
 import schema from "@app/db/schema"
-import { mapBetterAuthSessionToDbSession } from "@app/lib/base/utils/auth"
+import { mapBetterAuthSessionToDbSession, normalizeUsername } from "@app/lib/base/utils/auth"
 import { db } from "@app/lib/server/connectors/db"
 import { sendPasswordResetEmail, sendVerificationEmail } from "@app/lib/server/utils/emails"
 import { CyCONSTANTS } from "@cybearl/cypack"
@@ -55,6 +55,7 @@ export const authOptions = {
             minUsernameLength: CyCONSTANTS.MIN_USERNAME_LENGTH,
             maxUsernameLength: CyCONSTANTS.MAX_USERNAME_LENGTH,
             usernameValidator: username => CyCONSTANTS.USERNAME_REGEX.test(username),
+            displayUsernameNormalization: normalizeUsername,
         }),
     ],
 } satisfies BetterAuthOptions
