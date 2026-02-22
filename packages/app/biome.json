@@ -15,7 +15,8 @@
                 "noStaticElementInteractions": "off"
             },
             "complexity": {
-                "noForEach": "off"
+                "noForEach": "off",
+                "noUselessFragments": "off"
             },
             "correctness": {
                 "noEmptyPattern": "off",

@@ -140,3 +140,6 @@ dist
 # Dependencies and AdonisJS build
 tmp
 build
+
+# AI
+.claude

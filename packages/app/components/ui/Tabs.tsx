@@ -2,7 +2,6 @@ import { cn } from "@app/lib/client/utils/styling"
 import { cva, type VariantProps } from "class-variance-authority"
 import { Tabs as TabsPrimitive } from "radix-ui"
 import type { ComponentProps } from "react"
-import * as React from "react"
 
 function Tabs({ className, orientation = "horizontal", ...props }: ComponentProps<typeof TabsPrimitive.Root>) {
     return (
@@ -17,7 +16,7 @@ function Tabs({ className, orientation = "horizontal", ...props }: ComponentProp
 }
 
 const tabsListVariants = cva(
-    "rounded-lg p-0.75 group-data-[orientation=horizontal]/tabs:h-9 data-[variant=line]:rounded-none group/tabs-list text-slate-500 inline-flex w-fit items-center justify-center gap-0 group-data-[orientation=vertical]/tabs:h-fit group-data-[orientation=vertical]/tabs:flex-col",
+    "p-0.75 group-data-[orientation=horizontal]/tabs:h-9 group/tabs-list text-slate-500 inline-flex w-fit items-center justify-center gap-0 group-data-[orientation=vertical]/tabs:h-fit group-data-[orientation=vertical]/tabs:flex-col",
     {
         variants: {
             variant: {

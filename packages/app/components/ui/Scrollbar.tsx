@@ -8,7 +8,7 @@ type ScrollbarProps = {
 export default function Scrollbar({ children }: ScrollbarProps) {
     return (
         <OverlayScrollbarsComponent
-            className="h-full w-full pr-7"
+            className="h-full w-full px-4"
             defer
             options={{
                 scrollbars: {

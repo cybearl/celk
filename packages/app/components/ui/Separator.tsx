@@ -2,7 +2,6 @@
 
 import { cn } from "@app/lib/client/utils/styling"
 import * as SeparatorPrimitive from "@radix-ui/react-separator"
-import * as React from "react"
 import { type ComponentPropsWithoutRef, type ComponentRef, forwardRef } from "react"
 
 const Separator = forwardRef<
