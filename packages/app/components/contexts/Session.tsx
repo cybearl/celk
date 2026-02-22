@@ -2,7 +2,7 @@
 import { authClient } from "@app/lib/client/connectors/auth-client"
 import type { Session } from "@app/types/auth"
 import type { ReactNode } from "react"
-import { createContext, useContext, useEffect, useState } from "react"
+import { createContext, useCallback, useContext, useEffect, useState } from "react"
 
 /**
  * The type for the session context.
@@ -11,6 +11,7 @@ export type SessionContextType = {
     session: Session | null
     isLoading: boolean
     error: Error | null
+    refetchSession: () => Promise<void>
 }
 
 /**
@@ -37,17 +38,23 @@ export default function SessionProvider({ initialSession, children }: SessionPro
     const [isLoading, setIsLoading] = useState(true)
     const [error, setError] = useState<Error | null>(null)
 
-    // Fetch the session from the client
-    useEffect(() => {
+    /**
+     * Fetches the current user's session from the client.
+     */
+    const fetchClientSession = useCallback(async () => {
         setIsLoading(true)
-        authClient
-            .getSession()
-            .then(({ data: clientSession, error }) => {
-                setSession(clientSession ?? null)
-                setError(error ? new Error(error.message) : null)
-            })
-            .finally(() => setIsLoading(false))
+
+        const { data: clientSession, error } = await authClient.getSession()
+        setSession(clientSession ?? null)
+        setError(error ? new Error(error.message) : null)
+
+        setIsLoading(false)
     }, [])
+
+    // Fetch the session from the client on mount
+    useEffect(() => {
+        fetchClientSession()
+    }, [fetchClientSession])
 
     return (
         <SessionContext.Provider
@@ -55,6 +62,7 @@ export default function SessionProvider({ initialSession, children }: SessionPro
                 session,
                 isLoading,
                 error,
+                refetchSession: fetchClientSession,
             }}
         >
             {children}

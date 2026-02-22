@@ -3,6 +3,10 @@ import { useCallback, useEffect, useMemo, useState } from "react"
 
 /**
  * A hook to manage tabs with URL search parameters or internal state.
+ *
+ * Note: The main `<Tabs />` component should be set as controlled, meaning that
+ * instead of using `initialTab` as a default value, `currentTab` should be passed
+ * via the `value` prop.
  * @param tabs The tabs enum or object.
  * @param defaultTab The default tab to use if none is specified in the URL.
  * @param mode The mode to use for managing tabs, either "url" or "state" (optional, defaults to `url`).
@@ -15,14 +19,10 @@ export default function useTabs<T extends Record<string, string>>(
     mode: "url" | "state" = "url",
     key = "tab",
 ) {
-    const [currentTab, setCurrentTab] = useState(defaultTab)
-
     const searchParams = useSearchParams()
 
     const initialTab = useMemo(() => {
-        if (mode === "state") {
-            return defaultTab
-        }
+        if (mode === "state") return defaultTab
 
         const tabParam = searchParams.get(key)
         if (tabParam && Object.values(tabs).includes(tabParam as T[keyof T])) {
@@ -31,6 +31,8 @@ export default function useTabs<T extends Record<string, string>>(
 
         return defaultTab
     }, [searchParams, tabs, defaultTab, mode, key])
+
+    const [currentTab, setCurrentTab] = useState(initialTab)
 
     /**
      * Handles tab changes by updating the URL search parameters.

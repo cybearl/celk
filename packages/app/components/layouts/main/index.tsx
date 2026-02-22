@@ -1,44 +1,40 @@
 import { useSessionContext } from "@app/components/contexts/Session"
+import AuthDialog from "@app/components/dialogs/Auth"
 import MainLayoutSection from "@app/components/layouts/main/Section"
 import MainLayoutPageTriggers from "@app/components/triggers/MainLayoutPage"
 import { AnimatedGridPattern } from "@app/components/ui/AnimatedGridPattern"
+import Profile from "@app/components/ui/Profile"
 import { Tabs } from "@app/components/ui/Tabs"
+import { LOGGED_IN_ONLY_PAGES, MainLayoutPage } from "@app/config/pages"
 import useTabs from "@app/hooks/useTabs"
 import { cn } from "@app/lib/client/utils/styling"
-import type { ReactNode } from "react"
-
-/**
- * The pages for the main layout.
- */
-export enum MainLayoutPage {
-    HOME = "home",
-    DASHBOARD = "dashboard",
-    SETTINGS = "settings",
-    PROFILE = "profile",
-    SIGN_UP = "sign-up",
-    SIGN_IN = "sign-in",
-}
+import { type ReactNode, useEffect } from "react"
 
 type MainLayoutProps = {
     topRightSection?: ReactNode
     bottomLeftSection?: ReactNode
-    bottomRightSection?: ReactNode
     children?: ReactNode
 }
 
-export default function MainLayout({
-    topRightSection,
-    bottomLeftSection,
-    bottomRightSection,
-    children,
-}: MainLayoutProps) {
+export default function MainLayout({ topRightSection, bottomLeftSection, children }: MainLayoutProps) {
     const { session } = useSessionContext()
 
-    const {
-        initialTab: initialPage,
-        currentTab: currentPage,
-        onTabChange: onPageChange,
-    } = useTabs(MainLayoutPage, session ? MainLayoutPage.DASHBOARD : MainLayoutPage.HOME, "url", "page")
+    const { currentTab: currentPage, onTabChange: onPageChange } = useTabs(
+        MainLayoutPage,
+        session ? MainLayoutPage.DASHBOARD : MainLayoutPage.HOME,
+        "url",
+        "page",
+    )
+
+    // biome-ignore lint/correctness/useExhaustiveDependencies: Only on session state change
+    useEffect(() => {
+        if (session) onPageChange(MainLayoutPage.DASHBOARD)
+        else if (!session && LOGGED_IN_ONLY_PAGES.includes(currentPage)) onPageChange(MainLayoutPage.HOME)
+    }, [session])
+
+    useEffect(() => {
+        console.log("current page", currentPage)
+    }, [currentPage])
 
     return (
         <div className="h-screen w-screen overflow-hidden absolute opacity-80">
@@ -54,19 +50,20 @@ export default function MainLayout({
                 )}
             />
 
-            <div className="border-2 border-foreground absolute inset-8 z-0" />
+            <div className="border-2 border-border-active absolute inset-8 z-0" />
 
             {topRightSection && <MainLayoutSection position="top-right">{topRightSection}</MainLayoutSection>}
             {bottomLeftSection && <MainLayoutSection position="bottom-left">{bottomLeftSection}</MainLayoutSection>}
-            {bottomRightSection && <MainLayoutSection position="bottom-right">{bottomRightSection}</MainLayoutSection>}
 
-            <Tabs defaultValue={initialPage} onValueChange={value => onPageChange(value as MainLayoutPage)}>
+            <Tabs value={currentPage} onValueChange={value => onPageChange(value as MainLayoutPage)}>
                 <MainLayoutSection position="top-left">
                     <MainLayoutPageTriggers currentPage={currentPage} />
                 </MainLayoutSection>
 
                 <div className="absolute inset-14 overflow-hidden z-10">{children}</div>
             </Tabs>
+
+            <MainLayoutSection position="bottom-right">{session ? <Profile /> : <AuthDialog />}</MainLayoutSection>
         </div>
     )
 }
