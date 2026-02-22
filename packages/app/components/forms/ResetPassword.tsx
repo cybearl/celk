@@ -1,57 +1,64 @@
-import { useSessionContext } from "@app/components/contexts/Session"
 import { Field, FieldError, FieldGroup, FieldLabel } from "@app/components/ui/Field"
 import { Input } from "@app/components/ui/Input"
 import { authClient } from "@app/lib/client/connectors/auth-client"
+import { CyCONSTANTS } from "@cybearl/cypack"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { type ReactNode, useCallback } from "react"
 import { Controller, useForm } from "react-hook-form"
 import z from "zod"
 
-const signInFormSchema = z.object({
-    identifier: z.string().min(1, "Either email or username is required"),
-    password: z.string().min(1, "Password is required"),
-})
+const resetPasswordFormSchema = z
+    .object({
+        password: z
+            .string()
+            .min(
+                CyCONSTANTS.MIN_PASSWORD_LENGTH,
+                `Password must be at least ${CyCONSTANTS.MIN_PASSWORD_LENGTH} characters`,
+            )
+            .max(
+                CyCONSTANTS.MAX_PASSWORD_LENGTH,
+                `Password must be at most ${CyCONSTANTS.MAX_PASSWORD_LENGTH} characters`,
+            ),
+        confirmPassword: z.string().min(1, "Please confirm your password"),
+    })
+    .refine(data => data.password === data.confirmPassword, {
+        path: ["confirmPassword"],
+        message: "Passwords do not match",
+    })
 
-type SignInForm = z.infer<typeof signInFormSchema>
+type ResetPasswordForm = z.infer<typeof resetPasswordFormSchema>
 
-type SignInFormProps = {
+type ResetPasswordFormProps = {
     trigger: (isSubmitting: boolean) => ReactNode
+    token: string
     onSuccess?: () => void
 }
 
-export default function SignInForm({ trigger, onSuccess }: SignInFormProps) {
-    const { refetchSession } = useSessionContext()
-
-    const form = useForm<SignInForm>({
+export default function ResetPasswordForm({ trigger, token, onSuccess }: ResetPasswordFormProps) {
+    const form = useForm<ResetPasswordForm>({
         defaultValues: {
-            identifier: "",
             password: "",
+            confirmPassword: "",
         },
-        resolver: zodResolver(signInFormSchema),
+        resolver: zodResolver(resetPasswordFormSchema),
     })
 
     const handleSubmit = useCallback(
-        async (data: SignInForm) => {
-            const { error } = data.identifier.includes("@")
-                ? await authClient.signIn.email({
-                      email: data.identifier,
-                      password: data.password,
-                  })
-                : await authClient.signIn.username({
-                      username: data.identifier,
-                      password: data.password,
-                  })
+        async (data: ResetPasswordForm) => {
+            const { error } = await authClient.resetPassword({
+                newPassword: data.password,
+                token,
+            })
 
             if (error) {
                 form.setError("root", {
                     message: error.message,
                 })
             } else {
-                await refetchSession()
                 onSuccess?.()
             }
         },
-        [form, refetchSession, onSuccess],
+        [form, token, onSuccess],
     )
 
     return (
@@ -59,14 +66,15 @@ export default function SignInForm({ trigger, onSuccess }: SignInFormProps) {
             <FieldGroup>
                 <Controller
                     control={form.control}
-                    name="identifier"
+                    name="password"
                     render={({ field, fieldState }) => (
                         <Field data-invalid={fieldState.invalid}>
-                            <FieldLabel htmlFor={field.name}>Email / Username</FieldLabel>
+                            <FieldLabel htmlFor={field.name}>New password</FieldLabel>
                             <Input
+                                type="password"
                                 aria-invalid={fieldState.invalid}
                                 id={field.name}
-                                placeholder="john.doe@example.com / john-doe"
+                                placeholder="New password"
                                 {...field}
                             />
                             {fieldState.invalid && <FieldError errors={[fieldState.error!]} />}
@@ -76,15 +84,15 @@ export default function SignInForm({ trigger, onSuccess }: SignInFormProps) {
 
                 <Controller
                     control={form.control}
-                    name="password"
+                    name="confirmPassword"
                     render={({ field, fieldState }) => (
                         <Field data-invalid={fieldState.invalid}>
-                            <FieldLabel htmlFor={field.name}>Password</FieldLabel>
+                            <FieldLabel htmlFor={field.name}>Confirm new password</FieldLabel>
                             <Input
                                 type="password"
                                 aria-invalid={fieldState.invalid}
                                 id={field.name}
-                                placeholder="Password"
+                                placeholder="Confirm new password"
                                 {...field}
                             />
                             {fieldState.invalid && <FieldError errors={[fieldState.error!]} />}
