@@ -4,7 +4,7 @@ import { BaseErrors } from "@cybearl/cypack"
 /**
  * Contains all the available errors for the application.
  */
-export const AppErrors = {
+export const APP_ERRORS = {
     ...BaseErrors,
     //=====//
     // 409 //

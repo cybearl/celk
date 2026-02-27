@@ -50,7 +50,7 @@ export const PRIVATE_ENV = {
 /**
  * Trick the compiler into inlining the values for checking.
  */
-export const envRuntimeValues: Record<string, string | undefined> = {
+export const ENV_RUNTIME_VALUES: Record<string, string | undefined> = {
     PORT: process.env.PORT,
     NODE_ENV: process.env.NODE_ENV,
     NEXT_PUBLIC_LOG_LEVEL: process.env.NEXT_PUBLIC_LOG_LEVEL,

@@ -1,4 +1,4 @@
-import { envRuntimeValues, REQUIRED_ENV_VARS } from "@app/config/env"
+import { ENV_RUNTIME_VALUES, REQUIRED_ENV_VARS } from "@app/config/env"
 import { isClient, isServer } from "@cybearl/cypack"
 
 /**
@@ -11,9 +11,9 @@ export function checkEnvironmentVariables() {
 
     let missingVars: string[] = []
     if (environment === "server") {
-        missingVars = REQUIRED_ENV_VARS.PRIVATE.filter(varName => envRuntimeValues[varName] === undefined)
+        missingVars = REQUIRED_ENV_VARS.PRIVATE.filter(varName => ENV_RUNTIME_VALUES[varName] === undefined)
     } else if (environment === "client") {
-        missingVars = REQUIRED_ENV_VARS.PUBLIC.filter(varName => envRuntimeValues[varName] === undefined)
+        missingVars = REQUIRED_ENV_VARS.PUBLIC.filter(varName => ENV_RUNTIME_VALUES[varName] === undefined)
     } else {
         throw new Error("An error occurred while checking environment variables, the environment is unknown?!")
     }
@@ -23,7 +23,10 @@ export function checkEnvironmentVariables() {
     }
     // Check if any private env vars somehow ended up in the public vars
     if (environment === "client") {
-        const privateVarsInPublic = REQUIRED_ENV_VARS.PRIVATE.filter(varName => envRuntimeValues[varName] !== undefined)
+        const privateVarsInPublic = REQUIRED_ENV_VARS.PRIVATE.filter(
+            varName => ENV_RUNTIME_VALUES[varName] !== undefined,
+        )
+
         if (privateVarsInPublic.length > 0) {
             console.warn(
                 `The following private environment variables are set but should not be exposed: ${privateVarsInPublic.join(", ")}`,

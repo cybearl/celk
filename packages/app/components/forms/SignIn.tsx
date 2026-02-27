@@ -64,6 +64,8 @@ export default function SignInForm({ trigger, onSuccess }: SignInFormProps) {
                         <Field data-invalid={fieldState.invalid}>
                             <FieldLabel htmlFor={field.name}>Email / Username</FieldLabel>
                             <Input
+                                type="text"
+                                autoComplete="username"
                                 aria-invalid={fieldState.invalid}
                                 id={field.name}
                                 placeholder="john.doe@example.com / john-doe"
@@ -82,6 +84,7 @@ export default function SignInForm({ trigger, onSuccess }: SignInFormProps) {
                             <FieldLabel htmlFor={field.name}>Password</FieldLabel>
                             <Input
                                 type="password"
+                                autoComplete="current-password"
                                 aria-invalid={fieldState.invalid}
                                 id={field.name}
                                 placeholder="Password"

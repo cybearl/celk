@@ -1,7 +1,7 @@
 /**
  * The pages for the main layout.
  */
-export enum MainLayoutPage {
+export enum MAIN_LAYOUT_PAGE {
     HOME = "home",
     ABOUT = "about",
     DASHBOARD = "dashboard",
@@ -11,4 +11,4 @@ export enum MainLayoutPage {
 /**
  * Pages that can only be accessed when logged in.
  */
-export const LOGGED_IN_ONLY_PAGES: MainLayoutPage[] = [MainLayoutPage.DASHBOARD, MainLayoutPage.SETTINGS]
+export const LOGGED_IN_ONLY_PAGES: MAIN_LAYOUT_PAGE[] = [MAIN_LAYOUT_PAGE.DASHBOARD, MAIN_LAYOUT_PAGE.SETTINGS]

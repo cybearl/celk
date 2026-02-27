@@ -2,7 +2,7 @@ import { PRIVATE_ENV } from "@app/config/env"
 import scRoles from "@app/db/schema/role"
 import scUser from "@app/db/schema/user"
 import scUserRoles from "@app/db/schema/userRoles"
-import { SeededUserRoleSlugs } from "@app/db/seeders/roles"
+import { SEEDED_USER_ROLE_SLUGS } from "@app/db/seeders/roles"
 import auth from "@app/lib/auth"
 import { mapBetterAuthUserToDbUser } from "@app/lib/base/utils/auth"
 import { db } from "@app/lib/server/connectors/db"
@@ -50,7 +50,7 @@ export async function seedDefaultAdminUser() {
         await db.update(scUser).set({ isEmailVerified: true }).where(eq(scUser.id, response.user.id))
 
         // Get the admin role ID from its slug
-        const adminRole = await db.select().from(scRoles).where(eq(scRoles.slug, SeededUserRoleSlugs.ADMIN)).limit(1)
+        const adminRole = await db.select().from(scRoles).where(eq(scRoles.slug, SEEDED_USER_ROLE_SLUGS.ADMIN)).limit(1)
         if (!adminRole || adminRole.length === 0) {
             throw new Error("An error occurred while trying to fetch the admin role, is it seeded?")
         }

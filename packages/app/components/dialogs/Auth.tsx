@@ -1,4 +1,6 @@
+import ForgotPasswordEmailSentConfirmation from "@app/components/confirmations/ForgotPasswordEmailSent"
 import ForgotPasswordForm from "@app/components/forms/ForgotPassword"
+import ResetPasswordForm from "@app/components/forms/ResetPassword"
 import SignInForm from "@app/components/forms/SignIn"
 import SignUpForm from "@app/components/forms/SignUp"
 import { Button, LinkButton } from "@app/components/ui/Button"
@@ -11,7 +13,9 @@ import {
     DialogTitle,
 } from "@app/components/ui/Dialog"
 import { DialogTrigger } from "@radix-ui/react-dialog"
-import { useCallback, useMemo, useState } from "react"
+import { useSearchParams } from "next/navigation"
+import { useRouter } from "next/router"
+import { useCallback, useEffect, useMemo, useState } from "react"
 
 type AuthMode =
     | "sign-in"
@@ -21,11 +25,33 @@ type AuthMode =
     | "reset-password"
     | "forgot-password-email-sent"
 
-type AuthDialogProps = {}
+export default function AuthDialog() {
+    const searchParams = useSearchParams()
+    const router = useRouter()
 
-export default function AuthDialog({}: AuthDialogProps) {
     const [isOpen, setIsOpen] = useState(false)
     const [mode, setMode] = useState<AuthMode>("sign-in")
+    const [resetToken, setResetToken] = useState<string | null>(null)
+
+    const [forgotPasswordEmail, setForgotPasswordEmail] = useState("")
+    const [forgotPasswordRedirectTo, setForgotPasswordRedirectTo] = useState("")
+
+    // On mount, check if the URL contains a password-reset redirect and open the dialog automatically
+    // biome-ignore lint/correctness/useExhaustiveDependencies: Needs to only run once on mount
+    useEffect(() => {
+        if (searchParams.get("reset-password") !== "true") return
+
+        setResetToken(searchParams.get("token"))
+        setMode("reset-password")
+        setIsOpen(true)
+
+        const params = new URLSearchParams(searchParams.toString())
+        params.delete("reset-password")
+        params.delete("token")
+
+        const search = params.toString()
+        router.replace(search ? `/?${search}` : "/", undefined, { shallow: true })
+    }, [])
 
     const dialogTitle = useMemo(() => {
         switch (mode) {
@@ -55,18 +81,46 @@ export default function AuthDialog({}: AuthDialogProps) {
             case "forgot-password":
                 return "Enter your email to reset your password."
             case "forgot-password-email-sent":
-                return "If you can't find the email, please check your spam folder."
+                return ""
             case "reset-password":
                 return "You can now enter a new password."
         }
     }, [mode])
+
+    /**
+     * Handles dialog open state changes, deferring the mode/state reset until after
+     * the close animation finishes (200ms) to avoid a sign-in flash during close.
+     */
+    const handleOpenChange = useCallback((open: boolean) => {
+        setIsOpen(open)
+
+        if (!open) {
+            setTimeout(() => {
+                setMode("sign-in")
+                setResetToken(null)
+                setForgotPasswordEmail("")
+                setForgotPasswordRedirectTo("")
+            }, 200)
+        }
+    }, [])
+
+    /**
+     * Redirects the user to the forgot password email sent confirmation screen,
+     * while also saving the email address so the user can resend the email.
+     * @param email The email address to send the password reset link to.
+     * @param redirectTo The URL to redirect the user to after they click the link in their email.
+     */
+    const onForgotPasswordEmailSent = useCallback((email: string, redirectTo: string) => {
+        setForgotPasswordEmail(email)
+        setForgotPasswordRedirectTo(redirectTo)
+        setMode("forgot-password-email-sent")
+    }, [])
 
     const FormComponent = useCallback(() => {
         switch (mode) {
             case "sign-up":
                 return (
                     <SignUpForm
-                        onSuccess={() => setIsOpen(false)}
                         trigger={isSubmitting => (
                             <DialogFooter>
                                 <div className="w-full flex flex-col gap-2">
@@ -81,7 +135,7 @@ export default function AuthDialog({}: AuthDialogProps) {
                                         </div>
 
                                         <Button type="submit" isLoading={isSubmitting}>
-                                            Sign In
+                                            Sign Up
                                         </Button>
                                     </div>
 
@@ -113,12 +167,12 @@ export default function AuthDialog({}: AuthDialogProps) {
                                 </div>
                             </DialogFooter>
                         )}
+                        onSuccess={() => handleOpenChange(false)}
                     />
                 )
             case "sign-in":
                 return (
                     <SignInForm
-                        onSuccess={() => setIsOpen(false)}
                         trigger={isSubmitting => (
                             <DialogFooter>
                                 <div className="w-full flex flex-col gap-2">
@@ -141,20 +195,79 @@ export default function AuthDialog({}: AuthDialogProps) {
                                 </div>
                             </DialogFooter>
                         )}
+                        onSuccess={() => handleOpenChange(false)}
                     />
                 )
             case "forgot-password":
-                return null
+                return (
+                    <ForgotPasswordForm
+                        trigger={isSubmitting => (
+                            <DialogFooter>
+                                <div className="w-full flex flex-col gap-2">
+                                    <div className="flex justify-between items-center">
+                                        <div className="flex items-center justify-center gap-1.5">
+                                            <span className="text-muted-foreground text-sm">
+                                                Remember your password?
+                                            </span>
+                                            <Button variant="link" size="sm" onClick={() => setMode("sign-in")}>
+                                                Sign In
+                                            </Button>
+                                        </div>
+
+                                        <Button type="submit" isLoading={isSubmitting}>
+                                            Send Email
+                                        </Button>
+                                    </div>
+                                </div>
+                            </DialogFooter>
+                        )}
+                        redirectTo={`${window.location.origin}/?reset-password=true`}
+                        onSuccess={email =>
+                            onForgotPasswordEmailSent(email, `${window.location.origin}/?reset-password=true`)
+                        }
+                    />
+                )
             case "forgot-password-email-sent":
-                return null
+                return (
+                    <ForgotPasswordEmailSentConfirmation
+                        email={forgotPasswordEmail}
+                        redirectTo={forgotPasswordRedirectTo}
+                        onClose={() => handleOpenChange(false)}
+                    />
+                )
             case "reset-password":
-                return null
+                return (
+                    <ResetPasswordForm
+                        trigger={isSubmitting => (
+                            <DialogFooter>
+                                <div className="w-full flex flex-col gap-2">
+                                    <div className="flex justify-between items-center">
+                                        <div className="flex items-center justify-center gap-1.5">
+                                            <span className="text-muted-foreground text-sm">
+                                                Remember your password?
+                                            </span>
+                                            <Button variant="link" size="sm" onClick={() => setMode("sign-in")}>
+                                                Sign In
+                                            </Button>
+                                        </div>
+
+                                        <Button type="submit" isLoading={isSubmitting}>
+                                            Reset Password
+                                        </Button>
+                                    </div>
+                                </div>
+                            </DialogFooter>
+                        )}
+                        token={resetToken}
+                        onSuccess={() => setMode("sign-in")}
+                    />
+                )
         }
-    }, [mode])
+    }, [mode, resetToken, forgotPasswordEmail, forgotPasswordRedirectTo, handleOpenChange, onForgotPasswordEmailSent])
 
     return (
         <div className="w-full h-full flex flex-col items-center justify-center px-1">
-            <Dialog open={isOpen} onOpenChange={setIsOpen}>
+            <Dialog open={isOpen} onOpenChange={handleOpenChange}>
                 <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
                     <DialogHeader>
                         <DialogTitle>{dialogTitle}</DialogTitle>

@@ -92,6 +92,8 @@ export default function SignUpForm({ trigger, onSuccess }: SignUpFormProps) {
                         <Field data-invalid={fieldState.invalid}>
                             <FieldLabel htmlFor={field.name}>Name</FieldLabel>
                             <Input
+                                type="text"
+                                autoComplete="name"
                                 aria-invalid={fieldState.invalid}
                                 id={field.name}
                                 placeholder="John Doe"
@@ -109,6 +111,8 @@ export default function SignUpForm({ trigger, onSuccess }: SignUpFormProps) {
                         <Field data-invalid={fieldState.invalid}>
                             <FieldLabel htmlFor={field.name}>Username</FieldLabel>
                             <Input
+                                type="text"
+                                autoComplete="username"
                                 aria-invalid={fieldState.invalid}
                                 id={field.name}
                                 placeholder="john-doe"
@@ -127,6 +131,7 @@ export default function SignUpForm({ trigger, onSuccess }: SignUpFormProps) {
                             <FieldLabel htmlFor={field.name}>Email</FieldLabel>
                             <Input
                                 type="email"
+                                autoComplete="email"
                                 aria-invalid={fieldState.invalid}
                                 id={field.name}
                                 placeholder="john.doe@example.com"
@@ -145,6 +150,7 @@ export default function SignUpForm({ trigger, onSuccess }: SignUpFormProps) {
                             <FieldLabel htmlFor={field.name}>Password</FieldLabel>
                             <Input
                                 type="password"
+                                autoComplete="new-password"
                                 aria-invalid={fieldState.invalid}
                                 id={field.name}
                                 placeholder="Password"
@@ -163,6 +169,7 @@ export default function SignUpForm({ trigger, onSuccess }: SignUpFormProps) {
                             <FieldLabel htmlFor={field.name}>Confirm password</FieldLabel>
                             <Input
                                 type="password"
+                                autoComplete="new-password"
                                 aria-invalid={fieldState.invalid}
                                 id={field.name}
                                 placeholder="Confirm password"

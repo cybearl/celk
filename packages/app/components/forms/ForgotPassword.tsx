@@ -15,7 +15,7 @@ type ForgotPasswordForm = z.infer<typeof forgotPasswordFormSchema>
 type ForgotPasswordFormProps = {
     trigger: (isSubmitting: boolean) => ReactNode
     redirectTo: string
-    onSuccess?: () => void
+    onSuccess?: (email: string) => void
 }
 
 export default function ForgotPasswordForm({ trigger, redirectTo, onSuccess }: ForgotPasswordFormProps) {
@@ -38,7 +38,7 @@ export default function ForgotPasswordForm({ trigger, redirectTo, onSuccess }: F
                     message: error.message,
                 })
             } else {
-                onSuccess?.()
+                onSuccess?.(data.email)
             }
         },
         [form, redirectTo, onSuccess],
@@ -55,6 +55,7 @@ export default function ForgotPasswordForm({ trigger, redirectTo, onSuccess }: F
                             <FieldLabel htmlFor={field.name}>Email</FieldLabel>
                             <Input
                                 type="email"
+                                autoComplete="email"
                                 aria-invalid={fieldState.invalid}
                                 id={field.name}
                                 placeholder="john.doe@example.com"

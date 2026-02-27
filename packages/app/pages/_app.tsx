@@ -1,6 +1,6 @@
 import NonceProvider from "@app/components/contexts/Nonce"
 import SessionProvider from "@app/components/contexts/Session"
-import { SourceCodePro } from "@app/config/fonts"
+import { SOURCE_CODE_PRO } from "@app/config/fonts"
 import { checkEnvironmentVariables } from "@app/lib/base/utils/env"
 import { cn } from "@app/lib/client/utils/styling"
 import type { Session } from "@app/types/auth"
@@ -28,7 +28,7 @@ export default function App({ Component, pageProps, nonce, initialSession }: App
     return (
         <NonceProvider nonce={nonce}>
             <SessionProvider initialSession={initialSession}>
-                <div className={cn(SourceCodePro.variable, "font-source-code-pro h-full w-full")}>
+                <div className={cn(SOURCE_CODE_PRO.variable, "font-source-code-pro h-full w-full")}>
                     <Component {...pageProps} />
                 </div>
             </SessionProvider>

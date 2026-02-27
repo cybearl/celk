@@ -3,7 +3,7 @@ import { Input } from "@app/components/ui/Input"
 import { authClient } from "@app/lib/client/connectors/auth-client"
 import { CyCONSTANTS } from "@cybearl/cypack"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { type ReactNode, useCallback } from "react"
+import { type ReactNode, useCallback, useEffect } from "react"
 import { Controller, useForm } from "react-hook-form"
 import z from "zod"
 
@@ -30,7 +30,7 @@ type ResetPasswordForm = z.infer<typeof resetPasswordFormSchema>
 
 type ResetPasswordFormProps = {
     trigger: (isSubmitting: boolean) => ReactNode
-    token: string
+    token?: string | null
     onSuccess?: () => void
 }
 
@@ -43,8 +43,20 @@ export default function ResetPasswordForm({ trigger, token, onSuccess }: ResetPa
         resolver: zodResolver(resetPasswordFormSchema),
     })
 
+    useEffect(() => {
+        if (!token) form.setError("root", { message: "No token provided" })
+    }, [token, form])
+
     const handleSubmit = useCallback(
         async (data: ResetPasswordForm) => {
+            if (!token) {
+                form.setError("root", {
+                    message: "No reset token provided",
+                })
+
+                return
+            }
+
             const { error } = await authClient.resetPassword({
                 newPassword: data.password,
                 token,
@@ -72,6 +84,7 @@ export default function ResetPasswordForm({ trigger, token, onSuccess }: ResetPa
                             <FieldLabel htmlFor={field.name}>New password</FieldLabel>
                             <Input
                                 type="password"
+                                autoComplete="new-password"
                                 aria-invalid={fieldState.invalid}
                                 id={field.name}
                                 placeholder="New password"
@@ -90,6 +103,7 @@ export default function ResetPasswordForm({ trigger, token, onSuccess }: ResetPa
                             <FieldLabel htmlFor={field.name}>Confirm new password</FieldLabel>
                             <Input
                                 type="password"
+                                autoComplete="new-password"
                                 aria-invalid={fieldState.invalid}
                                 id={field.name}
                                 placeholder="Confirm new password"

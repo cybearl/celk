@@ -5,7 +5,7 @@ import { db } from "@app/lib/server/connectors/db"
  * An enum containing the slugs of the initially seeded user roles,
  * for easy reference throughout the application.
  */
-export enum SeededUserRoleSlugs {
+export enum SEEDED_USER_ROLE_SLUGS {
     ADMIN = "admin",
     USER = "user",
 }

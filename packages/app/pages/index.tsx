@@ -4,7 +4,7 @@ import SettingsPage from "@app/components/pages/Settings"
 import Scrollbar from "@app/components/ui/Scrollbar"
 import { TabsContent } from "@app/components/ui/Tabs"
 import { PUBLIC_ENV } from "@app/config/env"
-import { MainLayoutPage } from "@app/config/pages"
+import { MAIN_LAYOUT_PAGE } from "@app/config/pages"
 
 export default function Homepage() {
     const { session } = useSessionContext()
@@ -17,17 +17,17 @@ export default function Homepage() {
             }
         >
             <Scrollbar>
-                <TabsContent value={MainLayoutPage.HOME} className="w-full h-full">
+                <TabsContent value={MAIN_LAYOUT_PAGE.HOME} className="w-full h-full">
                     HOME
                 </TabsContent>
 
                 {session ? (
                     <>
-                        <TabsContent value={MainLayoutPage.DASHBOARD} className="w-full h-full">
+                        <TabsContent value={MAIN_LAYOUT_PAGE.DASHBOARD} className="w-full h-full">
                             DASHBOARD
                         </TabsContent>
 
-                        <TabsContent value={MainLayoutPage.SETTINGS} className="w-full h-full">
+                        <TabsContent value={MAIN_LAYOUT_PAGE.SETTINGS} className="w-full h-full">
                             <SettingsPage />
                         </TabsContent>
                     </>
@@ -35,7 +35,7 @@ export default function Homepage() {
                     <></>
                 )}
 
-                <TabsContent value={MainLayoutPage.ABOUT} className="w-full h-full">
+                <TabsContent value={MAIN_LAYOUT_PAGE.ABOUT} className="w-full h-full">
                     ABOUT
                 </TabsContent>
             </Scrollbar>

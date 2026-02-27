@@ -5,7 +5,7 @@ import MainLayoutPageTriggers from "@app/components/triggers/MainLayoutPage"
 import { AnimatedGridPattern } from "@app/components/ui/AnimatedGridPattern"
 import Profile from "@app/components/ui/Profile"
 import { Tabs } from "@app/components/ui/Tabs"
-import { LOGGED_IN_ONLY_PAGES, MainLayoutPage } from "@app/config/pages"
+import { LOGGED_IN_ONLY_PAGES, MAIN_LAYOUT_PAGE } from "@app/config/pages"
 import useTabs from "@app/hooks/useTabs"
 import { cn } from "@app/lib/client/utils/styling"
 import { type ReactNode, useEffect } from "react"
@@ -20,16 +20,16 @@ export default function MainLayout({ topRightSection, bottomLeftSection, childre
     const { session } = useSessionContext()
 
     const { currentTab: currentPage, onTabChange: onPageChange } = useTabs(
-        MainLayoutPage,
-        session ? MainLayoutPage.DASHBOARD : MainLayoutPage.HOME,
+        MAIN_LAYOUT_PAGE,
+        session ? MAIN_LAYOUT_PAGE.DASHBOARD : MAIN_LAYOUT_PAGE.HOME,
         "url",
         "page",
     )
 
     // biome-ignore lint/correctness/useExhaustiveDependencies: Only on session state change
     useEffect(() => {
-        if (session) onPageChange(MainLayoutPage.DASHBOARD)
-        else if (!session && LOGGED_IN_ONLY_PAGES.includes(currentPage)) onPageChange(MainLayoutPage.HOME)
+        if (session) onPageChange(MAIN_LAYOUT_PAGE.DASHBOARD)
+        else if (!session && LOGGED_IN_ONLY_PAGES.includes(currentPage)) onPageChange(MAIN_LAYOUT_PAGE.HOME)
     }, [session])
 
     useEffect(() => {
@@ -55,7 +55,7 @@ export default function MainLayout({ topRightSection, bottomLeftSection, childre
             {topRightSection && <MainLayoutSection position="top-right">{topRightSection}</MainLayoutSection>}
             {bottomLeftSection && <MainLayoutSection position="bottom-left">{bottomLeftSection}</MainLayoutSection>}
 
-            <Tabs value={currentPage} onValueChange={value => onPageChange(value as MainLayoutPage)}>
+            <Tabs value={currentPage} onValueChange={value => onPageChange(value as MAIN_LAYOUT_PAGE)}>
                 <MainLayoutSection position="top-left">
                     <MainLayoutPageTriggers currentPage={currentPage} />
                 </MainLayoutSection>
