@@ -10,7 +10,17 @@ export const REQUIRED_ENV_VARS = {
         "NEXT_PUBLIC_APP_STATUS",
         "NEXT_PUBLIC_LOCK_NEW_USERS",
     ],
-    PRIVATE: ["BETTER_AUTH_SECRET", "DATABASE_URL", "SMTP_HOST", "SMTP_PORT", "SMTP_USER", "SMTP_PASSWORD"],
+    PRIVATE: [
+        "BETTER_AUTH_SECRET",
+        "DATABASE_URL",
+        "SMTP_HOST",
+        "SMTP_PORT",
+        "SMTP_USER",
+        "SMTP_PASSWORD",
+        "ETHEREUM_RPC_URL",
+        "POLYGON_RPC_URL",
+        "BITCOIN_RPC_URL",
+    ],
 }
 
 /**
@@ -45,6 +55,11 @@ export const PRIVATE_ENV = {
         user: process.env.SMTP_USER as string | undefined,
         password: process.env.SMTP_PASSWORD as string | undefined,
     },
+    rpcs: {
+        ethereum: process.env.ETHEREUM_RPC_URL as string | undefined,
+        polygon: process.env.POLYGON_RPC_URL as string | undefined,
+        bitcoin: process.env.BITCOIN_RPC_URL as string | undefined,
+    },
 }
 
 /**
@@ -69,4 +84,7 @@ export const ENV_RUNTIME_VALUES: Record<string, string | undefined> = {
     SMTP_PORT: process.env.SMTP_PORT,
     SMTP_USER: process.env.SMTP_USER,
     SMTP_PASSWORD: process.env.SMTP_PASSWORD,
+    ETHEREUM_RPC_URL: process.env.ETHEREUM_RPC_URL,
+    POLYGON_RPC_URL: process.env.POLYGON_RPC_URL,
+    BITCOIN_RPC_URL: process.env.BITCOIN_RPC_URL,
 }
