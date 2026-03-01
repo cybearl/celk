@@ -4,7 +4,7 @@ import scUser from "@app/db/schema/user"
 import scUserRoles from "@app/db/schema/userRoles"
 import { SEEDED_USER_ROLE_SLUGS } from "@app/db/seeders/roles"
 import auth from "@app/lib/auth"
-import { mapBetterAuthUserToDbUser } from "@app/lib/base/utils/auth"
+import { normalizeUser } from "@app/lib/base/utils/auth"
 import { db } from "@app/lib/server/connectors/db"
 import type { SignUpResponse } from "@app/types/auth"
 import { eq } from "drizzle-orm"
@@ -34,7 +34,7 @@ export async function seedDefaultAdminUser() {
 
         response = {
             token: rawResponse.token,
-            user: mapBetterAuthUserToDbUser(rawResponse.user),
+            user: normalizeUser(rawResponse.user),
         }
 
         if (response) console.log("The default admin user has successfully been seeded")
@@ -46,8 +46,8 @@ export async function seedDefaultAdminUser() {
     }
 
     if (response) {
-        // Automatically verifies the email address of the default admin user
-        await db.update(scUser).set({ isEmailVerified: true }).where(eq(scUser.id, response.user.id))
+        // Automatically verifies the email address and unlocks the default admin user
+        await db.update(scUser).set({ isEmailVerified: true, isLocked: false }).where(eq(scUser.id, response.user.id))
 
         // Get the admin role ID from its slug
         const adminRole = await db.select().from(scRoles).where(eq(scRoles.slug, SEEDED_USER_ROLE_SLUGS.ADMIN)).limit(1)

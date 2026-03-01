@@ -1,6 +1,6 @@
 import { PUBLIC_ENV } from "@app/config/env"
 import schema from "@app/db/schema"
-import { mapBetterAuthSessionToDbSession, normalizeUsername } from "@app/lib/base/utils/auth"
+import { normalizeSession, normalizeUsername } from "@app/lib/base/utils/auth"
 import { db } from "@app/lib/server/connectors/db"
 import { sendPasswordResetEmail, sendVerificationEmail } from "@app/lib/server/utils/emails"
 import { CyCONSTANTS } from "@cybearl/cypack"
@@ -47,6 +47,25 @@ export const authOptions = {
             emailVerified: "isEmailVerified",
             image: "imageUrl",
         },
+        // Additional fields unknown to Better Auth
+        additionalFields: {
+            isLocked: {
+                type: "boolean",
+                required: false, // Required in reality but only at DB level
+                input: false,
+            },
+        },
+    },
+
+    // Hooks
+    databaseHooks: {
+        user: {
+            create: {
+                before: async user => ({
+                    data: { ...user, isLocked: PUBLIC_ENV.lockNewUsers },
+                }),
+            },
+        },
     },
 
     // Plugins
@@ -65,7 +84,7 @@ export const authOptions = {
  */
 const auth = betterAuth({
     ...authOptions,
-    plugins: [...(authOptions.plugins ?? []), customSession(mapBetterAuthSessionToDbSession, authOptions)],
+    plugins: [...(authOptions.plugins ?? []), customSession(normalizeSession, authOptions)],
 })
 
 export default auth

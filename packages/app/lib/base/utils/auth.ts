@@ -5,12 +5,10 @@ import type { Session } from "@app/types/auth"
 import type { InferSession, InferUser } from "better-auth"
 
 /**
- * Maps the original badly named Better Auth properties to a standard-following
- * user model.
- * @param user The original user object from Better Auth.
- * @returns The mapped user object for the database.
+ * Reconciles a Better Auth user object into the project's UserSelectModel,
+ * mapping Better Auth's field names to the project's naming conventions.
  */
-export function mapBetterAuthUserToDbUser(user: InferUser<AuthOptions>): UserSelectModel {
+export function normalizeUser(user: InferUser<AuthOptions>): UserSelectModel {
     return {
         id: user.id,
         username: user.username!,
@@ -18,6 +16,7 @@ export function mapBetterAuthUserToDbUser(user: InferUser<AuthOptions>): UserSel
         name: user.name,
         email: user.email,
         isEmailVerified: user.emailVerified,
+        isLocked: user.isLocked,
         imageUrl: user.image ?? null,
         createdAt: user.createdAt,
         updatedAt: user.updatedAt,
@@ -25,15 +24,11 @@ export function mapBetterAuthUserToDbUser(user: InferUser<AuthOptions>): UserSel
 }
 
 /**
- * Maps the original badly named Better Auth properties to standard-following
- * user & session models:
- * - `emailVerified` => `isEmailVerified`.
- * - `image` => `imageUrl`.
- * @param session The original session object from Better Auth.
- * @param user The original user object from Better Auth.
+ * Reconciles a Better Auth session and user into the project's Session type.
+ * Passed directly to the customSession plugin as the session builder callback.
  */
 // biome-ignore lint/suspicious/useAwait: Required for type inference in Better Auth's custom session plugin
-export async function mapBetterAuthSessionToDbSession({
+export async function normalizeSession({
     session,
     user,
 }: {
@@ -53,7 +48,7 @@ export async function mapBetterAuthSessionToDbSession({
 
     return {
         ...customSession,
-        user: mapBetterAuthUserToDbUser(user),
+        user: normalizeUser(user),
     }
 }
 
