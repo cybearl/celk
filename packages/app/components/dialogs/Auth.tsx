@@ -1,4 +1,5 @@
 import ForgotPasswordEmailSentConfirmation from "@app/components/confirmations/ForgotPasswordEmailSent"
+import VerifyEmailConfirmation from "@app/components/confirmations/VerifyEmail"
 import ForgotPasswordForm from "@app/components/forms/ForgotPassword"
 import ResetPasswordForm from "@app/components/forms/ResetPassword"
 import SignInForm from "@app/components/forms/SignIn"
@@ -32,6 +33,8 @@ export default function AuthDialog() {
     const [isOpen, setIsOpen] = useState(false)
     const [mode, setMode] = useState<AuthMode>("sign-in")
     const [resetToken, setResetToken] = useState<string | null>(null)
+
+    const [signUpEmail, setSignUpEmail] = useState("")
 
     const [forgotPasswordEmail, setForgotPasswordEmail] = useState("")
     const [forgotPasswordRedirectTo, setForgotPasswordRedirectTo] = useState("")
@@ -98,6 +101,7 @@ export default function AuthDialog() {
             setTimeout(() => {
                 setMode("sign-in")
                 setResetToken(null)
+                setSignUpEmail("")
                 setForgotPasswordEmail("")
                 setForgotPasswordRedirectTo("")
             }, 200)
@@ -167,7 +171,17 @@ export default function AuthDialog() {
                                 </div>
                             </DialogFooter>
                         )}
-                        onSuccess={() => handleOpenChange(false)}
+                        onSuccess={email => {
+                            setSignUpEmail(email)
+                            setMode("require-email-verification")
+                        }}
+                    />
+                )
+            case "require-email-verification":
+                return (
+                    <VerifyEmailConfirmation
+                        email={signUpEmail}
+                        onClose={() => handleOpenChange(false)}
                     />
                 )
             case "sign-in":
@@ -196,6 +210,10 @@ export default function AuthDialog() {
                             </DialogFooter>
                         )}
                         onSuccess={() => handleOpenChange(false)}
+                        onEmailNotVerified={email => {
+                            setSignUpEmail(email)
+                            setMode("require-email-verification")
+                        }}
                     />
                 )
             case "forgot-password":
@@ -263,7 +281,7 @@ export default function AuthDialog() {
                     />
                 )
         }
-    }, [mode, resetToken, forgotPasswordEmail, forgotPasswordRedirectTo, handleOpenChange, onForgotPasswordEmailSent])
+    }, [mode, resetToken, signUpEmail, forgotPasswordEmail, forgotPasswordRedirectTo, handleOpenChange, onForgotPasswordEmailSent])
 
     return (
         <div className="w-full h-full flex flex-col items-center justify-center px-1">

@@ -1,4 +1,3 @@
-import { useSessionContext } from "@app/components/contexts/Session"
 import { Field, FieldError, FieldGroup, FieldLabel } from "@app/components/ui/Field"
 import { Input } from "@app/components/ui/Input"
 import { authClient } from "@app/lib/client/connectors/auth-client"
@@ -44,12 +43,10 @@ type SignUpForm = z.infer<typeof signUpFormSchema>
 
 type SignUpFormProps = {
     trigger: (isSubmitting: boolean) => ReactNode
-    onSuccess?: () => void
+    onSuccess?: (email: string) => void
 }
 
 export default function SignUpForm({ trigger, onSuccess }: SignUpFormProps) {
-    const { refetchSession } = useSessionContext()
-
     const form = useForm<SignUpForm>({
         defaultValues: {
             name: "",
@@ -75,11 +72,10 @@ export default function SignUpForm({ trigger, onSuccess }: SignUpFormProps) {
                     message: error.message,
                 })
             } else {
-                await refetchSession()
-                onSuccess?.()
+                onSuccess?.(data.email)
             }
         },
-        [form, refetchSession, onSuccess],
+        [form, onSuccess],
     )
 
     return (

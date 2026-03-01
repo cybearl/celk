@@ -17,9 +17,10 @@ type SignInForm = z.infer<typeof signInFormSchema>
 type SignInFormProps = {
     trigger: (isSubmitting: boolean) => ReactNode
     onSuccess?: () => void
+    onEmailNotVerified?: (email: string) => void
 }
 
-export default function SignInForm({ trigger, onSuccess }: SignInFormProps) {
+export default function SignInForm({ trigger, onSuccess, onEmailNotVerified }: SignInFormProps) {
     const { refetchSession } = useSessionContext()
 
     const form = useForm<SignInForm>({
@@ -43,15 +44,21 @@ export default function SignInForm({ trigger, onSuccess }: SignInFormProps) {
                   })
 
             if (error) {
-                form.setError("root", {
-                    message: error.message,
-                })
+                if (error.code === "EMAIL_NOT_VERIFIED") {
+                    // Custom flow allowing the user to send a verification email again
+                    // if their account is not yet verified when signing in
+                    onEmailNotVerified?.(data.identifier.includes("@") ? data.identifier : "")
+                } else {
+                    form.setError("root", {
+                        message: error.message,
+                    })
+                }
             } else {
                 await refetchSession()
                 onSuccess?.()
             }
         },
-        [form, refetchSession, onSuccess],
+        [form, refetchSession, onSuccess, onEmailNotVerified],
     )
 
     return (
