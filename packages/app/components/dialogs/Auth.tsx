@@ -33,11 +33,8 @@ export default function AuthDialog() {
     const [isOpen, setIsOpen] = useState(false)
     const [mode, setMode] = useState<AuthMode>("sign-in")
     const [resetToken, setResetToken] = useState<string | null>(null)
-
-    const [signUpEmail, setSignUpEmail] = useState("")
-
-    const [forgotPasswordEmail, setForgotPasswordEmail] = useState("")
-    const [forgotPasswordRedirectTo, setForgotPasswordRedirectTo] = useState("")
+    const [signUpEmail, setSignUpEmail] = useState<string | null>(null)
+    const [forgotPasswordEmail, setForgotPasswordEmail] = useState<string | null>(null)
 
     // On mount, check if the URL contains a password-reset redirect and open the dialog automatically
     // biome-ignore lint/correctness/useExhaustiveDependencies: Needs to only run once on mount
@@ -103,7 +100,6 @@ export default function AuthDialog() {
                 setResetToken(null)
                 setSignUpEmail("")
                 setForgotPasswordEmail("")
-                setForgotPasswordRedirectTo("")
             }, 200)
         }
     }, [])
@@ -112,11 +108,9 @@ export default function AuthDialog() {
      * Redirects the user to the forgot password email sent confirmation screen,
      * while also saving the email address so the user can resend the email.
      * @param email The email address to send the password reset link to.
-     * @param redirectTo The URL to redirect the user to after they click the link in their email.
      */
-    const onForgotPasswordEmailSent = useCallback((email: string, redirectTo: string) => {
+    const onForgotPasswordEmailSent = useCallback((email: string) => {
         setForgotPasswordEmail(email)
-        setForgotPasswordRedirectTo(redirectTo)
         setMode("forgot-password-email-sent")
     }, [])
 
@@ -133,7 +127,12 @@ export default function AuthDialog() {
                                             <span className="text-muted-foreground text-sm">
                                                 Already have an account?
                                             </span>
-                                            <Button variant="link" size="sm" onClick={() => setMode("sign-in")}>
+                                            <Button
+                                                type="button"
+                                                variant="link"
+                                                size="sm"
+                                                onClick={() => setMode("sign-in")}
+                                            >
                                                 Sign In
                                             </Button>
                                         </div>
@@ -178,12 +177,7 @@ export default function AuthDialog() {
                     />
                 )
             case "require-email-verification":
-                return (
-                    <VerifyEmailConfirmation
-                        email={signUpEmail}
-                        onClose={() => handleOpenChange(false)}
-                    />
-                )
+                return <VerifyEmailConfirmation email={signUpEmail} onClose={() => handleOpenChange(false)} />
             case "sign-in":
                 return (
                     <SignInForm
@@ -191,7 +185,12 @@ export default function AuthDialog() {
                             <DialogFooter>
                                 <div className="w-full flex flex-col gap-2">
                                     <div className="flex justify-between items-center">
-                                        <Button size="sm" variant="link" onClick={() => setMode("forgot-password")}>
+                                        <Button
+                                            type="button"
+                                            size="sm"
+                                            variant="link"
+                                            onClick={() => setMode("forgot-password")}
+                                        >
                                             Forgot Password?
                                         </Button>
 
@@ -202,7 +201,12 @@ export default function AuthDialog() {
 
                                     <div className="flex items-center justify-center gap-1.5">
                                         <span className="text-muted-foreground text-sm">Don't have an account?</span>
-                                        <Button variant="link" size="sm" onClick={() => setMode("sign-up")}>
+                                        <Button
+                                            type="button"
+                                            variant="link"
+                                            size="sm"
+                                            onClick={() => setMode("sign-up")}
+                                        >
                                             Sign Up
                                         </Button>
                                     </div>
@@ -227,7 +231,12 @@ export default function AuthDialog() {
                                             <span className="text-muted-foreground text-sm">
                                                 Remember your password?
                                             </span>
-                                            <Button variant="link" size="sm" onClick={() => setMode("sign-in")}>
+                                            <Button
+                                                type="button"
+                                                variant="link"
+                                                size="sm"
+                                                onClick={() => setMode("sign-in")}
+                                            >
                                                 Sign In
                                             </Button>
                                         </div>
@@ -239,17 +248,13 @@ export default function AuthDialog() {
                                 </div>
                             </DialogFooter>
                         )}
-                        redirectTo={`${window.location.origin}/?reset-password=true`}
-                        onSuccess={email =>
-                            onForgotPasswordEmailSent(email, `${window.location.origin}/?reset-password=true`)
-                        }
+                        onSuccess={email => onForgotPasswordEmailSent(email)}
                     />
                 )
             case "forgot-password-email-sent":
                 return (
                     <ForgotPasswordEmailSentConfirmation
                         email={forgotPasswordEmail}
-                        redirectTo={forgotPasswordRedirectTo}
                         onClose={() => handleOpenChange(false)}
                     />
                 )
@@ -264,7 +269,12 @@ export default function AuthDialog() {
                                             <span className="text-muted-foreground text-sm">
                                                 Remember your password?
                                             </span>
-                                            <Button variant="link" size="sm" onClick={() => setMode("sign-in")}>
+                                            <Button
+                                                type="button"
+                                                variant="link"
+                                                size="sm"
+                                                onClick={() => setMode("sign-in")}
+                                            >
                                                 Sign In
                                             </Button>
                                         </div>
@@ -281,7 +291,7 @@ export default function AuthDialog() {
                     />
                 )
         }
-    }, [mode, resetToken, signUpEmail, forgotPasswordEmail, forgotPasswordRedirectTo, handleOpenChange, onForgotPasswordEmailSent])
+    }, [mode, resetToken, signUpEmail, forgotPasswordEmail, handleOpenChange, onForgotPasswordEmailSent])
 
     return (
         <div className="w-full h-full flex flex-col items-center justify-center px-1">

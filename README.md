@@ -144,7 +144,6 @@ When flipped to `false`, it closes stdin to gracefully stop the process.
   are out of scope for now.
 
 ## TODOs
-- Sign up system + email verification (TO VERIFY)
 - `isLocked` flag set to `true` on new users if `NEXT_PUBLIC_LOCK_NEW_USERS` is set to `true` (TO VERIFY)
 - Admin management page for locked users
 - Locking mechanism + screen for new users (preview / read-only mode if locked so users can still explore the UI)
@@ -154,3 +153,4 @@ When flipped to `false`, it closes stdin to gracefully stop the process.
 - Manage address lists: enable them, add or remove addresses, etc.
 - Statistics page
 - Closest match tree view / registered address tree view + luck factor (probability estimate across all active address lists)
+- Address balance fetching should be env-var limited to 1 call per x minutes per user (1 address per user per x minutes).

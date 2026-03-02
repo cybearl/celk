@@ -3,7 +3,7 @@ import { Input } from "@app/components/ui/Input"
 import { authClient } from "@app/lib/client/connectors/auth-client"
 import { CyCONSTANTS } from "@cybearl/cypack"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { type ReactNode, useCallback, useEffect } from "react"
+import { type ReactNode, useCallback } from "react"
 import { Controller, useForm } from "react-hook-form"
 import z from "zod"
 
@@ -42,10 +42,6 @@ export default function ResetPasswordForm({ trigger, token, onSuccess }: ResetPa
         },
         resolver: zodResolver(resetPasswordFormSchema),
     })
-
-    useEffect(() => {
-        if (!token) form.setError("root", { message: "No token provided" })
-    }, [token, form])
 
     const handleSubmit = useCallback(
         async (data: ResetPasswordForm) => {

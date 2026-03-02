@@ -14,11 +14,10 @@ type ForgotPasswordForm = z.infer<typeof forgotPasswordFormSchema>
 
 type ForgotPasswordFormProps = {
     trigger: (isSubmitting: boolean) => ReactNode
-    redirectTo: string
     onSuccess?: (email: string) => void
 }
 
-export default function ForgotPasswordForm({ trigger, redirectTo, onSuccess }: ForgotPasswordFormProps) {
+export default function ForgotPasswordForm({ trigger, onSuccess }: ForgotPasswordFormProps) {
     const form = useForm<ForgotPasswordForm>({
         defaultValues: {
             email: "",
@@ -30,7 +29,7 @@ export default function ForgotPasswordForm({ trigger, redirectTo, onSuccess }: F
         async (data: ForgotPasswordForm) => {
             const { error } = await authClient.requestPasswordReset({
                 email: data.email,
-                redirectTo,
+                redirectTo: `${window.location.origin}/?reset-password=true`,
             })
 
             if (error) {
@@ -41,7 +40,7 @@ export default function ForgotPasswordForm({ trigger, redirectTo, onSuccess }: F
                 onSuccess?.(data.email)
             }
         },
-        [form, redirectTo, onSuccess],
+        [form, onSuccess],
     )
 
     return (

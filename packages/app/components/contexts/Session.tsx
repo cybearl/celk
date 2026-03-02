@@ -1,6 +1,9 @@
 //import { authClient } from "@app/lib/client/connectors/auth-client"
+import toast from "@app/components/ui/Toast"
 import { authClient } from "@app/lib/client/connectors/auth-client"
 import type { Session } from "@app/types/auth"
+import { useSearchParams } from "next/navigation"
+import { useRouter } from "next/router"
 import type { ReactNode } from "react"
 import { createContext, useCallback, useContext, useEffect, useState } from "react"
 
@@ -34,6 +37,9 @@ type SessionProviderProps = {
  * the session state via the `getSession` function and the initially passed `initialSession` prop.
  */
 export default function SessionProvider({ initialSession, children }: SessionProviderProps) {
+    const searchParams = useSearchParams()
+    const router = useRouter()
+
     const [session, setSession] = useState<Session | null>(initialSession)
     const [isLoading, setIsLoading] = useState(true)
     const [error, setError] = useState<Error | null>(null)
@@ -55,6 +61,23 @@ export default function SessionProvider({ initialSession, children }: SessionPro
     useEffect(() => {
         fetchClientSession()
     }, [fetchClientSession])
+
+    // On mount, check if the URL contains a "email-verified" query parameter, if it's the case,
+    // simply pop a toast to notify the user that their email has been verified and that they
+    // have automatically been signed in
+    // biome-ignore lint/correctness/useExhaustiveDependencies: Needs to only run once on mount
+    useEffect(() => {
+        if (searchParams.get("email-verified") !== "true") return
+
+        toast.success("Your email has been verified! You have automatically been signed in.")
+
+        // Remove the query parameters from the URL
+        const params = new URLSearchParams(searchParams.toString())
+        params.delete("email-verified")
+
+        const search = params.toString()
+        router.replace(search ? `/?${search}` : "/", undefined, { shallow: true })
+    }, [])
 
     return (
         <SessionContext.Provider

@@ -7,6 +7,7 @@ import type { Session } from "@app/types/auth"
 import type { AppContext as NextAppContext, AppProps as NextAppProps } from "next/app"
 import NextApp from "next/app"
 import { useEffect } from "react"
+import { Toaster } from "sonner"
 
 // Styles
 import "@app/styles/globals.css"
@@ -29,6 +30,7 @@ export default function App({ Component, pageProps, nonce, initialSession }: App
         <NonceProvider nonce={nonce}>
             <SessionProvider initialSession={initialSession}>
                 <div className={cn(SOURCE_CODE_PRO.variable, "font-source-code-pro h-full w-full")}>
+                    <Toaster />
                     <Component {...pageProps} />
                 </div>
             </SessionProvider>

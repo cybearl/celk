@@ -1,19 +1,33 @@
 import { Button } from "@app/components/ui/Button"
-import { Field, FieldLabel } from "@app/components/ui/Field"
+import { Field, FieldError, FieldGroup, FieldLabel } from "@app/components/ui/Field"
 import { Input } from "@app/components/ui/Input"
 import GENERAL_CONFIG from "@app/config/general"
 import { authClient } from "@app/lib/client/connectors/auth-client"
+import { zodResolver } from "@hookform/resolvers/zod"
 import { useCallback, useEffect, useState } from "react"
+import { Controller, useForm } from "react-hook-form"
+import z from "zod"
+
+const verifyEmailFormSchema = z.object({
+    email: z.email("Invalid email address"),
+})
+
+type VerifyEmailForm = z.infer<typeof verifyEmailFormSchema>
 
 type VerifyEmailConfirmationProps = {
-    email: string
+    email: string | null
     onClose: () => void
 }
 
 export default function VerifyEmailConfirmation({ email, onClose }: VerifyEmailConfirmationProps) {
-    const [emailValue, setEmailValue] = useState(email)
-    const [cooldown, setCooldown] = useState(GENERAL_CONFIG.emailResendCooldown)
-    const [isResending, setIsResending] = useState(false)
+    const [cooldown, setCooldown] = useState(email ? GENERAL_CONFIG.emailResendCooldown : 0)
+
+    const form = useForm<VerifyEmailForm>({
+        defaultValues: {
+            email: email ?? "",
+        },
+        resolver: zodResolver(verifyEmailFormSchema),
+    })
 
     useEffect(() => {
         if (cooldown <= 0) return
@@ -24,23 +38,30 @@ export default function VerifyEmailConfirmation({ email, onClose }: VerifyEmailC
     /**
      * Resend the verification email.
      */
-    const handleResend = useCallback(async () => {
-        if (cooldown > 0 || isResending || !emailValue) return
+    const handleSubmit = useCallback(
+        async (data: VerifyEmailForm) => {
+            if (cooldown > 0) return
 
-        setIsResending(true)
+            await authClient.sendVerificationEmail({
+                email: data.email,
+                callbackURL: `${window.location.origin}/?email-verified=true`,
+            })
 
-        await authClient.sendVerificationEmail({ email: emailValue, callbackURL: "/" })
-
-        setIsResending(false)
-        setCooldown(GENERAL_CONFIG.emailResendCooldown)
-    }, [cooldown, isResending, emailValue])
+            setCooldown(GENERAL_CONFIG.emailResendCooldown)
+        },
+        [cooldown],
+    )
 
     return (
-        <div className="flex flex-col justify-center items-center gap-3">
+        <form
+            className="flex flex-col justify-center items-center gap-3"
+            onSubmit={form.handleSubmit(handleSubmit)}
+        >
             {email ? (
                 <p>
-                    A verification email has been sent to {email}. Please check your inbox and click the link to
-                    activate your account.
+                    An email has been sent to {email}.
+                    <br />
+                    Please check your inbox and click the link to activate your account.
                 </p>
             ) : (
                 <>
@@ -48,17 +69,26 @@ export default function VerifyEmailConfirmation({ email, onClose }: VerifyEmailC
                         Your email address has not been verified yet. Enter your email below to receive a new
                         verification link.
                     </p>
-                    <Field className="w-full">
-                        <FieldLabel htmlFor="verify-email-input">Email</FieldLabel>
-                        <Input
-                            id="verify-email-input"
-                            type="email"
-                            autoComplete="email"
-                            placeholder="john.doe@example.com"
-                            value={emailValue}
-                            onChange={e => setEmailValue(e.target.value)}
+                    <FieldGroup className="w-full">
+                        <Controller
+                            control={form.control}
+                            name="email"
+                            render={({ field, fieldState }) => (
+                                <Field data-invalid={fieldState.invalid}>
+                                    <FieldLabel htmlFor={field.name}>Email</FieldLabel>
+                                    <Input
+                                        type="email"
+                                        autoComplete="email"
+                                        aria-invalid={fieldState.invalid}
+                                        id={field.name}
+                                        placeholder="john.doe@example.com"
+                                        {...field}
+                                    />
+                                    {fieldState.invalid && <FieldError errors={[fieldState.error!]} />}
+                                </Field>
+                            )}
                         />
-                    </Field>
+                    </FieldGroup>
                 </>
             )}
 
@@ -68,16 +98,18 @@ export default function VerifyEmailConfirmation({ email, onClose }: VerifyEmailC
 
             <div className="flex gap-2 ml-auto mt-1">
                 <Button
+                    type="submit"
                     variant="outline"
-                    onClick={handleResend}
-                    isLoading={isResending}
-                    disabled={cooldown > 0 || isResending || !emailValue}
+                    isLoading={form.formState.isSubmitting}
+                    disabled={cooldown > 0}
                 >
                     {cooldown > 0 ? `Resend Email (${cooldown}s)` : "Resend Email"}
                 </Button>
 
-                <Button onClick={onClose}>Close</Button>
+                <Button type="button" onClick={onClose}>
+                    Close
+                </Button>
             </div>
-        </div>
+        </form>
     )
 }

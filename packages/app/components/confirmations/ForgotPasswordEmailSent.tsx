@@ -4,14 +4,12 @@ import { authClient } from "@app/lib/client/connectors/auth-client"
 import { useCallback, useEffect, useState } from "react"
 
 type ForgotPasswordEmailSentConfirmationProps = {
-    email: string
-    redirectTo: string
+    email: string | null
     onClose: () => void
 }
 
 export default function ForgotPasswordEmailSentConfirmation({
     email,
-    redirectTo,
     onClose,
 }: ForgotPasswordEmailSentConfirmationProps) {
     const [cooldown, setCooldown] = useState(GENERAL_CONFIG.emailResendCooldown)
@@ -24,15 +22,18 @@ export default function ForgotPasswordEmailSentConfirmation({
     }, [cooldown])
 
     const handleResend = useCallback(async () => {
-        if (cooldown > 0 || isResending) return
+        if (!email || cooldown > 0 || isResending) return
 
         setIsResending(true)
 
-        await authClient.requestPasswordReset({ email, redirectTo })
+        await authClient.requestPasswordReset({
+            email,
+            redirectTo: `${window.location.origin}/?reset-password=true`,
+        })
 
         setIsResending(false)
         setCooldown(GENERAL_CONFIG.emailResendCooldown)
-    }, [cooldown, isResending, email, redirectTo])
+    }, [cooldown, isResending, email])
 
     return (
         <div className="flex flex-col justify-center items-center gap-3">
