@@ -1,10 +1,10 @@
 import { useSessionContext } from "@app/components/contexts/Session"
 import AuthDialog from "@app/components/dialogs/Auth"
 import MainLayoutSection from "@app/components/layouts/main/Section"
-import MainLayoutPageTriggers from "@app/components/triggers/MainLayoutPage"
 import { AnimatedGridPattern } from "@app/components/ui/AnimatedGridPattern"
+import { Button } from "@app/components/ui/Button"
 import Profile from "@app/components/ui/Profile"
-import { Tabs } from "@app/components/ui/Tabs"
+import { Tabs, TabsList, TabsTrigger } from "@app/components/ui/Tabs"
 import { LOGGED_IN_ONLY_PAGES, MAIN_LAYOUT_PAGE } from "@app/config/pages"
 import useTabs from "@app/hooks/useTabs"
 import { cn } from "@app/lib/client/utils/styling"
@@ -32,10 +32,6 @@ export default function MainLayout({ topRightSection, bottomLeftSection, childre
         else if (!session && LOGGED_IN_ONLY_PAGES.includes(currentPage)) onPageChange(MAIN_LAYOUT_PAGE.HOME)
     }, [session])
 
-    useEffect(() => {
-        console.log("current page", currentPage)
-    }, [currentPage])
-
     return (
         <div className="h-screen w-screen overflow-hidden absolute opacity-80">
             <AnimatedGridPattern
@@ -57,10 +53,36 @@ export default function MainLayout({ topRightSection, bottomLeftSection, childre
 
             <Tabs value={currentPage} onValueChange={value => onPageChange(value as MAIN_LAYOUT_PAGE)}>
                 <MainLayoutSection position="top-left">
-                    <MainLayoutPageTriggers currentPage={currentPage} />
+                    <TabsList>
+                        <TabsTrigger value={MAIN_LAYOUT_PAGE.HOME} asChild>
+                            <Button variant={currentPage === MAIN_LAYOUT_PAGE.HOME ? "active-tab" : "inactive-tab"}>
+                                Home
+                            </Button>
+                        </TabsTrigger>
+
+                        <TabsTrigger value={MAIN_LAYOUT_PAGE.DASHBOARD} hidden={!session}>
+                            <Button
+                                variant={currentPage === MAIN_LAYOUT_PAGE.DASHBOARD ? "active-tab" : "inactive-tab"}
+                            >
+                                Dashboard
+                            </Button>
+                        </TabsTrigger>
+
+                        <TabsTrigger value={MAIN_LAYOUT_PAGE.SETTINGS} hidden={!session}>
+                            <Button variant={currentPage === MAIN_LAYOUT_PAGE.SETTINGS ? "active-tab" : "inactive-tab"}>
+                                Settings
+                            </Button>
+                        </TabsTrigger>
+
+                        <TabsTrigger value={MAIN_LAYOUT_PAGE.ABOUT} asChild>
+                            <Button variant={currentPage === MAIN_LAYOUT_PAGE.ABOUT ? "active-tab" : "inactive-tab"}>
+                                About
+                            </Button>
+                        </TabsTrigger>
+                    </TabsList>
                 </MainLayoutSection>
 
-                <div className="absolute inset-14 overflow-hidden z-10">{children}</div>
+                <div className="absolute inset-14 overflow-hidden z-10 mb-4">{children}</div>
             </Tabs>
 
             <MainLayoutSection position="bottom-right">{session ? <Profile /> : <AuthDialog />}</MainLayoutSection>

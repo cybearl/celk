@@ -1,4 +1,5 @@
 import { useSessionContext } from "@app/components/contexts/Session"
+import Avatar from "boring-avatars"
 
 export default function Profile() {
     const { session } = useSessionContext()
@@ -10,7 +11,9 @@ export default function Profile() {
                 <p className="text-foreground font-medium">{session?.user.displayUsername}</p>
                 <p className="text-foreground text-xs">{session?.user.email}</p>
             </div>
-            <div className="w-10 h-10 rounded-full bg-muted"></div>
+            <div className="w-10 h-10 rounded-full bg-foreground">
+                <Avatar name={session?.user.email} size={40} variant="marble" className="opacity-95" />
+            </div>
         </div>
     )
 }
