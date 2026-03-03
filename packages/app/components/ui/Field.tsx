@@ -52,7 +52,7 @@ function FieldGroup({ className, ...props }: ComponentProps<"div">) {
     )
 }
 
-const fieldVariants = cva("group/field data-[invalid=true]:text-destructive flex w-full gap-3", {
+const fieldVariants = cva("group/field data-[invalid=true]:text-destructive flex w-full gap-3 mt-1", {
     variants: {
         orientation: {
             vertical: ["flex-col *:w-full [&>.sr-only]:w-auto"],
