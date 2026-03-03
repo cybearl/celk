@@ -15,7 +15,6 @@ const scUser = pgTable("users", {
     email: text("email").notNull().unique(),
     isEmailVerified: boolean("is_email_verified").notNull().default(false),
     isLocked: boolean("is_locked").notNull(),
-    imageUrl: text("image_url"),
 
     // Timestamps
     createdAt: timestamp("created_at").notNull().defaultNow(),

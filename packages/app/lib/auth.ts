@@ -1,5 +1,8 @@
 import { PUBLIC_ENV } from "@app/config/env"
 import schema from "@app/db/schema"
+import scRoles from "@app/db/schema/role"
+import scUserRoles from "@app/db/schema/userRoles"
+import { SEEDED_USER_ROLE_SLUGS } from "@app/db/seeders/roles"
 import { normalizeSession, normalizeUsername } from "@app/lib/base/utils/auth"
 import { db } from "@app/lib/server/connectors/db"
 import { sendPasswordResetEmail, sendVerificationEmail } from "@app/lib/server/utils/emails"
@@ -7,6 +10,7 @@ import { CyCONSTANTS } from "@cybearl/cypack"
 import { type BetterAuthOptions, betterAuth } from "better-auth"
 import { drizzleAdapter } from "better-auth/adapters/drizzle"
 import { customSession, username } from "better-auth/plugins"
+import { eq } from "drizzle-orm"
 
 /**
  * Options for Better Auth with type inference,
@@ -45,7 +49,6 @@ export const authOptions = {
         // Custom field names
         fields: {
             emailVerified: "isEmailVerified",
-            image: "imageUrl",
         },
         // Additional fields unknown to Better Auth
         additionalFields: {
@@ -62,8 +65,22 @@ export const authOptions = {
         user: {
             create: {
                 before: async user => ({
-                    data: { ...user, isLocked: PUBLIC_ENV.lockNewUsers },
+                    data: {
+                        ...user,
+                        isLocked: PUBLIC_ENV.lockNewUsers,
+                    },
                 }),
+                after: async user => {
+                    const userRole = await db
+                        .select()
+                        .from(scRoles)
+                        .where(eq(scRoles.slug, SEEDED_USER_ROLE_SLUGS.USER))
+                        .limit(1)
+
+                    if (userRole.length > 0) {
+                        await db.insert(scUserRoles).values({ userId: user.id, roleId: userRole[0].id })
+                    }
+                },
             },
         },
     },

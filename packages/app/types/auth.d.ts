@@ -1,3 +1,4 @@
+import type { RoleSelectModel } from "@app/db/schema/role"
 import type { SessionSelectModel } from "@app/db/schema/session"
 import type { UserSelectModel } from "@app/db/schema/user"
 
@@ -14,4 +15,6 @@ export type SignUpResponse = {
  */
 export type Session = SessionSelectModel & {
     user: UserSelectModel
+    roles: RoleSelectModel[]
+    isAdmin: boolean
 }

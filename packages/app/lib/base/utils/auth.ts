@@ -1,12 +1,18 @@
 import type { SessionSelectModel } from "@app/db/schema/session"
 import type { UserSelectModel } from "@app/db/schema/user"
+import scUserRoles from "@app/db/schema/userRoles"
+import { SEEDED_USER_ROLE_SLUGS } from "@app/db/seeders/roles"
 import type { AuthOptions } from "@app/lib/auth"
+import { db } from "@app/lib/server/connectors/db"
 import type { Session } from "@app/types/auth"
 import type { InferSession, InferUser } from "better-auth"
+import { eq } from "drizzle-orm"
 
 /**
  * Reconciles a Better Auth user object into the project's UserSelectModel,
  * mapping Better Auth's field names to the project's naming conventions.
+ * @param user The Better Auth user object to normalize.
+ * @returns The normalized user object conforming to UserSelectModel.
  */
 export function normalizeUser(user: InferUser<AuthOptions>): UserSelectModel {
     return {
@@ -16,8 +22,7 @@ export function normalizeUser(user: InferUser<AuthOptions>): UserSelectModel {
         name: user.name,
         email: user.email,
         isEmailVerified: user.emailVerified,
-        isLocked: user.isLocked,
-        imageUrl: user.image ?? null,
+        isLocked: user.isLocked ?? false,
         createdAt: user.createdAt,
         updatedAt: user.updatedAt,
     }
@@ -26,8 +31,10 @@ export function normalizeUser(user: InferUser<AuthOptions>): UserSelectModel {
 /**
  * Reconciles a Better Auth session and user into the project's Session type.
  * Passed directly to the customSession plugin as the session builder callback.
+ * @param session The Better Auth session object to normalize.
+ * @param user The Better Auth user object associated with the session.
+ * @returns The normalized session object conforming to Session type.
  */
-// biome-ignore lint/suspicious/useAwait: Required for type inference in Better Auth's custom session plugin
 export async function normalizeSession({
     session,
     user,
@@ -46,9 +53,19 @@ export async function normalizeSession({
         expiresAt: session.expiresAt,
     }
 
+    const userRoles = await db.query.user_roles.findMany({
+        where: eq(scUserRoles.userId, user.id),
+        with: { role: true },
+    })
+
+    // Check if the user has the admin role
+    const isAdmin = userRoles.some(userRole => userRole.role.slug === SEEDED_USER_ROLE_SLUGS.ADMIN)
+
     return {
         ...customSession,
         user: normalizeUser(user),
+        roles: userRoles.map(r => r.role),
+        isAdmin,
     }
 }
 
