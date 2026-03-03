@@ -69,3 +69,18 @@ export default scAddress
 export type AddressSchema = typeof scAddress
 export type AddressSelectModel = InferSelectModel<typeof scAddress>
 export type AddressInsertModel = InferInsertModel<typeof scAddress>
+
+/**
+ * A JSON-serializable version of `AddressSelectModel` for use in `getServerSideProps` props,
+ * `BigInt` fields become strings, date fields become ISO strings.
+ */
+export type SerializedAddressSelectModel = Omit<
+    AddressSelectModel,
+    "balance" | "attempts" | "createdAt" | "updatedAt" | "balanceCheckedAt"
+> & {
+    balance: string | null
+    attempts: string
+    createdAt: string
+    updatedAt: string
+    balanceCheckedAt: string | null
+}
