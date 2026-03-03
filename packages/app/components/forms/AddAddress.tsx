@@ -1,20 +1,34 @@
+import AddressTypeLabels from "@app/components/ui/AddressTypeLabels"
+import { Checkbox } from "@app/components/ui/Checkbox"
 import { Field, FieldError, FieldGroup, FieldLabel } from "@app/components/ui/Field"
 import { Input } from "@app/components/ui/Input"
-import { Select } from "@app/components/ui/Select"
+import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@app/components/ui/Select"
 import { ADDRESS_NETWORK, ADDRESS_TYPE } from "@app/db/schema/address"
+import { isValidCryptoAddress } from "@app/lib/base/utils/address"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { type ReactNode, useCallback } from "react"
+import { type ReactNode, useCallback, useMemo } from "react"
 import { Controller, useForm } from "react-hook-form"
 import z from "zod"
 
-const addAddressFormSchema = z.object({
-    name: z.string().min(1, "Name is required"),
-    type: z.enum(ADDRESS_TYPE),
-    network: z.enum(ADDRESS_NETWORK),
-    value: z.string().min(1, "Address value is required"),
-    decrypted: z.string().min(1, "Decrypted form is required"),
-    privateKey: z.string().optional(),
-})
+const addAddressFormSchema = z
+    .object({
+        name: z.string().min(1, "Name is required"),
+        type: z.enum(ADDRESS_TYPE),
+        network: z.enum(ADDRESS_NETWORK),
+        value: z.string().min(1, "Address value is required"),
+        bypassChecksum: z.boolean().optional(),
+    })
+    .superRefine(({ type, value, bypassChecksum }, ctx) => {
+        if (!type || !value || bypassChecksum) return
+
+        if (!isValidCryptoAddress(type, value)) {
+            ctx.addIssue({
+                code: "custom",
+                message: "Invalid address (check format and checksum)",
+                path: ["value"],
+            })
+        }
+    })
 
 export type AddAddressFormData = z.infer<typeof addAddressFormSchema>
 
@@ -28,14 +42,13 @@ export default function AddAddressForm({ trigger, onSubmit, onSuccess }: AddAddr
     const form = useForm<AddAddressFormData>({
         defaultValues: {
             name: "",
-            type: ADDRESS_TYPE.ETHEREUM,
-            network: ADDRESS_NETWORK.ETHEREUM,
             value: "",
-            decrypted: "",
-            privateKey: "",
         },
         resolver: zodResolver(addAddressFormSchema),
     })
+
+    const network = form.watch("network")
+    const type = form.watch("type")
 
     const handleSubmit = useCallback(
         async (data: AddAddressFormData) => {
@@ -51,6 +64,20 @@ export default function AddAddressForm({ trigger, onSubmit, onSuccess }: AddAddr
         },
         [form, onSubmit, onSuccess],
     )
+
+    const valuePlaceholder = useMemo(() => {
+        if (network === ADDRESS_NETWORK.BITCOIN) {
+            if (type === ADDRESS_TYPE.BTC_P2PKH) {
+                return "1.."
+            } else if (type === ADDRESS_TYPE.BTC_P2WPKH) {
+                return "bc1q.."
+            }
+        } else if (network === ADDRESS_NETWORK.ETHEREUM || network === ADDRESS_NETWORK.POLYGON) {
+            return "0x.."
+        }
+
+        return "0x.."
+    }, [network, type])
 
     return (
         <form className="space-y-4 w-full" onSubmit={form.handleSubmit(handleSubmit)}>
@@ -75,14 +102,33 @@ export default function AddAddressForm({ trigger, onSubmit, onSuccess }: AddAddr
 
                 <Controller
                     control={form.control}
-                    name="type"
+                    name="network"
                     render={({ field, fieldState }) => (
                         <Field data-invalid={fieldState.invalid}>
-                            <FieldLabel htmlFor={field.name}>Type</FieldLabel>
-                            <Select aria-invalid={fieldState.invalid} id={field.name} {...field}>
-                                <option value={ADDRESS_TYPE.ETHEREUM}>Ethereum</option>
-                                <option value={ADDRESS_TYPE.BTC_P2PKH}>Bitcoin P2PKH</option>
-                                <option value={ADDRESS_TYPE.BTC_P2WPKH}>Bitcoin P2WPKH</option>
+                            <FieldLabel htmlFor={field.name}>Network</FieldLabel>
+                            <Select
+                                value={field.value}
+                                name={field.name}
+                                onValueChange={value => {
+                                    field.onChange(value)
+
+                                    if (value === ADDRESS_NETWORK.BITCOIN) {
+                                        form.setValue("type", ADDRESS_TYPE.BTC_P2PKH)
+                                    } else {
+                                        form.setValue("type", ADDRESS_TYPE.ETHEREUM)
+                                    }
+                                }}
+                            >
+                                <SelectTrigger id={field.name} aria-invalid={fieldState.invalid}>
+                                    <SelectValue placeholder="Select network" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectGroup>
+                                        <SelectItem value={ADDRESS_NETWORK.BITCOIN}>Bitcoin</SelectItem>
+                                        <SelectItem value={ADDRESS_NETWORK.ETHEREUM}>Ethereum</SelectItem>
+                                        <SelectItem value={ADDRESS_NETWORK.POLYGON}>Polygon</SelectItem>
+                                    </SelectGroup>
+                                </SelectContent>
                             </Select>
                             {fieldState.invalid && <FieldError errors={[fieldState.error!]} />}
                         </Field>
@@ -91,16 +137,47 @@ export default function AddAddressForm({ trigger, onSubmit, onSuccess }: AddAddr
 
                 <Controller
                     control={form.control}
-                    name="network"
+                    name="type"
                     render={({ field, fieldState }) => (
                         <Field data-invalid={fieldState.invalid}>
-                            <FieldLabel htmlFor={field.name}>Network</FieldLabel>
-                            <Select aria-invalid={fieldState.invalid} id={field.name} {...field}>
-                                <option value={ADDRESS_NETWORK.ETHEREUM}>Ethereum</option>
-                                <option value={ADDRESS_NETWORK.BITCOIN}>Bitcoin</option>
-                                <option value={ADDRESS_NETWORK.POLYGON}>Polygon</option>
+                            <FieldLabel htmlFor={field.name}>Type</FieldLabel>
+                            <Select
+                                value={field.value}
+                                name={field.name}
+                                onValueChange={field.onChange}
+                                disabled={!network || network !== ADDRESS_NETWORK.BITCOIN}
+                            >
+                                <SelectTrigger id={field.name} aria-invalid={fieldState.invalid}>
+                                    <SelectValue placeholder="Select address type">
+                                        {field.value ? AddressTypeLabels[field.value] : undefined}
+                                    </SelectValue>
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectGroup>
+                                        {network === ADDRESS_NETWORK.BITCOIN ? (
+                                            <>
+                                                <SelectItem value={ADDRESS_TYPE.BTC_P2PKH}>
+                                                    {AddressTypeLabels[ADDRESS_TYPE.BTC_P2PKH]}
+                                                </SelectItem>
+                                                <SelectItem value={ADDRESS_TYPE.BTC_P2WPKH}>
+                                                    {AddressTypeLabels[ADDRESS_TYPE.BTC_P2WPKH]}
+                                                </SelectItem>
+                                            </>
+                                        ) : (
+                                            <SelectItem value={ADDRESS_TYPE.ETHEREUM}>
+                                                {AddressTypeLabels[ADDRESS_TYPE.ETHEREUM]}
+                                            </SelectItem>
+                                        )}
+                                    </SelectGroup>
+                                </SelectContent>
                             </Select>
                             {fieldState.invalid && <FieldError errors={[fieldState.error!]} />}
+
+                            {!network && (
+                                <p className="text-xs text-muted-foreground">
+                                    (Select a network to choose the address type)
+                                </p>
+                            )}
                         </Field>
                     )}
                 />
@@ -110,12 +187,12 @@ export default function AddAddressForm({ trigger, onSubmit, onSuccess }: AddAddr
                     name="value"
                     render={({ field, fieldState }) => (
                         <Field data-invalid={fieldState.invalid}>
-                            <FieldLabel htmlFor={field.name}>Address</FieldLabel>
+                            <FieldLabel htmlFor={field.name}>Value</FieldLabel>
                             <Input
                                 type="text"
                                 aria-invalid={fieldState.invalid}
                                 id={field.name}
-                                placeholder="0x..."
+                                placeholder={valuePlaceholder}
                                 {...field}
                             />
                             {fieldState.invalid && <FieldError errors={[fieldState.error!]} />}
@@ -125,36 +202,18 @@ export default function AddAddressForm({ trigger, onSubmit, onSuccess }: AddAddr
 
                 <Controller
                     control={form.control}
-                    name="decrypted"
-                    render={({ field, fieldState }) => (
-                        <Field data-invalid={fieldState.invalid}>
-                            <FieldLabel htmlFor={field.name}>Decrypted form</FieldLabel>
-                            <Input
-                                type="text"
-                                aria-invalid={fieldState.invalid}
+                    name="bypassChecksum"
+                    render={({ field }) => (
+                        <Field orientation="horizontal">
+                            <Checkbox
                                 id={field.name}
-                                placeholder="Raw pre-encoding value"
-                                {...field}
+                                checked={field.value ?? false}
+                                onCheckedChange={field.onChange}
+                                className="aspect-square w-min"
                             />
-                            {fieldState.invalid && <FieldError errors={[fieldState.error!]} />}
-                        </Field>
-                    )}
-                />
-
-                <Controller
-                    control={form.control}
-                    name="privateKey"
-                    render={({ field, fieldState }) => (
-                        <Field data-invalid={fieldState.invalid}>
-                            <FieldLabel htmlFor={field.name}>Private key (optional)</FieldLabel>
-                            <Input
-                                type="password"
-                                aria-invalid={fieldState.invalid}
-                                id={field.name}
-                                placeholder="Private key"
-                                {...field}
-                            />
-                            {fieldState.invalid && <FieldError errors={[fieldState.error!]} />}
+                            <FieldLabel htmlFor={field.name} className="font-normal cursor-pointer">
+                                Bypass checksum validation
+                            </FieldLabel>
                         </Field>
                     )}
                 />

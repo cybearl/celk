@@ -39,13 +39,18 @@ const scAddress = pgTable("addresses", {
         .$defaultFn(() => crypto.randomUUID()),
 
     name: text("name").notNull(),
-    type: PG_ADDRESS_TYPE().notNull(),
     network: PG_ADDRESS_NETWORK().notNull(),
-    balance: bigint("balance", { mode: "bigint" }),
-
+    type: PG_ADDRESS_TYPE().notNull(),
     value: text("value").notNull(),
-    decrypted: text("decrypted").notNull(), // Raw pre-encoding form (e.g., pre-Base58 for BTC)
+
+    // Raw pre-encoding form (e.g., pre-Base58 for BTC)
+    preEncoding: text("pre_encoding").notNull(),
+
+    // Only if successfully brute-forced, never set by users
     privateKey: text("private_key"),
+
+    // An automatically refreshed balance
+    balance: bigint("balance", { mode: "bigint" }),
 
     // The total number of brute force attempts (big integer)
     // Independent of the lists that the address is in
