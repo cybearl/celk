@@ -148,7 +148,7 @@ When flipped to `false`, it closes stdin to gracefully stop the process.
 - Admin management page for locked users
 - Locking mechanism + screen for new users (preview / read-only mode if locked so users can still explore the UI)
 - Locked / unlocked email notification
-- RPC connectors + balance fetching logic + rate-limiting per RPC (automatic, no manual refresh — just show the last fetched date to the user)
+- RPC connectors + balance fetching logic + rate-limiting per RPC (automatic, no manual refresh, just show the last fetched date to the user)
 - Add a new address + view addresses on the interface
 - Manage address lists: enable them, add or remove addresses, etc.
 - Statistics page

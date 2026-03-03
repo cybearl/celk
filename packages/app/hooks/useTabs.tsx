@@ -42,14 +42,14 @@ export default function useTabs<T extends Record<string, string>>(
             // Disable URL updates in state mode
             if (mode === "state") return
 
-            const params = new URLSearchParams(Array.from(searchParams.entries()))
+            const params = new URLSearchParams(window.location.search)
             params.set(key, tab)
 
             window.history.replaceState(null, "", `${window.location.pathname}?${params.toString()}`)
 
             setCurrentTab(tab)
         },
-        [searchParams, mode, key],
+        [mode, key],
     )
 
     // Ensure the URL is in sync with the initial tab on mount
