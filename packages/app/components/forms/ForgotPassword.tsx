@@ -10,7 +10,7 @@ const forgotPasswordFormSchema = z.object({
     email: z.email("Invalid email address"),
 })
 
-type ForgotPasswordForm = z.infer<typeof forgotPasswordFormSchema>
+type ForgotPasswordFormData = z.infer<typeof forgotPasswordFormSchema>
 
 type ForgotPasswordFormProps = {
     trigger: (isSubmitting: boolean) => ReactNode
@@ -18,15 +18,19 @@ type ForgotPasswordFormProps = {
 }
 
 export default function ForgotPasswordForm({ trigger, onSuccess }: ForgotPasswordFormProps) {
-    const form = useForm<ForgotPasswordForm>({
+    const form = useForm<ForgotPasswordFormData>({
         defaultValues: {
             email: "",
         },
         resolver: zodResolver(forgotPasswordFormSchema),
     })
 
+    /**
+     * Handles the submission of the forgot password form.
+     * @param data The form data containing the email address for which to request a password reset.
+     */
     const handleSubmit = useCallback(
-        async (data: ForgotPasswordForm) => {
+        async (data: ForgotPasswordFormData) => {
             const { error } = await authClient.requestPasswordReset({
                 email: data.email,
                 redirectTo: `${window.location.origin}/?reset-password=true`,

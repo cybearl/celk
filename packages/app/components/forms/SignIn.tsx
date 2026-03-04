@@ -12,7 +12,7 @@ const signInFormSchema = z.object({
     password: z.string().min(1, "Password is required"),
 })
 
-type SignInForm = z.infer<typeof signInFormSchema>
+type SignInFormData = z.infer<typeof signInFormSchema>
 
 type SignInFormProps = {
     trigger: (isSubmitting: boolean) => ReactNode
@@ -23,7 +23,7 @@ type SignInFormProps = {
 export default function SignInForm({ trigger, onSuccess, onEmailNotVerified }: SignInFormProps) {
     const { refetchSession } = useSessionContext()
 
-    const form = useForm<SignInForm>({
+    const form = useForm<SignInFormData>({
         defaultValues: {
             identifier: "",
             password: "",
@@ -31,8 +31,13 @@ export default function SignInForm({ trigger, onSuccess, onEmailNotVerified }: S
         resolver: zodResolver(signInFormSchema),
     })
 
+    /**
+     * Handles the submission of the sign-in form, allowing users to sign in
+     * with either their email or username.
+     * @param data The form data containing the identifier (email or username) and password.
+     */
     const handleSubmit = useCallback(
-        async (data: SignInForm) => {
+        async (data: SignInFormData) => {
             const { error } = data.identifier.includes("@")
                 ? await authClient.signIn.email({
                       email: data.identifier,

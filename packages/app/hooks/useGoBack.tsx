@@ -11,6 +11,10 @@ export default function useGoBack() {
     const [isTriggered, setIsTriggered] = useState(false)
     const [lastRoute, setLastRoute] = useState<string | null>(null)
 
+    /**
+     * Triggers a `router.back()` followed by a `router.push("/")` if a `setTimeout` ends up triggering
+     * because the `router.back()` did not work.
+     */
     const onGoBack = useCallback(() => {
         if (isTriggered) return
 

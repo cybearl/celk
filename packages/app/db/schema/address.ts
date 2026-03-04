@@ -44,7 +44,7 @@ const scAddress = pgTable("addresses", {
     value: text("value").notNull(),
 
     // Raw pre-encoding form (e.g., pre-Base58 for BTC)
-    preEncoding: text("pre_encoding").notNull(),
+    preEncoding: text("pre_encoding"),
 
     // Only if successfully brute-forced, never set by users
     privateKey: text("private_key"),

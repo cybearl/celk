@@ -1,3 +1,4 @@
+import { useSessionContext } from "@app/components/contexts/Session"
 import AddAddressForm, { type AddAddressFormData } from "@app/components/forms/AddAddress"
 import { Button } from "@app/components/ui/Button"
 import {
@@ -8,21 +9,63 @@ import {
     DialogHeader,
     DialogTitle,
 } from "@app/components/ui/Dialog"
+import toast from "@app/components/ui/Toast"
+import { createAddress } from "@app/queries/addresses"
 import { DialogTrigger } from "@radix-ui/react-dialog"
+import { TRPCClientError } from "@trpc/client"
+import { Plus } from "lucide-react"
 import { useCallback, useState } from "react"
 
 type AddAddressDialogProps = {
-    onAddAddress: (data: AddAddressFormData) => Promise<{ error?: { message: string } }>
     onSuccess?: () => void
 }
 
-export default function AddAddressDialog({ onAddAddress, onSuccess }: AddAddressDialogProps) {
+export default function AddAddressDialog({ onSuccess }: AddAddressDialogProps) {
+    const { session } = useSessionContext()
+
     const [isOpen, setIsOpen] = useState(false)
 
-    const handleOpenChange = useCallback((open: boolean) => {
-        setIsOpen(open)
+    /**
+     * Handles the change of the dialog open state.
+     */
+    const handleOpenChange = useCallback((isOpen: boolean) => {
+        setIsOpen(isOpen)
     }, [])
 
+    /**
+     * Handles the submission of the add address form.
+     * @param data The form data containing the new address information to be added.
+     */
+    const handleAddAddress = useCallback(
+        async (data: AddAddressFormData) => {
+            if (!session?.user) {
+                toast.error("It looks like you're not logged in, please log in to add an address.")
+                return {}
+            }
+
+            try {
+                await createAddress(data)
+                return {}
+            } catch (error) {
+                if (error instanceof TRPCClientError) {
+                    return {
+                        error: { message: error.message },
+                    }
+                }
+
+                return {
+                    error: {
+                        message: "An error occurred while adding the address, please try again.",
+                    },
+                }
+            }
+        },
+        [session],
+    )
+
+    /**
+     * Handles the success of adding an address.
+     */
     const handleSuccess = useCallback(() => {
         handleOpenChange(false)
         onSuccess?.()
@@ -46,13 +89,16 @@ export default function AddAddressDialog({ onAddAddress, onSuccess }: AddAddress
                             </div>
                         </DialogFooter>
                     )}
-                    onSubmit={onAddAddress}
+                    onSubmit={handleAddAddress}
                     onSuccess={handleSuccess}
                 />
             </DialogContent>
 
             <DialogTrigger asChild>
-                <Button>Add Address</Button>
+                <Button>
+                    <Plus />
+                    Add Address
+                </Button>
             </DialogTrigger>
         </Dialog>
     )

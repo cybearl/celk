@@ -39,7 +39,7 @@ const signUpFormSchema = z
         message: "Passwords do not match",
     })
 
-type SignUpForm = z.infer<typeof signUpFormSchema>
+type SignUpFormData = z.infer<typeof signUpFormSchema>
 
 type SignUpFormProps = {
     trigger: (isSubmitting: boolean) => ReactNode
@@ -47,7 +47,7 @@ type SignUpFormProps = {
 }
 
 export default function SignUpForm({ trigger, onSuccess }: SignUpFormProps) {
-    const form = useForm<SignUpForm>({
+    const form = useForm<SignUpFormData>({
         defaultValues: {
             name: "",
             username: "",
@@ -58,8 +58,12 @@ export default function SignUpForm({ trigger, onSuccess }: SignUpFormProps) {
         resolver: zodResolver(signUpFormSchema),
     })
 
+    /**
+     * Handles the submission of the sign-up form.
+     * @param data The data from the form, validated against the schema.
+     */
     const handleSubmit = useCallback(
-        async (data: SignUpForm) => {
+        async (data: SignUpFormData) => {
             const { error } = await authClient.signUp.email({
                 name: data.name,
                 username: data.username,

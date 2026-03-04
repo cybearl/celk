@@ -29,6 +29,7 @@ export default function VerifyEmailConfirmation({ email, onClose }: VerifyEmailC
         resolver: zodResolver(verifyEmailFormSchema),
     })
 
+    // Decrease cooldown timer every second if it's greater than 0
     useEffect(() => {
         if (cooldown <= 0) return
         const timer = setTimeout(() => setCooldown(c => c - 1), 1000)
@@ -37,6 +38,7 @@ export default function VerifyEmailConfirmation({ email, onClose }: VerifyEmailC
 
     /**
      * Resend the verification email.
+     * @param data The form data containing the email address to which to resend the verification email.
      */
     const handleSubmit = useCallback(
         async (data: VerifyEmailForm) => {
@@ -53,10 +55,7 @@ export default function VerifyEmailConfirmation({ email, onClose }: VerifyEmailC
     )
 
     return (
-        <form
-            className="flex flex-col justify-center items-center gap-3"
-            onSubmit={form.handleSubmit(handleSubmit)}
-        >
+        <form className="flex flex-col justify-center items-center gap-3" onSubmit={form.handleSubmit(handleSubmit)}>
             {email ? (
                 <p>
                     An email has been sent to {email}.
@@ -97,12 +96,7 @@ export default function VerifyEmailConfirmation({ email, onClose }: VerifyEmailC
             </p>
 
             <div className="flex gap-2 ml-auto mt-1">
-                <Button
-                    type="submit"
-                    variant="outline"
-                    isLoading={form.formState.isSubmitting}
-                    disabled={cooldown > 0}
-                >
+                <Button type="submit" variant="outline" isLoading={form.formState.isSubmitting} disabled={cooldown > 0}>
                     {cooldown > 0 ? `Resend Email (${cooldown}s)` : "Resend Email"}
                 </Button>
 

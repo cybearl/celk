@@ -23,6 +23,7 @@ const buttonVariants = cva(
                 sm: "h-7 px-2 text-sm",
                 lg: "h-9 px-4 text-lg",
                 icon: "size-9",
+                "icon-sm": "size-6",
             },
         },
         defaultVariants: {
@@ -47,6 +48,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
 
         /**
          * Handles the `onClick` event with support for async functions.
+         * @param event The click event object.
          */
         const handleClick = async (event: React.MouseEvent<HTMLButtonElement>) => {
             if (!onClick || isLoading || isLoadingInternally) return
@@ -147,50 +149,3 @@ function LinkButton({ className, variant, size, href, isExternal, ...props }: Li
 }
 
 export { LinkButton }
-
-type IconButtonBase = {
-    icon: React.ComponentType<React.SVGProps<SVGSVGElement>>
-    "aria-label": string
-    className?: string
-}
-
-type IconButtonProps = Omit<React.ComponentProps<"button">, "children"> &
-    VariantProps<typeof buttonVariants> &
-    IconButtonBase
-
-function IconButton({ icon: Icon, className, variant, size = "icon", ...props }: IconButtonProps) {
-    return (
-        <button className={cn(buttonVariants({ className, size, variant }))} data-slot="button" {...props}>
-            <Icon />
-        </button>
-    )
-}
-
-type IconButtonLinkProps = Omit<React.ComponentProps<typeof Link>, "className" | "children"> &
-    VariantProps<typeof buttonVariants> &
-    IconButtonBase & {
-        isExternal?: boolean
-    }
-
-function IconButtonLink({
-    icon: Icon,
-    className,
-    variant,
-    size = "icon",
-    href,
-    isExternal,
-    ...props
-}: IconButtonLinkProps) {
-    return (
-        <Link
-            className={cn(buttonVariants({ className, size, variant }))}
-            href={href}
-            {...(isExternal ? { rel: "noopener noreferrer", target: "_blank" } : {})}
-            {...props}
-        >
-            <Icon />
-        </Link>
-    )
-}
-
-export { IconButton, IconButtonLink }

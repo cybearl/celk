@@ -21,6 +21,9 @@ export default function ForgotPasswordEmailSentConfirmation({
         return () => clearTimeout(timer)
     }, [cooldown])
 
+    /**
+     * Handles resending the password reset email.
+     */
     const handleResend = useCallback(async () => {
         if (!email || cooldown > 0 || isResending) return
 

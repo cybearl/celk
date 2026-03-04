@@ -26,7 +26,7 @@ const resetPasswordFormSchema = z
         message: "Passwords do not match",
     })
 
-type ResetPasswordForm = z.infer<typeof resetPasswordFormSchema>
+type ResetPasswordFormData = z.infer<typeof resetPasswordFormSchema>
 
 type ResetPasswordFormProps = {
     trigger: (isSubmitting: boolean) => ReactNode
@@ -35,7 +35,7 @@ type ResetPasswordFormProps = {
 }
 
 export default function ResetPasswordForm({ trigger, token, onSuccess }: ResetPasswordFormProps) {
-    const form = useForm<ResetPasswordForm>({
+    const form = useForm<ResetPasswordFormData>({
         defaultValues: {
             password: "",
             confirmPassword: "",
@@ -43,8 +43,13 @@ export default function ResetPasswordForm({ trigger, token, onSuccess }: ResetPa
         resolver: zodResolver(resetPasswordFormSchema),
     })
 
+    /**
+     * Handles the submission of the reset password form, using the
+     * provided token to reset the user's password.
+     * @param data The form data containing the new password and its confirmation.
+     */
     const handleSubmit = useCallback(
-        async (data: ResetPasswordForm) => {
+        async (data: ResetPasswordFormData) => {
             if (!token) {
                 form.setError("root", {
                     message: "No reset token provided",

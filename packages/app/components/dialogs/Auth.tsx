@@ -90,11 +90,12 @@ export default function AuthDialog() {
     /**
      * Handles dialog open state changes, deferring the mode/state reset until after
      * the close animation finishes (200ms) to avoid a sign-in flash during close.
+     * @param isOpen Whether the dialog is open or not.
      */
-    const handleOpenChange = useCallback((open: boolean) => {
-        setIsOpen(open)
+    const handleOpenChange = useCallback((isOpen: boolean) => {
+        setIsOpen(isOpen)
 
-        if (!open) {
+        if (!isOpen) {
             setTimeout(() => {
                 setMode("sign-in")
                 setResetToken(null)

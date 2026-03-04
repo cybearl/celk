@@ -1,52 +1,22 @@
 import AddAddressDialog from "@app/components/dialogs/AddAddress"
-import type { AddAddressFormData } from "@app/components/forms/AddAddress"
-import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from "@app/components/ui/Table"
-import type { SerializedAddressSelectModel } from "@app/db/schema/address"
-import { useCallback } from "react"
+import AddressesTable from "@app/components/tables/Addresses"
+import type { AddressSelectModel, SerializedAddressSelectModel } from "@app/db/schema/address"
+import { useAddresses } from "@app/hooks/api/useAddresses"
 
 type AddressesProps = {
     addresses: SerializedAddressSelectModel[]
 }
 
-export default function Addresses({ addresses }: AddressesProps) {
-    // biome-ignore lint/suspicious/useAwait: Placeholder
-    const onAddAddress = useCallback(async (_data: AddAddressFormData) => {
-        return {}
-    }, [])
+export default function Addresses({ addresses: initialAddresses }: AddressesProps) {
+    const { data: addresses } = useAddresses(initialAddresses as unknown as AddressSelectModel[])
 
     return (
-        <div>
-            <AddAddressDialog onAddAddress={onAddAddress} />
+        <div className="flex flex-col gap-6">
+            <div className="w-full flex justify-end">
+                <AddAddressDialog />
+            </div>
 
-            <Table>
-                <TableCaption>
-                    {addresses.length === 0 ? "No addresses found." : `${addresses.length} address(es) registered.`}
-                </TableCaption>
-                <TableHeader>
-                    <TableRow>
-                        <TableHead>Name</TableHead>
-                        <TableHead>Network</TableHead>
-                        <TableHead>Type</TableHead>
-                        <TableHead>Value</TableHead>
-                        <TableHead>Pre-encoding</TableHead>
-                        <TableHead className="text-right">Balance</TableHead>
-                        <TableHead className="text-right">Attempts</TableHead>
-                    </TableRow>
-                </TableHeader>
-                <TableBody>
-                    {addresses.map(address => (
-                        <TableRow key={address.id}>
-                            <TableCell className="font-medium">{address.name}</TableCell>
-                            <TableCell>{address.type}</TableCell>
-                            <TableCell>{address.network}</TableCell>
-                            <TableCell className="font-mono text-xs">{address.value}</TableCell>
-                            <TableCell className="font-mono text-xs">{address.preEncoding}</TableCell>
-                            <TableCell className="text-right">{address.balance ?? "-"}</TableCell>
-                            <TableCell className="text-right">{address.attempts}</TableCell>
-                        </TableRow>
-                    ))}
-                </TableBody>
-            </Table>
+            <AddressesTable addresses={addresses} />
         </div>
     )
 }

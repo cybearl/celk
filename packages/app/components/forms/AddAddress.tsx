@@ -50,6 +50,10 @@ export default function AddAddressForm({ trigger, onSubmit, onSuccess }: AddAddr
     const network = form.watch("network")
     const type = form.watch("type")
 
+    /**
+     * Handles the submission of the add address form.
+     * @param data The form data containing the address details to be added.
+     */
     const handleSubmit = useCallback(
         async (data: AddAddressFormData) => {
             const result = await onSubmit(data)

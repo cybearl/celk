@@ -7,6 +7,9 @@ import { useCallback } from "react"
 export default function SettingsPage() {
     const { refetchSession } = useSessionContext()
 
+    /**
+     * Handles the sign-out process.
+     */
     const handleSignOut = useCallback(async () => {
         await authClient.signOut()
         await refetchSession()
