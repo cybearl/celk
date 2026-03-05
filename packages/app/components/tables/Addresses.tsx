@@ -1,3 +1,4 @@
+import ConfirmationDialog from "@app/components/dialogs/Confirmation"
 import { Button, LinkButton } from "@app/components/ui/Button"
 import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from "@app/components/ui/Table"
 import toast from "@app/components/ui/Toast"
@@ -5,6 +6,7 @@ import type { AddressSelectModel } from "@app/db/schema/address"
 import { getAddressExplorerUrl } from "@app/lib/client/utils/addresses"
 import { getFormattedAddressNetwork, getFormattedAddressType } from "@app/lib/client/utils/formats"
 import { deleteAddressById } from "@app/queries/addresses"
+import dedent from "dedent"
 import { Link, Trash } from "lucide-react"
 import { useCallback, useMemo } from "react"
 
@@ -30,6 +32,7 @@ export default function AddressesTable({ addresses }: AddressesTableProps) {
     const handleDeleteAddress = useCallback(async (id: string) => {
         try {
             await deleteAddressById(id)
+            toast.success("Address deleted successfully.")
         } catch {
             toast.error("An error occurred while trying to delete the address, please try again.")
         }
@@ -78,9 +81,20 @@ export default function AddressesTable({ addresses }: AddressesTableProps) {
                                 </LinkButton>
                             )}
 
-                            <Button variant="ghost" size="icon-sm" onClick={() => handleDeleteAddress(address.id)}>
-                                <Trash />
-                            </Button>
+                            <ConfirmationDialog
+                                title="Delete Address"
+                                description={dedent`
+                                    Are you sure you want to delete the address "${address.name}"?\n
+                                    This action cannot be undone.
+                                `}
+                                cancelButtonText="Cancel"
+                                confirmButtonText="Delete"
+                                onConfirm={() => handleDeleteAddress(address.id)}
+                            >
+                                <Button variant="ghost" size="icon-sm">
+                                    <Trash />
+                                </Button>
+                            </ConfirmationDialog>
                         </TableCell>
                     </TableRow>
                 ))}
