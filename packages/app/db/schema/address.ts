@@ -42,18 +42,10 @@ const scAddress = pgTable("addresses", {
     network: PG_ADDRESS_NETWORK().notNull(),
     type: PG_ADDRESS_TYPE().notNull(),
     value: text("value").notNull(),
-
-    // Raw pre-encoding form (e.g., pre-Base58 for BTC)
-    preEncoding: text("pre_encoding"),
-
-    // Only if successfully brute-forced, never set by users
     privateKey: text("private_key"),
-
-    // An automatically refreshed balance
+    preEncoding: text("pre_encoding"),
+    closestMatch: text("closest_match"),
     balance: bigint("balance", { mode: "bigint" }),
-
-    // The total number of brute force attempts (big integer)
-    // Independent of the lists that the address is in
     attempts: bigint({ mode: "bigint" }).notNull(),
 
     // Flags
@@ -68,6 +60,7 @@ const scAddress = pgTable("addresses", {
     createdAt: timestamp("created_at").notNull().defaultNow(),
     updatedAt: timestamp("updated_at").notNull().defaultNow(),
     balanceCheckedAt: timestamp("balance_checked_at"),
+    closestMatchRegisteredAt: timestamp("closest_match_registered_at"),
 })
 
 export default scAddress

@@ -1,5 +1,6 @@
 import { useSessionContext } from "@app/components/contexts/Session"
-import Addresses from "@app/components/tabs/dashboard/Addresses"
+import AddressesDashboardTab from "@app/components/tabs/dashboard/Addresses"
+import TreeViewDashboardTab from "@app/components/tabs/dashboard/TreeView"
 import { Button } from "@app/components/ui/Button"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@app/components/ui/Tabs"
 import type { SerializedAddressSelectModel } from "@app/db/schema/address"
@@ -15,18 +16,18 @@ export enum DASHBOARD_TAB {
     ADMIN_PANEL = "admin_panel",
 }
 
-type DashboardProps = {
-    addresses: SerializedAddressSelectModel[]
+type DashboardPageProps = {
+    initialAddresses: SerializedAddressSelectModel[]
 }
 
-export default function Dashboard({ addresses }: DashboardProps) {
+export default function DashboardPage({ initialAddresses }: DashboardPageProps) {
     const { session } = useSessionContext()
 
     const { currentTab, onTabChange } = useTabs(DASHBOARD_TAB, DASHBOARD_TAB.ADDRESSES, "url", "dashboard-tab")
 
     return (
-        <div className="h-full">
-            <Tabs value={currentTab} onValueChange={value => onTabChange(value as DASHBOARD_TAB)}>
+        <div className="h-full ">
+            <Tabs value={currentTab} onValueChange={value => onTabChange(value as DASHBOARD_TAB)} className="h-full">
                 <div className="relative flex justify-center items-center">
                     <div className="absolute bg-foreground h-0.5 inset-x-0 mt-0.5" />
 
@@ -61,7 +62,11 @@ export default function Dashboard({ addresses }: DashboardProps) {
                 </div>
 
                 <TabsContent value={DASHBOARD_TAB.ADDRESSES} className="mt-4">
-                    <Addresses addresses={addresses} />
+                    <AddressesDashboardTab initialAddresses={initialAddresses} />
+                </TabsContent>
+
+                <TabsContent value={DASHBOARD_TAB.TREE_VIEW} className="mt-4">
+                    <TreeViewDashboardTab initialAddresses={initialAddresses} />
                 </TabsContent>
             </Tabs>
         </div>
