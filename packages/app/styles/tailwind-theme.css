@@ -77,17 +77,17 @@
     --color-success-foreground: hsl(0, 0%, 100%);
 
     /* Warning */
-    --color-warning: hsl(32, 80%, 55%);
-    --color-warning-100: hsl(32, 80%, 95%);
-    --color-warning-200: hsl(32, 80%, 85%);
-    --color-warning-300: hsl(32, 80%, 75%);
-    --color-warning-400: hsl(32, 80%, 65%);
-    --color-warning-500: hsl(32, 80%, 55%);
-    --color-warning-600: hsl(32, 80%, 45%);
-    --color-warning-700: hsl(32, 80%, 35%);
-    --color-warning-800: hsl(32, 80%, 25%);
-    --color-warning-900: hsl(32, 80%, 15%);
-    --color-warning-950: hsl(32, 80%, 5%);
+    --color-warning: oklch(79.5% 0.184 86.047);
+    --color-warning-100: oklch(98.7% 0.026 102.212);
+    --color-warning-200: oklch(97.3% 0.071 103.193);
+    --color-warning-300: oklch(94.5% 0.129 101.54);
+    --color-warning-400: oklch(90.5% 0.182 98.111);
+    --color-warning-500: oklch(79.5% 0.184 86.047);
+    --color-warning-600: oklch(68.1% 0.162 75.834);
+    --color-warning-700: oklch(55.4% 0.135 66.442);
+    --color-warning-800: oklch(47.6% 0.114 61.907);
+    --color-warning-900: oklch(42.1% 0.095 57.708);
+    --color-warning-950: oklch(28.6% 0.066 53.813);
 
     --color-warning-foreground: hsl(0, 0%, 100%);
 

@@ -8,7 +8,7 @@ import { Tabs, TabsList, TabsTrigger } from "@app/components/ui/Tabs"
 import { LOGGED_IN_ONLY_PAGES, MAIN_LAYOUT_PAGE } from "@app/config/pages"
 import useTabs from "@app/hooks/useTabs"
 import { cn } from "@app/lib/client/utils/styling"
-import { type ReactNode, useEffect } from "react"
+import { type ReactNode, useEffect, useRef } from "react"
 
 type MainLayoutProps = {
     topRightSection?: ReactNode
@@ -19,6 +19,8 @@ type MainLayoutProps = {
 export default function MainLayout({ topRightSection, bottomLeftSection, children }: MainLayoutProps) {
     const { session } = useSessionContext()
 
+    const prevSessionRef = useRef(session)
+
     const { currentTab: currentPage, onTabChange: onPageChange } = useTabs(
         MAIN_LAYOUT_PAGE,
         session ? MAIN_LAYOUT_PAGE.DASHBOARD : MAIN_LAYOUT_PAGE.HOME,
@@ -28,8 +30,16 @@ export default function MainLayout({ topRightSection, bottomLeftSection, childre
 
     // biome-ignore lint/correctness/useExhaustiveDependencies: Only on session state change
     useEffect(() => {
-        if (session) onPageChange(MAIN_LAYOUT_PAGE.DASHBOARD)
-        else if (!session && LOGGED_IN_ONLY_PAGES.includes(currentPage)) onPageChange(MAIN_LAYOUT_PAGE.HOME)
+        const prevSession = prevSessionRef.current
+        prevSessionRef.current = session
+
+        // Prevents running this at every mount, only run when the
+        // session state changes (i.e. user logs in or out)
+        if (!prevSession && session) {
+            onPageChange(MAIN_LAYOUT_PAGE.DASHBOARD)
+        } else if (prevSession && !session && LOGGED_IN_ONLY_PAGES.includes(currentPage)) {
+            onPageChange(MAIN_LAYOUT_PAGE.HOME)
+        }
     }, [session])
 
     return (

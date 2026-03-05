@@ -2,7 +2,7 @@
  * Required environment variables for the application.
  */
 export const REQUIRED_ENV_VARS = {
-    PUBLIC: [
+    public: [
         "NODE_ENV",
         "NEXT_PUBLIC_LOG_LEVEL",
         "NEXT_PUBLIC_APP_URL",
@@ -10,7 +10,7 @@ export const REQUIRED_ENV_VARS = {
         "NEXT_PUBLIC_APP_STATUS",
         "NEXT_PUBLIC_LOCK_NEW_USERS",
     ],
-    PRIVATE: [
+    private: [
         "BETTER_AUTH_SECRET",
         "DATABASE_URL",
         "SMTP_HOST",

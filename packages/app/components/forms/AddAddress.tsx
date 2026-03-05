@@ -6,7 +6,7 @@ import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectVa
 import { ADDRESS_NETWORK, ADDRESS_TYPE } from "@app/db/schema/address"
 import { isValidCryptoAddress } from "@app/lib/base/utils/address"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { type ReactNode, useCallback, useMemo } from "react"
+import { type ReactNode, useCallback, useEffect, useMemo } from "react"
 import { Controller, useForm } from "react-hook-form"
 import z from "zod"
 
@@ -49,6 +49,20 @@ export default function AddAddressForm({ trigger, onSubmit, onSuccess }: AddAddr
 
     const network = form.watch("network")
     const type = form.watch("type")
+
+    // Reset type whenever network changes to ensure a compatible type is always set
+    useEffect(() => {
+        if (!network) return
+
+        if (network === ADDRESS_NETWORK.BITCOIN) {
+            if (type !== ADDRESS_TYPE.BTC_P2PKH && type !== ADDRESS_TYPE.BTC_P2WPKH) {
+                form.setValue("type", ADDRESS_TYPE.BTC_P2PKH)
+            }
+        } else {
+            form.setValue("type", ADDRESS_TYPE.ETHEREUM)
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [network, form, type])
 
     /**
      * Handles the submission of the add address form.
@@ -110,19 +124,7 @@ export default function AddAddressForm({ trigger, onSubmit, onSuccess }: AddAddr
                     render={({ field, fieldState }) => (
                         <Field data-invalid={fieldState.invalid}>
                             <FieldLabel htmlFor={field.name}>Network</FieldLabel>
-                            <Select
-                                value={field.value}
-                                name={field.name}
-                                onValueChange={value => {
-                                    field.onChange(value)
-
-                                    if (value === ADDRESS_NETWORK.BITCOIN) {
-                                        form.setValue("type", ADDRESS_TYPE.BTC_P2PKH)
-                                    } else {
-                                        form.setValue("type", ADDRESS_TYPE.ETHEREUM)
-                                    }
-                                }}
-                            >
+                            <Select value={field.value} name={field.name} onValueChange={field.onChange}>
                                 <SelectTrigger id={field.name} aria-invalid={fieldState.invalid}>
                                     <SelectValue placeholder="Select network" />
                                 </SelectTrigger>

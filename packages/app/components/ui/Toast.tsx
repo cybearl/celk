@@ -35,7 +35,7 @@ const toast = {
             <Toast
                 id={id}
                 icon="circle-check-big"
-                backgroundColor="bg-success/10"
+                backgroundColor="bg-success/15"
                 title={title}
                 description={description}
             />
@@ -46,7 +46,7 @@ const toast = {
             <Toast
                 id={id}
                 icon="circle-alert"
-                backgroundColor="bg-warning/15"
+                backgroundColor="bg-warning-300/15"
                 title={title}
                 description={description}
             />
@@ -59,7 +59,7 @@ const toast = {
     },
     info: (title: string, description?: string) => {
         sonnerToast.custom(id => (
-            <Toast id={id} icon="info" backgroundColor="bg-info/15" title={title} description={description} />
+            <Toast id={id} icon="info" backgroundColor="bg-info/20" title={title} description={description} />
         ))
     },
 }

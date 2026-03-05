@@ -15,9 +15,9 @@ export function checkEnvironmentVariables() {
 
     let missingVars: string[] = []
     if (environment === "server") {
-        missingVars = REQUIRED_ENV_VARS.PRIVATE.filter(varName => ENV_RUNTIME_VALUES[varName] === undefined)
+        missingVars = REQUIRED_ENV_VARS.private.filter(varName => ENV_RUNTIME_VALUES[varName] === undefined)
     } else if (environment === "client") {
-        missingVars = REQUIRED_ENV_VARS.PUBLIC.filter(varName => ENV_RUNTIME_VALUES[varName] === undefined)
+        missingVars = REQUIRED_ENV_VARS.public.filter(varName => ENV_RUNTIME_VALUES[varName] === undefined)
     } else {
         if (process.env.NODE_ENV === "production") {
             console.error("An error occurred while checking environment variables, the environment is unknown?!")
@@ -38,7 +38,7 @@ export function checkEnvironmentVariables() {
 
     // Check if any private env vars somehow ended up in the public vars
     if (environment === "client") {
-        const privateVarsInPublic = REQUIRED_ENV_VARS.PRIVATE.filter(
+        const privateVarsInPublic = REQUIRED_ENV_VARS.private.filter(
             varName => ENV_RUNTIME_VALUES[varName] !== undefined,
         )
 

@@ -1,6 +1,6 @@
 import { useSessionContext } from "@app/components/contexts/Session"
 import MainLayout from "@app/components/layouts/main"
-import Dashboard from "@app/components/pages/Dashboard"
+import DashboardPage from "@app/components/pages/Dashboard"
 import SettingsPage from "@app/components/pages/Settings"
 import Scrollbar from "@app/components/ui/Scrollbar"
 import { TabsContent } from "@app/components/ui/Tabs"
@@ -15,7 +15,7 @@ import type { NextApiRequest, NextApiResponse } from "next"
  * The props for the homepage component, passed from the server-side via `getServerSideProps`.
  */
 type HomepageProps = {
-    addresses: SerializedAddressSelectModel[]
+    initialAddresses: SerializedAddressSelectModel[]
 }
 
 /**
@@ -23,7 +23,7 @@ type HomepageProps = {
  * the page is rendered.
  */
 export const getServerSideProps = withSession<HomepageProps>(async (ctx, session) => {
-    let addresses: SerializedAddressSelectModel[] = []
+    let initialAddresses: SerializedAddressSelectModel[] = []
 
     if (session) {
         const caller = appRouter.createCaller({
@@ -34,7 +34,7 @@ export const getServerSideProps = withSession<HomepageProps>(async (ctx, session
 
         const addressRows = await caller.addresses.getAll()
 
-        addresses = addressRows.map(row => ({
+        initialAddresses = addressRows.map(row => ({
             ...row,
             balance: row.balance?.toString() ?? null,
             attempts: row.attempts.toString(),
@@ -46,12 +46,12 @@ export const getServerSideProps = withSession<HomepageProps>(async (ctx, session
 
     return {
         props: {
-            addresses,
+            initialAddresses,
         },
     }
 })
 
-export default function Homepage({ addresses }: HomepageProps) {
+export default function Homepage({ initialAddresses }: HomepageProps) {
     const { session } = useSessionContext()
 
     return (
@@ -69,7 +69,7 @@ export default function Homepage({ addresses }: HomepageProps) {
                 {session ? (
                     <>
                         <TabsContent value={MAIN_LAYOUT_PAGE.DASHBOARD} className="w-full h-full">
-                            <Dashboard addresses={addresses} />
+                            <DashboardPage initialAddresses={initialAddresses} />
                         </TabsContent>
 
                         <TabsContent value={MAIN_LAYOUT_PAGE.SETTINGS} className="w-full h-full">

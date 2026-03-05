@@ -3,11 +3,11 @@ import AddressesTable from "@app/components/tables/Addresses"
 import type { AddressSelectModel, SerializedAddressSelectModel } from "@app/db/schema/address"
 import { useAddresses } from "@app/hooks/api/useAddresses"
 
-type AddressesProps = {
-    addresses: SerializedAddressSelectModel[]
+type AddressesDashboardTabProps = {
+    initialAddresses: SerializedAddressSelectModel[]
 }
 
-export default function Addresses({ addresses: initialAddresses }: AddressesProps) {
+export default function AddressesDashboardTab({ initialAddresses }: AddressesDashboardTabProps) {
     const { data: addresses } = useAddresses(initialAddresses as unknown as AddressSelectModel[])
 
     return (
