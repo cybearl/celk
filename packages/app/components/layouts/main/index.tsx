@@ -56,16 +56,27 @@ export default function MainLayout({ topRightSection, bottomLeftSection, childre
                 )}
             />
 
-            <div className="border-2 border-border-active absolute inset-8 z-0" />
+            <div className="border-2 border-border-active absolute inset-5 sm:inset-8 z-0" />
 
-            {topRightSection && <MainLayoutSection position="top-right">{topRightSection}</MainLayoutSection>}
-            {bottomLeftSection && <MainLayoutSection position="bottom-left">{bottomLeftSection}</MainLayoutSection>}
+            {topRightSection && (
+                <MainLayoutSection position="top-right" className="hidden sm:block">
+                    {topRightSection}
+                </MainLayoutSection>
+            )}
+            {bottomLeftSection && (
+                <MainLayoutSection className="hidden sm:block" position="bottom-left">
+                    {bottomLeftSection}
+                </MainLayoutSection>
+            )}
 
             <Tabs value={currentPage} onValueChange={value => onPageChange(value as MAIN_LAYOUT_PAGE)}>
                 <MainLayoutSection position="top-left">
                     <TabsList>
                         <TabsTrigger value={MAIN_LAYOUT_PAGE.HOME} asChild>
-                            <Button variant={currentPage === MAIN_LAYOUT_PAGE.HOME ? "active-tab" : "inactive-tab"}>
+                            <Button
+                                variant={currentPage === MAIN_LAYOUT_PAGE.HOME ? "active-tab" : "inactive-tab"}
+                                size="sm"
+                            >
                                 Home
                             </Button>
                         </TabsTrigger>
@@ -73,26 +84,33 @@ export default function MainLayout({ topRightSection, bottomLeftSection, childre
                         <TabsTrigger value={MAIN_LAYOUT_PAGE.DASHBOARD} hidden={!session}>
                             <Button
                                 variant={currentPage === MAIN_LAYOUT_PAGE.DASHBOARD ? "active-tab" : "inactive-tab"}
+                                size="sm"
                             >
                                 Dashboard
                             </Button>
                         </TabsTrigger>
 
                         <TabsTrigger value={MAIN_LAYOUT_PAGE.SETTINGS} hidden={!session}>
-                            <Button variant={currentPage === MAIN_LAYOUT_PAGE.SETTINGS ? "active-tab" : "inactive-tab"}>
+                            <Button
+                                variant={currentPage === MAIN_LAYOUT_PAGE.SETTINGS ? "active-tab" : "inactive-tab"}
+                                size="sm"
+                            >
                                 Settings
                             </Button>
                         </TabsTrigger>
 
                         <TabsTrigger value={MAIN_LAYOUT_PAGE.ABOUT} asChild>
-                            <Button variant={currentPage === MAIN_LAYOUT_PAGE.ABOUT ? "active-tab" : "inactive-tab"}>
+                            <Button
+                                variant={currentPage === MAIN_LAYOUT_PAGE.ABOUT ? "active-tab" : "inactive-tab"}
+                                size="sm"
+                            >
                                 About
                             </Button>
                         </TabsTrigger>
                     </TabsList>
                 </MainLayoutSection>
 
-                <div className="absolute inset-14 overflow-hidden z-10 mb-4">{children}</div>
+                <div className="absolute inset-y-10 inset-x-8 sm:inset-14 overflow-hidden z-10 mb-4">{children}</div>
             </Tabs>
 
             <MainLayoutSection position="bottom-right">{session ? <Profile /> : <AuthDialog />}</MainLayoutSection>

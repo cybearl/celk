@@ -5,7 +5,7 @@ import { type ComponentPropsWithoutRef, type ComponentRef, forwardRef } from "re
 
 const labelVariants = cva("text-sm font-medium leading-none peer-disabled:default peer-disabled:opacity-70")
 
-const Label = forwardRef<
+export const Label = forwardRef<
     ComponentRef<typeof LabelPrimitive.Root>,
     ComponentPropsWithoutRef<typeof LabelPrimitive.Root> & VariantProps<typeof labelVariants>
 >(({ className, ...props }, ref) => (
@@ -13,4 +13,3 @@ const Label = forwardRef<
 ))
 
 Label.displayName = LabelPrimitive.Root.displayName
-export { Label }

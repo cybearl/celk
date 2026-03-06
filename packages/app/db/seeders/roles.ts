@@ -17,8 +17,8 @@ export default async function seedRoles() {
     await db
         .insert(scRoles)
         .values([
-            { name: "Admin", slug: "admin", description: "An administrator of the platform" },
-            { name: "User", slug: "user", description: "A regular user of the platform" },
+            { name: "Admin", slug: SEEDED_USER_ROLE_SLUGS.ADMIN, description: "An administrator of the platform" },
+            { name: "User", slug: SEEDED_USER_ROLE_SLUGS.USER, description: "A regular user of the platform" },
         ])
         .onConflictDoNothing()
 }

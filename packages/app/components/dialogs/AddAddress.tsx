@@ -10,6 +10,7 @@ import {
     DialogTitle,
 } from "@app/components/ui/Dialog"
 import toast from "@app/components/ui/Toast"
+import type { AddressSelectModel } from "@app/db/schema/address"
 import { createAddress } from "@app/queries/addresses"
 import { DialogTrigger } from "@radix-ui/react-dialog"
 import { TRPCClientError } from "@trpc/client"
@@ -17,10 +18,11 @@ import { Plus } from "lucide-react"
 import { useCallback, useState } from "react"
 
 type AddAddressDialogProps = {
+    addresses: AddressSelectModel[] | null
     onSuccess?: () => void
 }
 
-export default function AddAddressDialog({ onSuccess }: AddAddressDialogProps) {
+export default function AddAddressDialog({ addresses, onSuccess }: AddAddressDialogProps) {
     const { session } = useSessionContext()
 
     const [isOpen, setIsOpen] = useState(false)
@@ -43,6 +45,22 @@ export default function AddAddressDialog({ onSuccess }: AddAddressDialogProps) {
                 return {}
             }
 
+            if (addresses?.some(a => a.name.toLowerCase() === data.name.toLowerCase())) {
+                return {
+                    error: {
+                        message: "An address with this name already exists.",
+                    },
+                }
+            }
+
+            if (addresses?.some(a => a.value.toLowerCase() === data.value.toLowerCase())) {
+                return {
+                    error: {
+                        message: "This address is already registered.",
+                    },
+                }
+            }
+
             try {
                 await createAddress(data)
                 return {}
@@ -60,7 +78,7 @@ export default function AddAddressDialog({ onSuccess }: AddAddressDialogProps) {
                 }
             }
         },
-        [session],
+        [session, addresses],
     )
 
     /**
@@ -95,7 +113,7 @@ export default function AddAddressDialog({ onSuccess }: AddAddressDialogProps) {
             </DialogContent>
 
             <DialogTrigger asChild>
-                <Button>
+                <Button size="sm">
                     <Plus />
                     Add Address
                 </Button>

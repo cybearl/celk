@@ -5,13 +5,13 @@ import { Loader2 } from "lucide-react"
 import Link from "next/link"
 import { type ButtonHTMLAttributes, forwardRef, type MouseEvent, useState } from "react"
 
-const buttonVariants = cva(
+export const buttonVariants = cva(
     "inline-flex items-center justify-center gap-2 whitespace-nowrap text-sm font-medium focus-visible:outline-none disabled:pointer-events-none disabled:opacity-35 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 transition-all duration-200",
     {
         variants: {
             variant: {
                 default: "bg-foreground text-background hover:bg-foreground/80",
-                outline: "bg-transparent border border-border-active hover:bg-foreground/10",
+                outline: "bg-transparent text-foreground border border-border-active hover:bg-foreground/10",
                 "outline-b2": "bg-transparent border-2 border-border-active hover:bg-foreground/10",
                 ghost: "bg-transparent text-foreground hover:bg-foreground/10",
                 link: "bg-transparent px-0! hover:underline underline-offset-4 text-foreground",
@@ -20,6 +20,7 @@ const buttonVariants = cva(
             },
             size: {
                 default: "h-8 px-3 py-1.5 text-sm",
+                xs: "h-6 px-1.5 text-xs",
                 sm: "h-7 px-2 text-sm",
                 lg: "h-9 px-4 text-lg",
                 icon: "size-9",
@@ -40,7 +41,7 @@ export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement>, Va
     onClick?: (event: MouseEvent<HTMLButtonElement>) => void | Promise<void>
 }
 
-const Button = forwardRef<HTMLButtonElement, ButtonProps>(
+export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
     ({ className, variant, size, isLoading = false, asChild = false, disabledText, onClick, ...props }, ref) => {
         const [isLoadingInternally, setIsLoadingInternally] = useState(false)
 
@@ -128,8 +129,6 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
 )
 Button.displayName = "Button"
 
-export { Button, buttonVariants }
-
 type LinkButtonProps = Omit<React.ComponentProps<typeof Link>, "href" | "className"> &
     VariantProps<typeof buttonVariants> & {
         href: string
@@ -137,7 +136,7 @@ type LinkButtonProps = Omit<React.ComponentProps<typeof Link>, "href" | "classNa
         isExternal?: boolean
     }
 
-function LinkButton({ className, variant, size, href, isExternal, ...props }: LinkButtonProps) {
+export function LinkButton({ className, variant, size, href, isExternal, ...props }: LinkButtonProps) {
     return (
         <Link
             className={cn(buttonVariants({ className, size, variant }))}
@@ -148,4 +147,3 @@ function LinkButton({ className, variant, size, href, isExternal, ...props }: Li
     )
 }
 
-export { LinkButton }

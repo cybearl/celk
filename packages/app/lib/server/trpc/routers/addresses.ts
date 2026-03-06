@@ -26,7 +26,7 @@ export const addressesRouter = router({
         )
         .mutation(async ({ ctx, input }) => {
             if (!input.bypassChecksum && !isValidCryptoAddress(input.type, input.value)) {
-                throw new TRPCError({ code: "BAD_REQUEST", message: "Invalid address (check format and checksum)" })
+                throw new TRPCError({ code: "BAD_REQUEST", message: "Invalid address (check format and checksum)." })
             }
 
             const [address] = await db

@@ -28,6 +28,7 @@ export default function AddressesTable({ addresses }: AddressesTableProps) {
 
     /**
      * Handles the deletion of an address by its ID.
+     * @param id The ID of the address to delete.
      */
     const handleDeleteAddress = useCallback(async (id: string) => {
         try {
@@ -39,8 +40,8 @@ export default function AddressesTable({ addresses }: AddressesTableProps) {
     }, [])
 
     return (
-        <Table>
-            <TableCaption>
+        <Table className="border">
+            <TableCaption className="pb-4">
                 {!addresses || addresses.length === 0
                     ? "No addresses found."
                     : `${addresses.length} address${addresses.length > 1 ? "es" : ""} registered.`}
@@ -65,8 +66,8 @@ export default function AddressesTable({ addresses }: AddressesTableProps) {
                         <TableCell className="font-medium">{address.name}</TableCell>
                         <TableCell>{getFormattedAddressNetwork(address.network)}</TableCell>
                         <TableCell>{getFormattedAddressType(address.type)}</TableCell>
-                        <TableCell className="font-mono text-xs">{address.value}</TableCell>
-                        <TableCell className="font-mono text-xs">{address.preEncoding ?? "N/A"}</TableCell>
+                        <TableCell>{address.value}</TableCell>
+                        <TableCell>{address.preEncoding ?? "N/A"}</TableCell>
                         <TableCell className="text-right">{address.balance?.toString() ?? "-"}</TableCell>
                         <TableCell className="text-right">{address.attempts.toString()}</TableCell>
                         <TableCell className="text-right flex justify-end gap-2">

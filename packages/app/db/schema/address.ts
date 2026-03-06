@@ -1,6 +1,6 @@
 import scUser from "@app/db/schema/user"
 import type { InferInsertModel, InferSelectModel } from "drizzle-orm"
-import { bigint, boolean, pgEnum, pgTable, text, timestamp } from "drizzle-orm/pg-core"
+import { bigint, boolean, pgEnum, pgTable, text, timestamp, unique } from "drizzle-orm/pg-core"
 
 /**
  * The type of an address.
@@ -61,7 +61,9 @@ const scAddress = pgTable("addresses", {
     updatedAt: timestamp("updated_at").notNull().defaultNow(),
     balanceCheckedAt: timestamp("balance_checked_at"),
     closestMatchRegisteredAt: timestamp("closest_match_registered_at"),
-})
+}, (table) => [
+    unique().on(table.userId, table.value),
+])
 
 export default scAddress
 export type AddressSchema = typeof scAddress

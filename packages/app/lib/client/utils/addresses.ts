@@ -56,3 +56,21 @@ export function convertAddressToBytes(address: AddressSelectModel): Uint8Array |
 
     return null
 }
+
+/**
+ * Returns the invert of a hex color string (e.g. "#aabbcc" -> "#554433"),
+ * for address closest-match overlay.
+ * @param hexColor The hex color string to invert.
+ * @returns The inverted hex color string.
+ */
+export function invertHexColor(hexColor: string): string {
+    // Remove "#" if present
+    const strippedHex = hexColor.replace(/^#/, "")
+    if (strippedHex.length !== 6) return hexColor // Invalid format, return original
+
+    const r = (255 - parseInt(strippedHex.slice(0, 2), 16)).toString(16).padStart(2, "0")
+    const g = (255 - parseInt(strippedHex.slice(2, 4), 16)).toString(16).padStart(2, "0")
+    const b = (255 - parseInt(strippedHex.slice(4, 6), 16)).toString(16).padStart(2, "0")
+
+    return `#${r}${g}${b}`
+}

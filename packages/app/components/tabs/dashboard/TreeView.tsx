@@ -1,9 +1,10 @@
 import TreeViewControls from "@app/components/controls/TreeView"
-import TreeViewTooltip, { type Tooltip } from "@app/components/tooltips/TreeView"
+import AddressEntryLegend from "@app/components/ui/addresses/EntryLegend"
+import Empty from "@app/components/ui/Empty"
+import Scrollbar from "@app/components/ui/Scrollbar"
 import ADDRESSES_CONFIG from "@app/config/addresses"
-import type { AddressSelectModel, SerializedAddressSelectModel } from "@app/db/schema/address"
-import { useAddresses } from "@app/hooks/api/useAddresses"
-import { convertAddressToBytes, convertHexAddressToBytes } from "@app/lib/client/utils/addresses"
+import type { AddressSelectModel } from "@app/db/schema/address"
+import { convertAddressToBytes, convertHexAddressToBytes, invertHexColor } from "@app/lib/client/utils/addresses"
 import ColorHash from "color-hash"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 
@@ -11,7 +12,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react"
  * The type for an address entry prepared for visualization,
  * with pre-converted byte arrays and assigned colors.
  */
-type AddressEntry = {
+export type AddressEntry = {
     name: string
     color: string
     bytes: Uint8Array | null
@@ -19,21 +20,16 @@ type AddressEntry = {
 }
 
 type TreeViewDashboardTabProps = {
-    initialAddresses: SerializedAddressSelectModel[]
+    addresses: AddressSelectModel[] | null
 }
 
-// Zoom=1 fills the container width exactly — can't zoom out below that.
-const MIN_ZOOM = 1
-
-export default function TreeViewDashboardTab({ initialAddresses }: TreeViewDashboardTabProps) {
+export default function TreeViewDashboardTab({ addresses }: TreeViewDashboardTabProps) {
     const [containerSize, setContainerSize] = useState<{ width: number; height: number } | null>(null)
-    const [tooltip, setTooltip] = useState<Tooltip>(null)
-    const [zoom, setZoom] = useState(MIN_ZOOM)
+    const [zoom, setZoom] = useState(ADDRESSES_CONFIG.treeView.zoom.min)
 
     const canvasRef = useRef<HTMLCanvasElement>(null)
     const canvasContainerRef = useRef<HTMLDivElement>(null)
 
-    const { data: addresses } = useAddresses(initialAddresses as unknown as AddressSelectModel[])
     const colorHash = useMemo(() => new ColorHash(), [])
 
     const entries = useMemo<AddressEntry[]>(() => {
@@ -66,27 +62,59 @@ export default function TreeViewDashboardTab({ initialAddresses }: TreeViewDashb
     }, [])
 
     /**
-     * All layout values derived from container size + zoom in one place.
-     *
-     * - cellWidth:   at zoom=1 fills the container width exactly, grows with zoom
-     * - cellHeight:  always fills the container height, regardless of zoom
-     * - canvasWidth: expands with zoom, triggering horizontal scroll in the container
-     * - canvasHeight: fixed to container height
+     * All layout values derived from container size + zoom in one place:
+     * - `cellWidth`: at zoom=1 fills the container width exactly, grows with zoom.
+     * - `cellHeight`: always fills the container height, regardless of zoom.
+     * - `canvasWidth`: expands with zoom, triggering horizontal scroll in the container.
+     * - `canvasHeight`: fixed to container height.
      */
     const layout = useMemo(() => {
         if (!containerSize) return null
 
-        const { yPadding, gridRows } = ADDRESSES_CONFIG.treeView
-        const availableHeight = containerSize.height - yPadding * 2
+        const availableHeight = containerSize.height - ADDRESSES_CONFIG.treeView.yPadding * 2
 
         const cellWidth = (containerSize.width / longestAddressByteLength) * zoom
-        const cellHeight = availableHeight / gridRows
+        const cellHeight = availableHeight / ADDRESSES_CONFIG.treeView.gridRows
         const canvasWidth = cellWidth * longestAddressByteLength
         const canvasHeight = containerSize.height
 
-        return { cellWidth, cellHeight, canvasWidth, canvasHeight, yPadding }
+        return {
+            cellWidth,
+            cellHeight,
+            canvasWidth,
+            canvasHeight,
+        }
     }, [containerSize, zoom, longestAddressByteLength])
 
+    /**
+     * Get the x coordinate of a node based on its column index.
+     * @param col The byte position (column index).
+     * @return The x coordinate for the node center.
+     */
+    const getNodeX = useCallback(
+        (col: number) => {
+            if (!layout) return 0
+            return col * layout.cellWidth + layout.cellWidth / 2
+        },
+        [layout],
+    )
+
+    /**
+     * Get the y coordinate of a node based on its byte value.
+     * @param byteValue The byte value (0-255).
+     * @return The y coordinate for the node center.
+     */
+    const getNodeY = useCallback(
+        (byteValue: number) => {
+            if (!layout) return 0
+            return ADDRESSES_CONFIG.treeView.yPadding + byteValue * layout.cellHeight + layout.cellHeight / 2
+        },
+        [layout],
+    )
+
+    /**
+     * The main drawing function that renders the tree view on the canvas.
+     */
     const draw = useCallback(() => {
         if (!layout) return
 
@@ -96,28 +124,18 @@ export default function TreeViewDashboardTab({ initialAddresses }: TreeViewDashb
         const ctx = canvas.getContext("2d")
         if (!ctx) return
 
-        const { cellWidth, cellHeight, canvasWidth, canvasHeight, yPadding } = layout
-        const { colors } = ADDRESSES_CONFIG.treeView
-
-        canvas.width = canvasWidth
-        canvas.height = canvasHeight
-
-        // Background
-        ctx.fillStyle = colors.background
-        ctx.fillRect(0, 0, canvasWidth, canvasHeight)
-
-        const nodeX = (col: number) => col * cellWidth + cellWidth / 2
-        const nodeY = (byteValue: number) => yPadding + byteValue * cellHeight + cellHeight / 2
+        canvas.width = layout.canvasWidth
+        canvas.height = layout.canvasHeight
 
         const lineWidth = Math.max(2, zoom * 2)
         const nodeRadius = Math.max(1, zoom * 4)
 
         const drawPath = (bytes: Uint8Array) => {
             for (let col = 0; col < bytes.length - 1; col++) {
-                const x1 = nodeX(col)
-                const y1 = nodeY(bytes[col])
-                const x2 = nodeX(col + 1)
-                const y2 = nodeY(bytes[col + 1])
+                const x1 = getNodeX(col)
+                const y1 = getNodeY(bytes[col])
+                const x2 = getNodeX(col + 1)
+                const y2 = getNodeY(bytes[col + 1])
                 const mx = (x1 + x2) / 2
 
                 ctx.beginPath()
@@ -128,78 +146,70 @@ export default function TreeViewDashboardTab({ initialAddresses }: TreeViewDashb
 
             for (let col = 0; col < bytes.length; col++) {
                 ctx.beginPath()
-                ctx.arc(nodeX(col), nodeY(bytes[col]), nodeRadius, 0, Math.PI * 2)
+                ctx.arc(getNodeX(col), getNodeY(bytes[col]), nodeRadius, 0, Math.PI * 2)
                 ctx.fill()
             }
         }
 
         ctx.lineWidth = lineWidth
 
-        // Closest-match branches (dim, drawn first so targets paint over)
-        for (const { matchBytes, color } of entries) {
-            if (!matchBytes) continue
-            ctx.strokeStyle = color
-            ctx.fillStyle = color
-            drawPath(matchBytes)
-        }
-
-        // Target address branches (full color)
+        // Target address branches
         for (const { bytes, color } of entries) {
             if (!bytes) continue
+
             ctx.strokeStyle = color
             ctx.fillStyle = color
+
             drawPath(bytes)
         }
-    }, [layout, entries, zoom])
+
+        // Closest-match branches
+        for (const { matchBytes, color } of entries) {
+            if (!matchBytes) continue
+            const invert = invertHexColor(color)
+
+            ctx.strokeStyle = invert
+            ctx.fillStyle = invert
+
+            drawPath(matchBytes)
+        }
+    }, [layout, entries, zoom, getNodeX, getNodeY])
 
     useEffect(() => draw(), [draw])
 
+    if (entries.length < 1) {
+        return (
+            <div className="h-full flex justify-center items-center">
+                <Empty title="No addresses with decodable byte data." />
+            </div>
+        )
+    }
+
     return (
         <div className="relative flex flex-col gap-4 h-0 min-h-full">
-            <TreeViewControls minZoom={MIN_ZOOM} zoom={zoom} setZoom={setZoom} />
+            <TreeViewControls zoom={zoom} setZoom={setZoom} />
+
+            <div ref={canvasContainerRef} className="h-[90%] border bg-black/30 pb-0">
+                <Scrollbar>
+                    <canvas
+                        ref={canvasRef}
+                        style={{
+                            display: "block",
+                            cursor: "crosshair",
+                            width: layout?.canvasWidth ?? 0,
+                            height: layout?.canvasHeight ?? 0,
+                        }}
+                    />
+                </Scrollbar>
+            </div>
 
             {entries.length > 0 && (
                 <div className="flex flex-wrap gap-x-5 gap-y-1.5">
-                    {entries.map(({ name, color, bytes, matchBytes }) => (
-                        <div key={name} className="flex items-center gap-1.5 text-sm">
-                            <div className="size-3 shrink-0" style={{ backgroundColor: color }} />
-                            <span>{name}</span>
-                            <span className="text-muted-foreground text-xs">
-                                ({bytes!.length}B{matchBytes ? ` · match ${matchBytes.length}B` : ""})
-                            </span>
-                        </div>
+                    {entries.map(entry => (
+                        <AddressEntryLegend key={entry.name} entry={entry} />
                     ))}
                 </div>
             )}
-
-            <div ref={canvasContainerRef} className="overflow-x-scroll overflow-y-hidden border border-border h-full">
-                {entries.length === 0 ? (
-                    <p className="p-8 text-center text-sm text-muted-foreground">
-                        No addresses with decodable byte data. Add Ethereum addresses or Bitcoin addresses with
-                        pre-encoding data to visualize them here.
-                    </p>
-                ) : (
-                    <canvas
-                        ref={canvasRef}
-                        style={{ display: "block", cursor: "crosshair" }}
-                        onMouseLeave={() => setTooltip(null)}
-                    />
-                )}
-            </div>
-            {/*
-            <div className="absolute right-4 bottom-8 border border-border px-4 py-4 bg-background">
-                <ul className="text-xs text-muted-foreground list-disc list-inside">
-                    <li className="text-xs text-muted-foreground">
-                        Each branch level is a byte position, Y position is the byte value (0x00–0xFF).
-                    </li>
-                    <li className="text-xs text-muted-foreground">
-                        Bright branches are target addresses, dim branches are closest matches.
-                    </li>
-                    <li className="text-xs text-muted-foreground">Ctrl+scroll or use Zoom In/Out to navigate.</li>
-                </ul>
-            </div>*/}
-
-            <TreeViewTooltip tooltip={tooltip} setTooltip={setTooltip} />
         </div>
     )
 }

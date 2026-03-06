@@ -6,32 +6,32 @@ import { Select as SelectPrimitive } from "radix-ui"
 import type { ComponentProps } from "react"
 import * as React from "react"
 
-function Select({ ...props }: ComponentProps<typeof SelectPrimitive.Root>) {
+export function Select({ ...props }: ComponentProps<typeof SelectPrimitive.Root>) {
     return <SelectPrimitive.Root data-slot="select" {...props} />
 }
 
-function SelectGroup({ className, ...props }: ComponentProps<typeof SelectPrimitive.Group>) {
+export function SelectGroup({ className, ...props }: ComponentProps<typeof SelectPrimitive.Group>) {
     return <SelectPrimitive.Group data-slot="select-group" className={cn("scroll-my-1 p-1", className)} {...props} />
 }
 
-function SelectValue({ ...props }: ComponentProps<typeof SelectPrimitive.Value>) {
+export function SelectValue({ ...props }: ComponentProps<typeof SelectPrimitive.Value>) {
     return <SelectPrimitive.Value data-slot="select-value" {...props} />
 }
 
-function SelectTrigger({
+export function SelectTrigger({
     className,
     size = "default",
     children,
     ...props
 }: ComponentProps<typeof SelectPrimitive.Trigger> & {
-    size?: "sm" | "default"
+    size?: "xs" | "sm" | "default"
 }) {
     return (
         <SelectPrimitive.Trigger
             data-slot="select-trigger"
             data-size={size}
             className={cn(
-                "border border-border bg-transparent text-foreground data-placeholder:text-muted-foreground text-sm gap-1.5 py-4.5 pr-2 pl-2.5 data-[size=default]:h-8 data-[size=sm]:h-7 flex w-fit items-center justify-between whitespace-nowrap outline-none select-none disabled:default disabled:opacity-50 *:data-[slot=select-value]:gap-1.5 *:data-[slot=select-value]:line-clamp-1 *:data-[slot=select-value]:flex *:data-[slot=select-value]:items-center [&_svg:not([class*='size-'])]:size-4 [&_svg]:pointer-events-none [&_svg]:shrink-0",
+                "border border-border bg-transparent text-foreground data-placeholder:text-muted-foreground text-sm gap-1.5 pr-2 pl-2.5 data-[size=default]:h-8 data-[size=sm]:h-7 data-[size=xs]:h-6 flex w-fit items-center justify-between whitespace-nowrap outline-none select-none disabled:default disabled:opacity-50 *:data-[slot=select-value]:gap-1.5 *:data-[slot=select-value]:line-clamp-1 *:data-[slot=select-value]:flex *:data-[slot=select-value]:items-center [&_svg:not([class*='size-'])]:size-4 [&_svg]:pointer-events-none [&_svg]:shrink-0",
                 className,
             )}
             {...props}
@@ -44,7 +44,7 @@ function SelectTrigger({
     )
 }
 
-function SelectContent({
+export function SelectContent({
     className,
     children,
     position = "popper",
@@ -73,7 +73,7 @@ function SelectContent({
     )
 }
 
-function SelectLabel({ className, ...props }: ComponentProps<typeof SelectPrimitive.Label>) {
+export function SelectLabel({ className, ...props }: ComponentProps<typeof SelectPrimitive.Label>) {
     return (
         <SelectPrimitive.Label
             data-slot="select-label"
@@ -83,7 +83,7 @@ function SelectLabel({ className, ...props }: ComponentProps<typeof SelectPrimit
     )
 }
 
-function SelectItem({ className, children, ...props }: ComponentProps<typeof SelectPrimitive.Item>) {
+export function SelectItem({ className, children, ...props }: ComponentProps<typeof SelectPrimitive.Item>) {
     return (
         <SelectPrimitive.Item
             data-slot="select-item"
@@ -103,7 +103,7 @@ function SelectItem({ className, children, ...props }: ComponentProps<typeof Sel
     )
 }
 
-function SelectSeparator({ className, ...props }: ComponentProps<typeof SelectPrimitive.Separator>) {
+export function SelectSeparator({ className, ...props }: ComponentProps<typeof SelectPrimitive.Separator>) {
     return (
         <SelectPrimitive.Separator
             data-slot="select-separator"
@@ -113,7 +113,7 @@ function SelectSeparator({ className, ...props }: ComponentProps<typeof SelectPr
     )
 }
 
-function SelectScrollUpButton({ className, ...props }: ComponentProps<typeof SelectPrimitive.ScrollUpButton>) {
+export function SelectScrollUpButton({ className, ...props }: ComponentProps<typeof SelectPrimitive.ScrollUpButton>) {
     return (
         <SelectPrimitive.ScrollUpButton
             data-slot="select-scroll-up-button"
@@ -128,7 +128,7 @@ function SelectScrollUpButton({ className, ...props }: ComponentProps<typeof Sel
     )
 }
 
-function SelectScrollDownButton({ className, ...props }: ComponentProps<typeof SelectPrimitive.ScrollDownButton>) {
+export function SelectScrollDownButton({ className, ...props }: ComponentProps<typeof SelectPrimitive.ScrollDownButton>) {
     return (
         <SelectPrimitive.ScrollDownButton
             data-slot="select-scroll-down-button"
@@ -143,15 +143,3 @@ function SelectScrollDownButton({ className, ...props }: ComponentProps<typeof S
     )
 }
 
-export {
-    Select,
-    SelectContent,
-    SelectGroup,
-    SelectItem,
-    SelectLabel,
-    SelectScrollDownButton,
-    SelectScrollUpButton,
-    SelectSeparator,
-    SelectTrigger,
-    SelectValue,
-}

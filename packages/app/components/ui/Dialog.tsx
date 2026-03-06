@@ -3,23 +3,23 @@ import * as DialogPrimitive from "@radix-ui/react-dialog"
 import { XIcon } from "lucide-react"
 import React, { type ComponentProps } from "react"
 
-function Dialog({ ...props }: ComponentProps<typeof DialogPrimitive.Root>) {
+export function Dialog({ ...props }: ComponentProps<typeof DialogPrimitive.Root>) {
     return <DialogPrimitive.Root data-slot="dialog" {...props} />
 }
 
-function DialogTrigger({ ...props }: ComponentProps<typeof DialogPrimitive.Trigger>) {
+export function DialogTrigger({ ...props }: ComponentProps<typeof DialogPrimitive.Trigger>) {
     return <DialogPrimitive.Trigger data-slot="dialog-trigger" {...props} />
 }
 
-function DialogPortal({ ...props }: ComponentProps<typeof DialogPrimitive.Portal>) {
+export function DialogPortal({ ...props }: ComponentProps<typeof DialogPrimitive.Portal>) {
     return <DialogPrimitive.Portal data-slot="dialog-portal" {...props} />
 }
 
-function DialogClose({ ...props }: ComponentProps<typeof DialogPrimitive.Close>) {
+export function DialogClose({ ...props }: ComponentProps<typeof DialogPrimitive.Close>) {
     return <DialogPrimitive.Close data-slot="dialog-close" {...props} />
 }
 
-function DialogOverlay({ className, ...props }: ComponentProps<typeof DialogPrimitive.Overlay>) {
+export function DialogOverlay({ className, ...props }: ComponentProps<typeof DialogPrimitive.Overlay>) {
     return (
         <DialogPrimitive.Overlay
             className={cn(
@@ -32,7 +32,7 @@ function DialogOverlay({ className, ...props }: ComponentProps<typeof DialogPrim
     )
 }
 
-function DialogContent({
+export function DialogContent({
     className,
     children,
     showOverlay = true,
@@ -68,7 +68,7 @@ function DialogContent({
     )
 }
 
-function DialogHeader({ className, ...props }: ComponentProps<"div">) {
+export function DialogHeader({ className, ...props }: ComponentProps<"div">) {
     return (
         <div
             className={cn("flex flex-col gap-2 text-center sm:text-left", className)}
@@ -78,7 +78,7 @@ function DialogHeader({ className, ...props }: ComponentProps<"div">) {
     )
 }
 
-function DialogFooter({ className, ...props }: ComponentProps<"div">) {
+export function DialogFooter({ className, ...props }: ComponentProps<"div">) {
     return (
         <div
             className={cn("flex flex-col-reverse gap-2 sm:flex-row sm:justify-end", className)}
@@ -88,7 +88,7 @@ function DialogFooter({ className, ...props }: ComponentProps<"div">) {
     )
 }
 
-function DialogTitle({ className, ...props }: ComponentProps<typeof DialogPrimitive.Title>) {
+export function DialogTitle({ className, ...props }: ComponentProps<typeof DialogPrimitive.Title>) {
     return (
         <DialogPrimitive.Title
             className={cn("text-lg font-medium leading-none", className)}
@@ -98,7 +98,7 @@ function DialogTitle({ className, ...props }: ComponentProps<typeof DialogPrimit
     )
 }
 
-function DialogDescription({ className, ...props }: ComponentProps<typeof DialogPrimitive.Description>) {
+export function DialogDescription({ className, ...props }: ComponentProps<typeof DialogPrimitive.Description>) {
     return (
         <DialogPrimitive.Description
             className={cn("text-sm text-muted-foreground", className)}
@@ -108,15 +108,3 @@ function DialogDescription({ className, ...props }: ComponentProps<typeof Dialog
     )
 }
 
-export {
-    Dialog,
-    DialogClose,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogOverlay,
-    DialogPortal,
-    DialogTitle,
-    DialogTrigger,
-}

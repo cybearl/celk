@@ -1,19 +1,16 @@
 import AddAddressDialog from "@app/components/dialogs/AddAddress"
 import AddressesTable from "@app/components/tables/Addresses"
-import type { AddressSelectModel, SerializedAddressSelectModel } from "@app/db/schema/address"
-import { useAddresses } from "@app/hooks/api/useAddresses"
+import type { AddressSelectModel } from "@app/db/schema/address"
 
 type AddressesDashboardTabProps = {
-    initialAddresses: SerializedAddressSelectModel[]
+    addresses: AddressSelectModel[] | null
 }
 
-export default function AddressesDashboardTab({ initialAddresses }: AddressesDashboardTabProps) {
-    const { data: addresses } = useAddresses(initialAddresses as unknown as AddressSelectModel[])
-
+export default function AddressesDashboardTab({ addresses }: AddressesDashboardTabProps) {
     return (
-        <div className="flex flex-col gap-6">
+        <div className="flex flex-col gap-4">
             <div className="w-full flex justify-end">
-                <AddAddressDialog />
+                <AddAddressDialog addresses={addresses} />
             </div>
 
             <AddressesTable addresses={addresses} />

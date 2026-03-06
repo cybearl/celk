@@ -1,4 +1,4 @@
-import AddressTypeLabels from "@app/components/ui/AddressTypeLabels"
+import AddressTypeLabels from "@app/components/ui/addresses/TypeLabels"
 import { Checkbox } from "@app/components/ui/Checkbox"
 import { Field, FieldError, FieldGroup, FieldLabel } from "@app/components/ui/Field"
 import { Input } from "@app/components/ui/Input"
