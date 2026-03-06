@@ -1,5 +1,6 @@
 import { router } from "@app/lib/server/trpc/trpc"
 import { addressesRouter } from "./addresses"
+import { addressListsRouter } from "./addressLists"
 
 /**
  * The main router for the application, which combines all individual routers
@@ -7,6 +8,7 @@ import { addressesRouter } from "./addresses"
  */
 export const appRouter = router({
     addresses: addressesRouter,
+    addressLists: addressListsRouter,
 })
 
 /**

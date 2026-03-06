@@ -12,18 +12,13 @@ const scAddressList = pgTable("address_lists", {
 
     name: text("name").notNull(),
     description: text("description"),
-
-    // Worker control flags
-    isEnabled: boolean("is_enabled").notNull(), // Worker spawns while true
-    stopOnFirstMatch: boolean("stop_on_first_match").notNull(),
-
-    // Lifetime attempt counter for this list
     attempts: bigint({ mode: "bigint" }).notNull(),
-
-    // Last stats snapshot (populated after each worker report)
     lastStatsAttempts: bigint("last_stats_attempts", { mode: "bigint" }),
     lastStatsClosestMatch: text("last_stats_closest_match"),
-    lastStatsAt: timestamp("last_stats_at"),
+
+    // Flags
+    isEnabled: boolean("is_enabled").notNull(),
+    stopOnFirstMatch: boolean("stop_on_first_match").notNull(),
 
     // Relationships
     userId: text("user_id")
@@ -33,9 +28,25 @@ const scAddressList = pgTable("address_lists", {
     // Timestamps
     createdAt: timestamp("created_at").notNull().defaultNow(),
     updatedAt: timestamp("updated_at").notNull().defaultNow(),
+    lastStatsAt: timestamp("last_stats_at"),
 })
 
 export default scAddressList
 export type AddressListSchema = typeof scAddressList
 export type AddressListSelectModel = InferSelectModel<typeof scAddressList>
 export type AddressListInsertModel = InferInsertModel<typeof scAddressList>
+
+/**
+ * A JSON-serializable version of the `AddressListSelectModel` for use in `getServerSideProps` props,
+ * `BigInt` fields become strings, date fields become ISO strings.
+ */
+export type SerializedAddressListSelectModel = Omit<
+    AddressListSelectModel,
+    "attempts" | "lastStatsAttempts" | "createdAt" | "updatedAt" | "lastStatsAt"
+> & {
+    attempts: string
+    lastStatsAttempts: string | null
+    createdAt: string
+    updatedAt: string
+    lastStatsAt: string | null
+}
