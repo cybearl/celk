@@ -1,10 +1,15 @@
-import AddressTypeLabels from "@app/components/ui/addresses/TypeLabels"
 import { Checkbox } from "@app/components/ui/Checkbox"
 import { Field, FieldError, FieldGroup, FieldLabel } from "@app/components/ui/Field"
 import { Input } from "@app/components/ui/Input"
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@app/components/ui/Select"
 import { ADDRESS_NETWORK, ADDRESS_TYPE } from "@app/db/schema/address"
-import { isValidCryptoAddress } from "@app/lib/base/utils/address"
+import {
+    getAddressPrefix,
+    getCompatibleAddressTypes,
+    getFormattedAddressNetwork,
+    getFormattedAddressType,
+    isValidCryptoAddress,
+} from "@app/lib/base/utils/addresses"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { type ReactNode, useCallback, useEffect, useMemo } from "react"
 import { Controller, useForm } from "react-hook-form"
@@ -12,10 +17,10 @@ import z from "zod"
 
 const addAddressFormSchema = z
     .object({
-        name: z.string().min(1, "Name is required"),
+        name: z.string().min(1, "Name is required."),
         type: z.enum(ADDRESS_TYPE),
         network: z.enum(ADDRESS_NETWORK),
-        value: z.string().min(1, "Address value is required"),
+        value: z.string().min(1, "Address value is required."),
         bypassChecksum: z.boolean().optional(),
     })
     .superRefine(({ type, value, bypassChecksum }, ctx) => {
@@ -24,7 +29,7 @@ const addAddressFormSchema = z
         if (!isValidCryptoAddress(type, value)) {
             ctx.addIssue({
                 code: "custom",
-                message: "Invalid address (check format and checksum)",
+                message: "Invalid address (check format and checksum).",
                 path: ["value"],
             })
         }
@@ -55,13 +60,11 @@ export default function AddAddressForm({ trigger, onSubmit, onSuccess }: AddAddr
         if (!network) return
 
         if (network === ADDRESS_NETWORK.BITCOIN) {
-            if (type !== ADDRESS_TYPE.BTC_P2PKH && type !== ADDRESS_TYPE.BTC_P2WPKH) {
-                form.setValue("type", ADDRESS_TYPE.BTC_P2PKH)
-            }
+            const compatibleTypes = getCompatibleAddressTypes(network)
+            if (!compatibleTypes.includes(type)) form.setValue("type", compatibleTypes[0])
         } else {
             form.setValue("type", ADDRESS_TYPE.ETHEREUM)
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [network, form, type])
 
     /**
@@ -83,19 +86,10 @@ export default function AddAddressForm({ trigger, onSubmit, onSuccess }: AddAddr
         [form, onSubmit, onSuccess],
     )
 
-    const valuePlaceholder = useMemo(() => {
-        if (network === ADDRESS_NETWORK.BITCOIN) {
-            if (type === ADDRESS_TYPE.BTC_P2PKH) {
-                return "1.."
-            } else if (type === ADDRESS_TYPE.BTC_P2WPKH) {
-                return "bc1q.."
-            }
-        } else if (network === ADDRESS_NETWORK.ETHEREUM || network === ADDRESS_NETWORK.POLYGON) {
-            return "0x.."
-        }
-
-        return "0x.."
-    }, [network, type])
+    /**
+     * The placeholder for the address based on its type.
+     */
+    const valuePlaceholder = useMemo(() => `${getAddressPrefix({ type }) ?? "X"}..`, [type])
 
     return (
         <form className="space-y-4 w-full" onSubmit={form.handleSubmit(handleSubmit)}>
@@ -130,9 +124,11 @@ export default function AddAddressForm({ trigger, onSubmit, onSuccess }: AddAddr
                                 </SelectTrigger>
                                 <SelectContent>
                                     <SelectGroup>
-                                        <SelectItem value={ADDRESS_NETWORK.BITCOIN}>Bitcoin</SelectItem>
-                                        <SelectItem value={ADDRESS_NETWORK.ETHEREUM}>Ethereum</SelectItem>
-                                        <SelectItem value={ADDRESS_NETWORK.POLYGON}>Polygon</SelectItem>
+                                        {Object.values(ADDRESS_NETWORK).map(network => (
+                                            <SelectItem key={network} value={network}>
+                                                {getFormattedAddressNetwork(network)}
+                                            </SelectItem>
+                                        ))}
                                     </SelectGroup>
                                 </SelectContent>
                             </Select>
@@ -155,24 +151,29 @@ export default function AddAddressForm({ trigger, onSubmit, onSuccess }: AddAddr
                             >
                                 <SelectTrigger id={field.name} aria-invalid={fieldState.invalid}>
                                     <SelectValue placeholder="Select address type">
-                                        {field.value ? AddressTypeLabels[field.value] : undefined}
+                                        {field.value ? (
+                                            <>
+                                                {getFormattedAddressType(field.value)}{" "}
+                                                <span className="italic text-muted-foreground">
+                                                    ({getAddressPrefix({ type: field.value }) ?? "X"}..)
+                                                </span>
+                                            </>
+                                        ) : undefined}
                                     </SelectValue>
                                 </SelectTrigger>
                                 <SelectContent>
                                     <SelectGroup>
-                                        {network === ADDRESS_NETWORK.BITCOIN ? (
+                                        {network && (
                                             <>
-                                                <SelectItem value={ADDRESS_TYPE.BTC_P2PKH}>
-                                                    {AddressTypeLabels[ADDRESS_TYPE.BTC_P2PKH]}
-                                                </SelectItem>
-                                                <SelectItem value={ADDRESS_TYPE.BTC_P2WPKH}>
-                                                    {AddressTypeLabels[ADDRESS_TYPE.BTC_P2WPKH]}
-                                                </SelectItem>
+                                                {getCompatibleAddressTypes(network).map(type => (
+                                                    <SelectItem key={type} value={type}>
+                                                        {getFormattedAddressType(type)}{" "}
+                                                        <span className="italic text-muted-foreground">
+                                                            ({getAddressPrefix({ type }) ?? "X"}..)
+                                                        </span>
+                                                    </SelectItem>
+                                                ))}
                                             </>
-                                        ) : (
-                                            <SelectItem value={ADDRESS_TYPE.ETHEREUM}>
-                                                {AddressTypeLabels[ADDRESS_TYPE.ETHEREUM]}
-                                            </SelectItem>
                                         )}
                                     </SelectGroup>
                                 </SelectContent>

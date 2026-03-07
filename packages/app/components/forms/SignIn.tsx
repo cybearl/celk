@@ -8,8 +8,8 @@ import { Controller, useForm } from "react-hook-form"
 import z from "zod"
 
 const signInFormSchema = z.object({
-    identifier: z.string().min(1, "Either email or username is required"),
-    password: z.string().min(1, "Password is required"),
+    identifier: z.string().min(1, "Either email or username is required."),
+    password: z.string().min(1, "Password is required."),
 })
 
 type SignInFormData = z.infer<typeof signInFormSchema>

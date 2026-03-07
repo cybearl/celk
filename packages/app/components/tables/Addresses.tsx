@@ -1,20 +1,26 @@
 import ConfirmationDialog from "@app/components/dialogs/Confirmation"
+import ConcatenatedAddress from "@app/components/ui/addresses/ConcatenatedAddress"
 import { Button, LinkButton } from "@app/components/ui/Button"
 import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from "@app/components/ui/Table"
 import toast from "@app/components/ui/Toast"
 import type { AddressSelectModel } from "@app/db/schema/address"
-import { getAddressExplorerUrl } from "@app/lib/client/utils/addresses"
-import { getFormattedAddressNetwork, getFormattedAddressType } from "@app/lib/client/utils/formats"
+import type { ConfigSelectModel } from "@app/db/schema/config"
+import {
+    getAddressExplorerUrl,
+    getFormattedAddressNetwork,
+    getFormattedAddressType,
+} from "@app/lib/base/utils/addresses"
 import { deleteAddressById } from "@app/queries/addresses"
 import dedent from "dedent"
 import { Link, Trash } from "lucide-react"
 import { useCallback, useMemo } from "react"
 
 type AddressesTableProps = {
+    config: ConfigSelectModel | null
     addresses?: AddressSelectModel[] | null
 }
 
-export default function AddressesTable({ addresses }: AddressesTableProps) {
+export default function AddressesTable({ config, addresses }: AddressesTableProps) {
     const addressExplorerUrlsMap = useMemo(() => {
         const map: Record<string, string | null> = {}
 
@@ -44,7 +50,9 @@ export default function AddressesTable({ addresses }: AddressesTableProps) {
             <TableCaption className="pb-4">
                 {!addresses || addresses.length === 0
                     ? "No addresses found."
-                    : `${addresses.length} address${addresses.length > 1 ? "es" : ""} registered.`}
+                    : dedent`${addresses.length}${config?.maxAddressesPerUser ? ` / ${config.maxAddressesPerUser}` : ""}
+                            address${config?.maxAddressesPerUser !== undefined || addresses.length > 1 ? "es" : ""}
+                            registered.`}
             </TableCaption>
 
             <TableHeader>
@@ -66,8 +74,24 @@ export default function AddressesTable({ addresses }: AddressesTableProps) {
                         <TableCell className="font-medium">{address.name}</TableCell>
                         <TableCell>{getFormattedAddressNetwork(address.network)}</TableCell>
                         <TableCell>{getFormattedAddressType(address.type)}</TableCell>
-                        <TableCell>{address.value}</TableCell>
-                        <TableCell>{address.preEncoding ?? "N/A"}</TableCell>
+                        <TableCell>
+                            {
+                                <ConcatenatedAddress
+                                    address={address.value}
+                                    successCopyMessage="Address copied to clipboard!"
+                                />
+                            }
+                        </TableCell>
+                        <TableCell>
+                            {address.preEncoding ? (
+                                <ConcatenatedAddress
+                                    address={address.preEncoding}
+                                    successCopyMessage="Pre-encoding copied to clipboard!"
+                                />
+                            ) : (
+                                "N/A"
+                            )}
+                        </TableCell>
                         <TableCell className="text-right">{address.balance?.toString() ?? "-"}</TableCell>
                         <TableCell className="text-right">{address.attempts.toString()}</TableCell>
                         <TableCell className="text-right flex justify-end gap-2">

@@ -8,7 +8,6 @@ export const REQUIRED_ENV_VARS = {
         "NEXT_PUBLIC_APP_URL",
         "NEXT_PUBLIC_CGAS_MARKER",
         "NEXT_PUBLIC_APP_STATUS",
-        "NEXT_PUBLIC_LOCK_NEW_USERS",
     ],
     private: [
         "BETTER_AUTH_SECRET",
@@ -32,7 +31,6 @@ export const PUBLIC_ENV = {
     appUrl: process.env.NEXT_PUBLIC_APP_URL as string,
     cgasMarker: process.env.NEXT_PUBLIC_CGAS_MARKER as string,
     appStatus: process.env.NEXT_PUBLIC_APP_STATUS as "enabled" | "disabled" | "in-maintenance" | "in-development",
-    lockNewUsers: process.env.NEXT_PUBLIC_LOCK_NEW_USERS === "true",
 }
 
 /**
@@ -79,7 +77,6 @@ export const ENV_RUNTIME_VALUES: Record<string, string | undefined> = {
     DEFAULT_ADMIN_NAME: process.env.DEFAULT_ADMIN_NAME,
     DEFAULT_ADMIN_EMAIL: process.env.DEFAULT_ADMIN_EMAIL,
     DEFAULT_ADMIN_PASSWORD: process.env.DEFAULT_ADMIN_PASSWORD,
-    NEXT_PUBLIC_LOCK_NEW_USERS: process.env.NEXT_PUBLIC_LOCK_NEW_USERS,
     SMTP_HOST: process.env.SMTP_HOST,
     SMTP_PORT: process.env.SMTP_PORT,
     SMTP_USER: process.env.SMTP_USER,

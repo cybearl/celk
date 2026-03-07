@@ -3,27 +3,35 @@ import { Field, FieldError, FieldGroup, FieldLabel } from "@app/components/ui/Fi
 import { Input } from "@app/components/ui/Input"
 import { TextArea } from "@app/components/ui/TextArea"
 import type { AddressSelectModel } from "@app/db/schema/address"
+import type { ConfigSelectModel } from "@app/db/schema/config"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { type ReactNode, useCallback } from "react"
 import { Controller, useForm } from "react-hook-form"
 import z from "zod"
 
 const addAddressListFormSchema = z.object({
-    name: z.string().min(1, "Name is required"),
+    name: z.string().min(1, "Name is required."),
     description: z.string().optional(),
-    addressIds: z.array(z.string()).min(1, "At least one address is required"),
+    addressIds: z.array(z.string()).min(1, "At least one address is required."),
 })
 
 export type AddAddressListFormData = z.infer<typeof addAddressListFormSchema>
 
 type AddAddressListFormProps = {
+    config: ConfigSelectModel | null
     addresses: AddressSelectModel[] | null
     trigger: (isSubmitting: boolean) => ReactNode
     onSubmit: (data: AddAddressListFormData) => Promise<{ error?: { message: string } }>
     onSuccess?: () => void
 }
 
-export default function AddAddressListForm({ addresses, trigger, onSubmit, onSuccess }: AddAddressListFormProps) {
+export default function AddAddressListForm({
+    config,
+    addresses,
+    trigger,
+    onSubmit,
+    onSuccess,
+}: AddAddressListFormProps) {
     const form = useForm<AddAddressListFormData>({
         defaultValues: {
             name: "",
@@ -89,7 +97,14 @@ export default function AddAddressListForm({ addresses, trigger, onSubmit, onSuc
                     render={({ field, fieldState }) => (
                         <Field data-invalid={fieldState.invalid}>
                             <FieldLabel>Addresses</FieldLabel>
-                            <AddressListEntries addresses={addresses} value={field.value} onChange={field.onChange} />
+
+                            <AddressListEntries
+                                config={config}
+                                addresses={addresses}
+                                value={field.value}
+                                onChange={field.onChange}
+                            />
+
                             {fieldState.invalid && <FieldError errors={[fieldState.error!]} />}
                         </Field>
                     )}

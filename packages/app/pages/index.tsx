@@ -8,6 +8,8 @@ import { PUBLIC_ENV } from "@app/config/env"
 import { MAIN_LAYOUT_PAGE } from "@app/config/pages"
 import type { SerializedAddressSelectModel } from "@app/db/schema/address"
 import type { SerializedAddressListSelectModel } from "@app/db/schema/addressList"
+import type { ConfigSelectModel, SerializedConfigSelectModel } from "@app/db/schema/config"
+import { useConfig } from "@app/hooks/api/useConfig"
 import { appRouter } from "@app/lib/server/trpc/routers/_app"
 import { withSession } from "@app/lib/server/utils/session"
 import type { NextApiRequest, NextApiResponse } from "next"
@@ -16,6 +18,7 @@ import type { NextApiRequest, NextApiResponse } from "next"
  * The props for the homepage component, passed from the server-side via `getServerSideProps`.
  */
 type HomepageProps = {
+    initialConfig: SerializedConfigSelectModel | null
     initialAddresses: SerializedAddressSelectModel[]
     initialAddressLists: SerializedAddressListSelectModel[]
 }
@@ -25,6 +28,7 @@ type HomepageProps = {
  * the page is rendered.
  */
 export const getServerSideProps = withSession<HomepageProps>(async (ctx, session) => {
+    let initialConfig: SerializedConfigSelectModel | null = null
     let initialAddresses: SerializedAddressSelectModel[] = []
     let initialAddressLists: SerializedAddressListSelectModel[] = []
 
@@ -34,6 +38,13 @@ export const getServerSideProps = withSession<HomepageProps>(async (ctx, session
             req: ctx.req as unknown as NextApiRequest,
             res: ctx.res as unknown as NextApiResponse,
         })
+
+        const configRow = await caller.config.get()
+        initialConfig = {
+            ...configRow,
+            totalAttempts: configRow.totalAttempts.toString(),
+            updatedAt: configRow.updatedAt.toISOString(),
+        }
 
         const addressRows = await caller.addresses.getAll()
 
@@ -60,13 +71,15 @@ export const getServerSideProps = withSession<HomepageProps>(async (ctx, session
 
     return {
         props: {
+            initialConfig,
             initialAddresses,
             initialAddressLists,
         },
     }
 })
 
-export default function Homepage({ initialAddresses, initialAddressLists }: HomepageProps) {
+export default function Homepage({ initialConfig, initialAddresses, initialAddressLists }: HomepageProps) {
+    const { data: config } = useConfig(initialConfig as unknown as ConfigSelectModel | null)
     const { session } = useSessionContext()
 
     return (
@@ -85,6 +98,7 @@ export default function Homepage({ initialAddresses, initialAddressLists }: Home
                     <>
                         <TabsContent value={MAIN_LAYOUT_PAGE.DASHBOARD} className="w-full h-full">
                             <DashboardPage
+                                config={config}
                                 initialAddresses={initialAddresses}
                                 initialAddressLists={initialAddressLists}
                             />

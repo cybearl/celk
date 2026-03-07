@@ -7,7 +7,7 @@ import { Controller, useForm } from "react-hook-form"
 import z from "zod"
 
 const forgotPasswordFormSchema = z.object({
-    email: z.email("Invalid email address"),
+    email: z.email("Invalid email address."),
 })
 
 type ForgotPasswordFormData = z.infer<typeof forgotPasswordFormSchema>

@@ -11,6 +11,7 @@ import {
 } from "@app/components/ui/Dialog"
 import toast from "@app/components/ui/Toast"
 import type { AddressSelectModel } from "@app/db/schema/address"
+import type { ConfigSelectModel } from "@app/db/schema/config"
 import { createAddress } from "@app/queries/addresses"
 import { DialogTrigger } from "@radix-ui/react-dialog"
 import { TRPCClientError } from "@trpc/client"
@@ -18,11 +19,12 @@ import { Plus } from "lucide-react"
 import { useCallback, useState } from "react"
 
 type AddAddressDialogProps = {
+    config: ConfigSelectModel | null
     addresses: AddressSelectModel[] | null
     onSuccess?: () => void
 }
 
-export default function AddAddressDialog({ addresses, onSuccess }: AddAddressDialogProps) {
+export default function AddAddressDialog({ config, addresses, onSuccess }: AddAddressDialogProps) {
     const { session } = useSessionContext()
 
     const [isOpen, setIsOpen] = useState(false)
@@ -113,7 +115,10 @@ export default function AddAddressDialog({ addresses, onSuccess }: AddAddressDia
             </DialogContent>
 
             <DialogTrigger asChild>
-                <Button size="sm">
+                <Button
+                    size="sm"
+                    disabled={addresses !== null && config !== null && addresses.length >= config.maxAddressesPerUser}
+                >
                     <Plus />
                     Add Address
                 </Button>

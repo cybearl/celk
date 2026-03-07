@@ -3,16 +3,18 @@ import { Button } from "@app/components/ui/Button"
 import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from "@app/components/ui/Table"
 import toast from "@app/components/ui/Toast"
 import type { AddressListSelectModel } from "@app/db/schema/addressList"
+import type { ConfigSelectModel } from "@app/db/schema/config"
 import { deleteAddressListById } from "@app/queries/addressLists"
 import dedent from "dedent"
 import { Trash } from "lucide-react"
 import { useCallback } from "react"
 
 type AddressListsTableProps = {
+    config: ConfigSelectModel | null
     addressLists?: AddressListSelectModel[] | null
 }
 
-export default function AddressListsTable({ addressLists }: AddressListsTableProps) {
+export default function AddressListsTable({ config, addressLists }: AddressListsTableProps) {
     /**
      * Handles the deletion of an address list by its ID.
      * @param id The ID of the address list to delete.
@@ -31,7 +33,9 @@ export default function AddressListsTable({ addressLists }: AddressListsTablePro
             <TableCaption className="pb-4">
                 {!addressLists || addressLists.length === 0
                     ? "No address lists found."
-                    : `${addressLists.length} address list${addressLists.length > 1 ? "s" : ""} registered.`}
+                    : dedent`${addressLists.length}${config?.maxAddressListsPerUser ? ` / ${config.maxAddressListsPerUser}` : ""}
+                            address list${config?.maxAddressListsPerUser !== undefined || addressLists.length > 1 ? "s" : ""}
+                            registered.`}
             </TableCaption>
 
             <TableHeader>

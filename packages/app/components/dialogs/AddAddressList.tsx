@@ -10,6 +10,7 @@ import {
 } from "@app/components/ui/Dialog"
 import type { AddressSelectModel } from "@app/db/schema/address"
 import type { AddressListSelectModel } from "@app/db/schema/addressList"
+import type { ConfigSelectModel } from "@app/db/schema/config"
 import { createAddressList } from "@app/queries/addressLists"
 import { DialogTrigger } from "@radix-ui/react-dialog"
 import { TRPCClientError } from "@trpc/client"
@@ -17,12 +18,18 @@ import { Scroll } from "lucide-react"
 import { useCallback, useState } from "react"
 
 type AddAddressListDialogProps = {
+    config: ConfigSelectModel | null
     addresses: AddressSelectModel[] | null
     addressLists: AddressListSelectModel[] | null
     onSuccess?: () => void
 }
 
-export default function AddAddressListDialog({ addresses, addressLists, onSuccess }: AddAddressListDialogProps) {
+export default function AddAddressListDialog({
+    config,
+    addresses,
+    addressLists,
+    onSuccess,
+}: AddAddressListDialogProps) {
     const [isOpen, setIsOpen] = useState(false)
 
     /**
@@ -37,34 +44,37 @@ export default function AddAddressListDialog({ addresses, addressLists, onSucces
      * @param data The form data containing the name of the address list and the
      * selected address IDs to be added to the new list.
      */
-    const handleAddAddressList = useCallback(async (data: AddAddressListFormData) => {
-        if (addressLists?.some(l => l.name.toLowerCase() === data.name.toLowerCase())) {
-            return {
-                error: {
-                    message: "An address list with this name already exists.",
-                },
-            }
-        }
-
-        try {
-            await createAddressList(data)
-            return {}
-        } catch (error) {
-            if (error instanceof TRPCClientError) {
+    const handleAddAddressList = useCallback(
+        async (data: AddAddressListFormData) => {
+            if (addressLists?.some(l => l.name.toLowerCase() === data.name.toLowerCase())) {
                 return {
                     error: {
-                        message: error.message,
+                        message: "An address list with this name already exists.",
                     },
                 }
             }
 
-            return {
-                error: {
-                    message: "An error occurred while creating the list, please try again.",
-                },
+            try {
+                await createAddressList(data)
+                return {}
+            } catch (error) {
+                if (error instanceof TRPCClientError) {
+                    return {
+                        error: {
+                            message: error.message,
+                        },
+                    }
+                }
+
+                return {
+                    error: {
+                        message: "An error occurred while creating the list, please try again.",
+                    },
+                }
             }
-        }
-    }, [addressLists])
+        },
+        [addressLists],
+    )
 
     const handleSuccess = useCallback(() => {
         handleOpenChange(false)
@@ -80,6 +90,7 @@ export default function AddAddressListDialog({ addresses, addressLists, onSucces
                 </DialogHeader>
 
                 <AddAddressListForm
+                    config={config}
                     addresses={addresses}
                     trigger={isSubmitting => (
                         <DialogFooter>

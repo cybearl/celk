@@ -13,17 +13,17 @@ const resetPasswordFormSchema = z
             .string()
             .min(
                 CyCONSTANTS.MIN_PASSWORD_LENGTH,
-                `Password must be at least ${CyCONSTANTS.MIN_PASSWORD_LENGTH} characters`,
+                `Password must be at least ${CyCONSTANTS.MIN_PASSWORD_LENGTH} characters.`,
             )
             .max(
                 CyCONSTANTS.MAX_PASSWORD_LENGTH,
-                `Password must be at most ${CyCONSTANTS.MAX_PASSWORD_LENGTH} characters`,
+                `Password must be at most ${CyCONSTANTS.MAX_PASSWORD_LENGTH} characters.`,
             ),
-        confirmPassword: z.string().min(1, "Please confirm your password"),
+        confirmPassword: z.string().min(1, "Please confirm your password."),
     })
     .refine(data => data.password === data.confirmPassword, {
         path: ["confirmPassword"],
-        message: "Passwords do not match",
+        message: "Passwords do not match.",
     })
 
 type ResetPasswordFormData = z.infer<typeof resetPasswordFormSchema>
@@ -52,7 +52,7 @@ export default function ResetPasswordForm({ trigger, token, onSuccess }: ResetPa
         async (data: ResetPasswordFormData) => {
             if (!token) {
                 form.setError("root", {
-                    message: "No reset token provided",
+                    message: "No reset token provided.",
                 })
 
                 return
