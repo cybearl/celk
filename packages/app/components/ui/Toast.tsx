@@ -14,7 +14,7 @@ type ToastProps = {
 /** A fully custom toast that still maintains the animations and interactions. */
 function Toast({ icon, backgroundColor, title, description }: ToastProps) {
     return (
-        <div className="relative bg-black w-full md:max-w-91 p-4 border-2 border-foreground">
+        <div className="relative bg-black w-full md:max-w-91 p-4 border border-foreground">
             <div className={cn("absolute inset-0", backgroundColor)} />
 
             <div className="relative w-full flex items-center justify-center gap-4">

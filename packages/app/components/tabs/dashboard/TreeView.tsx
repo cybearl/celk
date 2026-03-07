@@ -1,11 +1,15 @@
 import TreeViewControls from "@app/components/controls/TreeView"
 import AddressEntryLegend from "@app/components/ui/addresses/EntryLegend"
+import { Button } from "@app/components/ui/Button"
 import Empty from "@app/components/ui/Empty"
 import Scrollbar from "@app/components/ui/Scrollbar"
 import ADDRESSES_CONFIG from "@app/config/addresses"
 import type { AddressSelectModel } from "@app/db/schema/address"
-import { convertAddressToBytes, convertHexAddressToBytes, invertHexColor } from "@app/lib/client/utils/addresses"
+import { convertAddressToBytes, convertHexAddressToBytes } from "@app/lib/base/utils/addresses"
+import { extractNumberFromLocalStorage } from "@app/lib/base/utils/localStorage"
+import { applyHexColorOpacity, invertHexColor } from "@app/lib/base/utils/miscellaneous"
 import ColorHash from "color-hash"
+import { X } from "lucide-react"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 
 /**
@@ -26,11 +30,18 @@ type TreeViewDashboardTabProps = {
 export default function TreeViewDashboardTab({ addresses }: TreeViewDashboardTabProps) {
     const [containerSize, setContainerSize] = useState<{ width: number; height: number } | null>(null)
     const [zoom, setZoom] = useState(ADDRESSES_CONFIG.treeView.zoom.min)
+    const [highlightedEntryIndex, setHighlightedEntryIndex] = useState<number | null>(null)
+
+    useEffect(() => {
+        setHighlightedEntryIndex(
+            extractNumberFromLocalStorage(ADDRESSES_CONFIG.treeView.localStorageKeys.latestHighlightedAddressListId),
+        )
+    }, [])
 
     const canvasRef = useRef<HTMLCanvasElement>(null)
     const canvasContainerRef = useRef<HTMLDivElement>(null)
 
-    const colorHash = useMemo(() => new ColorHash(), [])
+    const colorHash = useMemo(() => new ColorHash(ADDRESSES_CONFIG.treeView.colors), [])
 
     const entries = useMemo<AddressEntry[]>(() => {
         if (addresses) {
@@ -154,28 +165,74 @@ export default function TreeViewDashboardTab({ addresses }: TreeViewDashboardTab
         ctx.lineWidth = lineWidth
 
         // Target address branches
-        for (const { bytes, color } of entries) {
+        for (const [index, { bytes, color }] of Object.entries(entries)) {
             if (!bytes) continue
 
-            ctx.strokeStyle = color
-            ctx.fillStyle = color
+            if (highlightedEntryIndex !== null) {
+                if (parseInt(index, 10) === highlightedEntryIndex) {
+                    ctx.strokeStyle = color
+                    ctx.fillStyle = color
+                } else {
+                    const invertColorWithHighlight = applyHexColorOpacity(
+                        color,
+                        ADDRESSES_CONFIG.treeView.noHighlightOpacity,
+                    )
+
+                    ctx.strokeStyle = invertColorWithHighlight
+                    ctx.fillStyle = invertColorWithHighlight
+                }
+            } else {
+                ctx.strokeStyle = color
+                ctx.fillStyle = color
+            }
 
             drawPath(bytes)
         }
 
         // Closest-match branches
-        for (const { matchBytes, color } of entries) {
+        for (const [index, { matchBytes, color }] of Object.entries(entries)) {
             if (!matchBytes) continue
             const invert = invertHexColor(color)
 
-            ctx.strokeStyle = invert
-            ctx.fillStyle = invert
+            if (highlightedEntryIndex !== null) {
+                if (parseInt(index, 10) === highlightedEntryIndex) {
+                    ctx.strokeStyle = invert
+                    ctx.fillStyle = invert
+                } else {
+                    const invertColorWithHighlight = applyHexColorOpacity(
+                        invert,
+                        ADDRESSES_CONFIG.treeView.noHighlightOpacity,
+                    )
+
+                    ctx.strokeStyle = invertColorWithHighlight
+                    ctx.fillStyle = invertColorWithHighlight
+                }
+            } else {
+                ctx.strokeStyle = invert
+                ctx.fillStyle = invert
+            }
 
             drawPath(matchBytes)
         }
-    }, [layout, entries, zoom, getNodeX, getNodeY])
+    }, [layout, entries, zoom, getNodeX, getNodeY, highlightedEntryIndex])
 
     useEffect(() => draw(), [draw])
+
+    /**
+     * Handles highlighting an entry when its legend item is clicked.
+     * @param index The index of the entry to highlight, or null to clear highlighting.
+     */
+    const onHighlightEntry = (index: number | null) => {
+        setHighlightedEntryIndex(index)
+        if (index !== null) {
+            localStorage.setItem(
+                ADDRESSES_CONFIG.treeView.localStorageKeys.latestHighlightedAddressListId,
+                String(index),
+            )
+        } else {
+            localStorage.removeItem(ADDRESSES_CONFIG.treeView.localStorageKeys.latestHighlightedAddressListId)
+        }
+    }
 
     if (entries.length < 1) {
         return (
@@ -205,8 +262,23 @@ export default function TreeViewDashboardTab({ addresses }: TreeViewDashboardTab
 
             {entries.length > 0 && (
                 <div className="flex flex-wrap gap-x-5 gap-y-1.5">
-                    {entries.map(entry => (
-                        <AddressEntryLegend key={entry.name} entry={entry} />
+                    <Button
+                        variant="outline"
+                        className="size-8 border-border"
+                        size="icon"
+                        onClick={() => onHighlightEntry(null)}
+                    >
+                        <X />
+                    </Button>
+
+                    {entries.map((entry, index) => (
+                        <AddressEntryLegend
+                            key={entry.name}
+                            entry={entry}
+                            entryIndex={index}
+                            isHighlighted={highlightedEntryIndex === index}
+                            onClick={onHighlightEntry}
+                        />
                     ))}
                 </div>
             )}

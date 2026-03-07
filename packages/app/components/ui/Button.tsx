@@ -25,6 +25,7 @@ export const buttonVariants = cva(
                 lg: "h-9 px-4 text-lg",
                 icon: "size-9",
                 "icon-sm": "size-6",
+                slim: "h-4 px-0",
             },
         },
         defaultVariants: {
@@ -146,4 +147,3 @@ export function LinkButton({ className, variant, size, href, isExternal, ...prop
         />
     )
 }
-

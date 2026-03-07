@@ -1,10 +1,11 @@
 import scAddress from "@app/db/schema/address"
 import scAddressList from "@app/db/schema/addressList"
 import scPvtAddressListMember from "@app/db/schema/addressListMember"
+import scConfig, { CONFIG_ID } from "@app/db/schema/config"
 import { db } from "@app/lib/server/connectors/db"
 import { protectedProcedure, router } from "@app/lib/server/trpc/trpc"
 import { TRPCError } from "@trpc/server"
-import { and, eq, inArray } from "drizzle-orm"
+import { and, count, eq, inArray } from "drizzle-orm"
 import z from "zod"
 
 /**
@@ -23,16 +24,44 @@ export const addressListsRouter = router({
             }),
         )
         .mutation(async ({ ctx, input }) => {
+            const [[{ listCount }], [config]] = await Promise.all([
+                db
+                    .select({ listCount: count() })
+                    .from(scAddressList)
+                    .where(eq(scAddressList.userId, ctx.session.user.id)),
+                db
+                    .select({
+                        maxAddressListsPerUser: scConfig.maxAddressListsPerUser,
+                        maxAddressesPerList: scConfig.maxAddressesPerList,
+                    })
+                    .from(scConfig)
+                    .where(eq(scConfig.id, CONFIG_ID))
+                    .limit(1),
+            ])
+
+            if (!config) {
+                throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Config not found: run the seeder." })
+            }
+
+            if (listCount >= config.maxAddressListsPerUser) {
+                throw new TRPCError({
+                    code: "FORBIDDEN",
+                    message: "You have reached the maximum number of address lists allowed.",
+                })
+            }
+
+            if (input.addressIds.length > config.maxAddressesPerList) {
+                throw new TRPCError({
+                    code: "FORBIDDEN",
+                    message: "You have exceeded the maximum number of addresses per list.",
+                })
+            }
+
             if (input.addressIds.length > 0) {
                 const ownedAddresses = await db
                     .select({ id: scAddress.id })
                     .from(scAddress)
-                    .where(
-                        and(
-                            inArray(scAddress.id, input.addressIds),
-                            eq(scAddress.userId, ctx.session.user.id),
-                        ),
-                    )
+                    .where(and(inArray(scAddress.id, input.addressIds), eq(scAddress.userId, ctx.session.user.id)))
 
                 if (ownedAddresses.length !== input.addressIds.length) {
                     throw new TRPCError({
@@ -95,13 +124,35 @@ export const addressListsRouter = router({
     addAddress: protectedProcedure
         .input(z.object({ id: z.string(), addressId: z.string() }))
         .mutation(async ({ ctx, input }) => {
-            const [addressList] = await db
-                .select({ id: scAddressList.id })
-                .from(scAddressList)
-                .where(and(eq(scAddressList.id, input.id), eq(scAddressList.userId, ctx.session.user.id)))
-                .limit(1)
+            const [[addressList], [{ memberCount }], [config]] = await Promise.all([
+                db
+                    .select({ id: scAddressList.id })
+                    .from(scAddressList)
+                    .where(and(eq(scAddressList.id, input.id), eq(scAddressList.userId, ctx.session.user.id)))
+                    .limit(1),
+                db
+                    .select({ memberCount: count() })
+                    .from(scPvtAddressListMember)
+                    .where(eq(scPvtAddressListMember.addressListId, input.id)),
+                db
+                    .select({ maxAddressesPerList: scConfig.maxAddressesPerList })
+                    .from(scConfig)
+                    .where(eq(scConfig.id, CONFIG_ID))
+                    .limit(1),
+            ])
 
             if (!addressList) throw new TRPCError({ code: "NOT_FOUND" })
+
+            if (!config) {
+                throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Config not found: run the seeder." })
+            }
+
+            if (memberCount >= config.maxAddressesPerList) {
+                throw new TRPCError({
+                    code: "FORBIDDEN",
+                    message: "This list has reached the maximum number of addresses allowed.",
+                })
+            }
 
             const [address] = await db
                 .select({ id: scAddress.id })

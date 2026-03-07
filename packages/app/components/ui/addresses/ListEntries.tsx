@@ -1,17 +1,19 @@
 import { Button } from "@app/components/ui/Button"
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@app/components/ui/Select"
 import type { AddressSelectModel } from "@app/db/schema/address"
-import { getFormattedAddressNetwork, getFormattedAddressType } from "@app/lib/client/utils/formats"
+import type { ConfigSelectModel } from "@app/db/schema/config"
+import { getFormattedAddressNetwork, getFormattedAddressType } from "@app/lib/base/utils/addresses"
 import { Trash } from "lucide-react"
 import { useCallback, useState } from "react"
 
 type AddressListEntriesProps = {
+    config: ConfigSelectModel | null
     addresses: AddressSelectModel[] | null
     value: string[]
     onChange: (ids: string[]) => void
 }
 
-export default function AddressListEntries({ addresses, value, onChange }: AddressListEntriesProps) {
+export default function AddressListEntries({ config, addresses, value, onChange }: AddressListEntriesProps) {
     const [pendingId, setPendingId] = useState<string>("")
 
     const availableAddresses = addresses?.filter(a => !value.includes(a.id)) ?? []
@@ -89,6 +91,14 @@ export default function AddressListEntries({ addresses, value, onChange }: Addre
                             </Button>
                         </div>
                     ))}
+
+                    <p className="text-muted-foreground text-xs">
+                        {config !== null && addresses !== null
+                            ? `${selectedAddresses.length} ${
+                                  config.maxAddressesPerList !== undefined ? ` / ${config.maxAddressesPerList}` : ""
+                              } address${config.maxAddressesPerList !== undefined || addresses.length > 1 ? "es" : ""} allowed.`
+                            : null}
+                    </p>
                 </div>
             )}
         </div>

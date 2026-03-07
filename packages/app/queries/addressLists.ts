@@ -14,9 +14,7 @@ export async function getAddressLists() {
  * @param data The data for the new address list, including its name and initial address IDs.
  * @returns The created address list object returned from the API.
  */
-export async function createAddressList(
-    data: Parameters<typeof trpcClient.addressLists.create.mutate>[0],
-) {
+export async function createAddressList(data: Parameters<typeof trpcClient.addressLists.create.mutate>[0]) {
     const addressList = await trpcClient.addressLists.create.mutate(data)
     await mutate(key => Array.isArray(key) && key[0] === "address_lists")
     return addressList
