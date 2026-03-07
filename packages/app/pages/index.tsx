@@ -84,7 +84,11 @@ export default function Homepage({ initialConfig, initialAddresses, initialAddre
 
     return (
         <MainLayout
-            topRightSection={<p className="text-foreground font-medium px-4">1,151,448,484</p>}
+            topRightSection={
+                <p className="text-foreground font-medium px-4">
+                    {(config?.totalAttempts ?? 0n).toLocaleString("en-US")}
+                </p>
+            }
             bottomLeftSection={
                 <p className="text-foreground font-medium pb-1.5 px-4">@cybearl/celk :: {PUBLIC_ENV.version}</p>
             }
