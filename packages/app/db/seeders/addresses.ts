@@ -8,8 +8,7 @@ import { db } from "@app/lib/server/connectors/db"
  */
 export default async function seedAddresses() {
     if (!PRIVATE_ENV.defaultAdmin.username) {
-        console.log("Skipping addresses seeding because not all environment variables are set...")
-        return
+        throw new Error("No addresses seeding because not all environment variables are set...")
     }
 
     const defaultAdminUser = await db.query.users.findFirst({
@@ -17,8 +16,7 @@ export default async function seedAddresses() {
     })
 
     if (!defaultAdminUser) {
-        console.log("Skipping address seeding because the default admin user was not found in the database...")
-        return
+        throw new Error("No address seeding because the default admin user was not found in the database...")
     }
 
     const addressesToSeed: AddressInsertModel[] = [

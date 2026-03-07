@@ -66,7 +66,7 @@ const scAddress = pgTable(
         balanceCheckedAt: timestamp("balance_checked_at"),
         closestMatchRegisteredAt: timestamp("closest_match_registered_at"),
     },
-    table => [unique().on(table.userId, table.value)],
+    table => [unique("addresses_user_id_value_unique").on(table.userId, table.value)],
 )
 
 export default scAddress

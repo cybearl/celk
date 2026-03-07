@@ -20,6 +20,7 @@ const scConfig = pgTable("config", {
     lockNewUsers: boolean("lock_new_users").notNull(),
 
     // Global stats
+    workerReportIntervalMs: integer("worker_report_interval_ms").notNull(),
     totalAddressesRegistered: integer("total_addresses_registered").notNull(),
     totalAddressListsCreated: integer("total_address_lists_created").notNull(),
     totalAttempts: bigint({ mode: "bigint" }).notNull(),
@@ -28,7 +29,7 @@ const scConfig = pgTable("config", {
     maxAddressesPerUser: integer("max_addresses_per_user").notNull(),
     maxAddressListsPerUser: integer("max_address_lists_per_user").notNull(),
     maxAddressesPerList: integer("max_addresses_per_list").notNull(),
-    maxRunningAddressLists: integer("max_running_address_lists").notNull(),
+    maxRunningAddressListsPerUser: integer("max_running_address_lists_per_user").notNull(),
 
     // Worker
     balanceRefreshDelayMs: integer("balance_refresh_delay_ms").notNull(),

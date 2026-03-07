@@ -22,8 +22,8 @@ export default function AddressEntryLegend({ entry, entryIndex, isHighlighted, o
             )}
         >
             <div className="flex justify-center items-center">
-                <div className="h-3 w-1.5 shrink-0" style={{ backgroundColor: invertColor }} />
-                <div className="h-3 w-1.5 shrink-0" style={{ backgroundColor: entry.color }} />
+                <div className="h-3 w-1 shrink-0" style={{ backgroundColor: invertColor }} />
+                <div className="h-3 w-2 shrink-0" style={{ backgroundColor: entry.color }} />
             </div>
 
             <span>{entry.name}</span>

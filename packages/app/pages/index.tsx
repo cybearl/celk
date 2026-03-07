@@ -62,10 +62,8 @@ export const getServerSideProps = withSession<HomepageProps>(async (ctx, session
         initialAddressLists = addressListRows.map(row => ({
             ...row,
             attempts: row.attempts.toString(),
-            lastStatsAttempts: row.lastStatsAttempts?.toString() ?? null,
             createdAt: row.createdAt.toISOString(),
             updatedAt: row.updatedAt.toISOString(),
-            lastStatsAt: row.lastStatsAt?.toISOString() ?? null,
         }))
     }
 

@@ -1,8 +1,6 @@
 import { PRIVATE_ENV } from "@app/config/env"
-import scRoles from "@app/db/schema/role"
+import { READY } from "@app/lib/base/utils/formats"
 import scUser from "@app/db/schema/user"
-import scUserRoles from "@app/db/schema/userRoles"
-import { SEEDED_USER_ROLE_SLUGS } from "@app/db/seeders/roles"
 import auth from "@app/lib/auth"
 import { normalizeUser } from "@app/lib/base/utils/auth"
 import { db } from "@app/lib/server/connectors/db"
@@ -15,8 +13,7 @@ import { eq } from "drizzle-orm"
  */
 export async function seedDefaultAdminUser() {
     if (!PRIVATE_ENV.defaultAdmin.email || !PRIVATE_ENV.defaultAdmin.username || !PRIVATE_ENV.defaultAdmin.password) {
-        console.log("Skipping default admin user seeding because not all environment variables are set...")
-        return
+        throw new Error("No default admin user seeding because not all environment variables are set...")
     }
 
     let response: SignUpResponse | null = null
@@ -37,7 +34,7 @@ export async function seedDefaultAdminUser() {
             user: normalizeUser(rawResponse.user),
         }
 
-        if (response) console.log("The default admin user has successfully been seeded")
+        if (response) console.log(`${READY}The default admin user has successfully been seeded.`)
     } catch (error) {
         // Only log if it's not just because the user has already been seeded
         if (!(error instanceof Error) || !error.message.includes("Username is already taken.")) {
@@ -48,18 +45,6 @@ export async function seedDefaultAdminUser() {
     if (response) {
         // Automatically verifies the email address and unlocks the default admin user
         await db.update(scUser).set({ isEmailVerified: true, isLocked: false }).where(eq(scUser.id, response.user.id))
-
-        // Get the admin role ID from its slug
-        const adminRole = await db.select().from(scRoles).where(eq(scRoles.slug, SEEDED_USER_ROLE_SLUGS.ADMIN)).limit(1)
-        if (!adminRole || adminRole.length === 0) {
-            throw new Error("An error occurred while trying to fetch the admin role, is it seeded?")
-        }
-
-        // Attribute the administrator role to that user
-        await db.insert(scUserRoles).values({
-            userId: response.user.id,
-            roleId: adminRole[0].id,
-        })
     }
 
     return response

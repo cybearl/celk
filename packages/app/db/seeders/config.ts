@@ -14,6 +14,7 @@ export default async function seedConfig() {
             lockNewUsers: true,
 
             // Global stats
+            workerReportIntervalMs: 60_000, // 1 minute
             totalAddressesRegistered: 0,
             totalAddressListsCreated: 0,
             totalAttempts: 0n,
@@ -22,10 +23,10 @@ export default async function seedConfig() {
             maxAddressesPerUser: 1024,
             maxAddressListsPerUser: 64,
             maxAddressesPerList: 1024,
-            maxRunningAddressLists: 1,
+            maxRunningAddressListsPerUser: 1,
 
             // Worker
-            balanceRefreshDelayMs: 60_000,
+            balanceRefreshDelayMs: 43_200_000, // 12 hours
         })
         .onConflictDoNothing()
 }

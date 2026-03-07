@@ -1,6 +1,7 @@
 import seeders from "@app/db/seeders"
 import { dbClient } from "@app/lib/server/connectors/db"
 import { config } from "dotenv"
+import { READY } from "@app/lib/base/utils/formats"
 
 // Manually loading environment variables as
 // this is outside of the Next.js runtime
@@ -30,7 +31,7 @@ async function main() {
             continue
         }
 
-        console.log(`Seeder '${name}' completed successfully.`)
+        console.log(`${READY}Seeder '${name}' completed successfully.`)
     }
 
     await dbClient.end()

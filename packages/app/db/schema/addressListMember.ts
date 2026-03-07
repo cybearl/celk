@@ -1,7 +1,7 @@
 import scAddress from "@app/db/schema/address"
 import scAddressList from "@app/db/schema/addressList"
 import type { InferInsertModel, InferSelectModel } from "drizzle-orm"
-import { bigint, pgTable, text, timestamp, unique } from "drizzle-orm/pg-core"
+import { pgTable, text, timestamp, unique } from "drizzle-orm/pg-core"
 
 /**
  * The schema for address list members (pivot table).
@@ -12,9 +12,6 @@ const scPvtAddressListMember = pgTable(
         id: text("id")
             .primaryKey()
             .$defaultFn(() => crypto.randomUUID()),
-
-        // Per-membership attempt counter, independent of the global address counter
-        attempts: bigint({ mode: "bigint" }).notNull(),
 
         // Relationships
         addressListId: text("address_list_id")
@@ -29,7 +26,7 @@ const scPvtAddressListMember = pgTable(
         createdAt: timestamp("created_at").notNull().defaultNow(),
         updatedAt: timestamp("updated_at").notNull().defaultNow(),
     },
-    table => [unique().on(table.addressListId, table.addressId)],
+    table => [unique("address_list_members_address_list_id_address_id_unique").on(table.addressListId, table.addressId)],
 )
 
 export default scPvtAddressListMember

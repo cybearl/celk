@@ -21,6 +21,7 @@
         "knip": "knip",
         "lint": "biome check",
         "lint:fix": "biome check --fix && biome format --write",
+        "db:reset": "dotenv tsx ./db/reset.ts",
         "db:generate": "drizzle-kit generate",
         "db:migrate": "drizzle-kit migrate",
         "db:drop": "drizzle-kit drop",
