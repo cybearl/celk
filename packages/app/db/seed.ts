@@ -1,7 +1,7 @@
 import seeders from "@app/db/seeders"
+import { READY } from "@app/lib/base/utils/formats"
 import { dbClient } from "@app/lib/server/connectors/db"
 import { config } from "dotenv"
-import { READY } from "@app/lib/base/utils/formats"
 
 // Manually loading environment variables as
 // this is outside of the Next.js runtime

@@ -28,6 +28,7 @@ const scAddressList = pgTable("address_lists", {
     description: text("description"),
     attempts: bigint({ mode: "bigint" }).notNull(),
     workerStatus: PG_ADDRESS_LIST_WORKER_STATUS("worker_status").notNull(),
+    latestDumpId: text("latest_dump_id"),
 
     // Flags
     isEnabled: boolean("is_enabled").notNull(),

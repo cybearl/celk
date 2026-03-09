@@ -20,10 +20,9 @@ const scConfig = pgTable("config", {
     lockNewUsers: boolean("lock_new_users").notNull(),
 
     // Global stats
-    workerReportIntervalMs: integer("worker_report_interval_ms").notNull(),
-    totalAddressesRegistered: integer("total_addresses_registered").notNull(),
-    totalAddressListsCreated: integer("total_address_lists_created").notNull(),
-    totalAttempts: bigint({ mode: "bigint" }).notNull(),
+    attempts: bigint({ mode: "bigint" }).notNull(),
+    addressesRegistered: integer("addresses_registered").notNull(),
+    addressListsCreated: integer("address_lists_created").notNull(),
 
     // Limits
     maxAddressesPerUser: integer("max_addresses_per_user").notNull(),
@@ -33,6 +32,8 @@ const scConfig = pgTable("config", {
 
     // Worker
     balanceRefreshDelayMs: integer("balance_refresh_delay_ms").notNull(),
+    workerPollIntervalMs: integer("worker_poll_interval_ms").notNull(),
+    workerReportIntervalMs: integer("worker_report_interval_ms").notNull(),
 
     // Timestamps
     updatedAt: timestamp("updated_at").notNull().defaultNow(),
@@ -47,7 +48,7 @@ export type ConfigInsertModel = InferInsertModel<typeof scConfig>
  * A JSON-serializable version of the `ConfigSelectModel` for use in `getServerSideProps` props,
  * `BigInt` fields become strings, date fields become ISO strings.
  */
-export type SerializedConfigSelectModel = Omit<ConfigSelectModel, "totalAttempts" | "updatedAt"> & {
-    totalAttempts: string
+export type SerializedConfigSelectModel = Omit<ConfigSelectModel, "attempts" | "updatedAt"> & {
+    attempts: string
     updatedAt: string
 }
