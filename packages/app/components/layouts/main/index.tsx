@@ -21,7 +21,7 @@ export default function MainLayout({ topRightSection, bottomLeftSection, childre
 
     const prevSessionRef = useRef(session)
 
-    const { currentTab: currentPage, onTabChange: onPageChange } = useTabs(
+    const { currentTab: currentPage, handleTabChange: handlePageChange } = useTabs(
         MAIN_LAYOUT_PAGE,
         session ? MAIN_LAYOUT_PAGE.DASHBOARD : MAIN_LAYOUT_PAGE.HOME,
         "url",
@@ -36,9 +36,9 @@ export default function MainLayout({ topRightSection, bottomLeftSection, childre
         // Prevents running this at every mount, only run when the
         // session state changes (i.e. user logs in or out)
         if (!prevSession && session) {
-            onPageChange(MAIN_LAYOUT_PAGE.DASHBOARD)
+            handlePageChange(MAIN_LAYOUT_PAGE.DASHBOARD)
         } else if (prevSession && !session && LOGGED_IN_ONLY_PAGES.includes(currentPage)) {
-            onPageChange(MAIN_LAYOUT_PAGE.HOME)
+            handlePageChange(MAIN_LAYOUT_PAGE.HOME)
         }
     }, [session])
 
@@ -69,7 +69,7 @@ export default function MainLayout({ topRightSection, bottomLeftSection, childre
                 </MainLayoutSection>
             )}
 
-            <Tabs value={currentPage} onValueChange={value => onPageChange(value as MAIN_LAYOUT_PAGE)}>
+            <Tabs value={currentPage} onValueChange={value => handlePageChange(value as MAIN_LAYOUT_PAGE)}>
                 <MainLayoutSection position="top-left">
                     <TabsList>
                         <TabsTrigger value={MAIN_LAYOUT_PAGE.HOME} asChild>

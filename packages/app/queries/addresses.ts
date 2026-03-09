@@ -10,6 +10,15 @@ export async function getAddresses() {
 }
 
 /**
+ * Retrieves all addresses for a specific address list by sending a query request to the tRPC API.
+ * @param listId The ID of the address list to retrieve addresses from.
+ * @returns An array of address objects returned from the API.
+ */
+export async function getAddressesByListId(listId: string) {
+    return await trpcClient.addresses.getByListId.query({ listId })
+}
+
+/**
  * Creates a new address by sending a mutation request to the tRPC API.
  * @param data The data for the new address.
  * @returns The created address object returned from the API.

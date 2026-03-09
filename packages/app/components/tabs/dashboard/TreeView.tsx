@@ -222,7 +222,7 @@ export default function TreeViewDashboardTab({ addresses }: TreeViewDashboardTab
      * Handles highlighting an entry when its legend item is clicked.
      * @param index The index of the entry to highlight, or null to clear highlighting.
      */
-    const onHighlightEntry = (index: number | null) => {
+    const handleHighlightEntry = (index: number | null) => {
         setHighlightedEntryIndex(index)
         if (index !== null) {
             localStorage.setItem(
@@ -266,7 +266,7 @@ export default function TreeViewDashboardTab({ addresses }: TreeViewDashboardTab
                         variant="outline"
                         className="size-8 border-border"
                         size="icon"
-                        onClick={() => onHighlightEntry(null)}
+                        onClick={() => handleHighlightEntry(null)}
                     >
                         <X />
                     </Button>
@@ -277,7 +277,7 @@ export default function TreeViewDashboardTab({ addresses }: TreeViewDashboardTab
                             entry={entry}
                             entryIndex={index}
                             isHighlighted={highlightedEntryIndex === index}
-                            onClick={onHighlightEntry}
+                            onClick={handleHighlightEntry}
                         />
                     ))}
                 </div>

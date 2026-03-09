@@ -4,3 +4,25 @@
   <h2 align="center">@cybearl/celk</h2>
   <p align="center">A small application for trying to brute-force a set of Ethereum addresses.</p>
 </p>
+
+```typescript
+if (latestDumpId) {
+    if (dump.id === latestDumpId) {
+        if (!worker.isRunning) worker.start()
+    } else {
+        generateDump().then((dump) => {
+            latestDumpId = dump.id
+        })
+
+        if (worker.isRunning) worker.stop()
+        worker.start() // With latest dump
+    }
+} else {
+    generateDump().then((dump) => {
+        latestDumpId = dump.id
+    })
+
+    if (worker.isRunning) worker.stop()
+    worker.start() // With latest dump
+}
+```

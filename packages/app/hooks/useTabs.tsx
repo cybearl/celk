@@ -37,7 +37,7 @@ export default function useTabs<T extends Record<string, string>>(
     /**
      * Handles tab changes by updating the URL search parameters.
      */
-    const onTabChange = useCallback(
+    const handleTabChange = useCallback(
         (tab: T[keyof T]) => {
             // Disable URL updates in state mode
             if (mode === "state") return
@@ -53,7 +53,11 @@ export default function useTabs<T extends Record<string, string>>(
     )
 
     // Ensure the URL is in sync with the initial tab on mount
-    useEffect(() => onTabChange(initialTab), [initialTab, onTabChange])
+    useEffect(() => handleTabChange(initialTab), [initialTab, handleTabChange])
 
-    return { initialTab, currentTab, onTabChange }
+    return {
+        initialTab,
+        currentTab,
+        handleTabChange,
+    }
 }

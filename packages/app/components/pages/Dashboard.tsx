@@ -34,16 +34,20 @@ export default function DashboardPage({ config, initialAddresses, initialAddress
     const { data: addresses } = useAddresses(initialAddresses as unknown as AddressSelectModel[])
     const { data: addressLists } = useAddressLists(initialAddressLists as unknown as AddressListSelectModel[])
 
-    const { currentTab, onTabChange } = useTabs(DASHBOARD_TAB, DASHBOARD_TAB.ADDRESSES, "url", "dashboard-tab")
+    const { currentTab, handleTabChange } = useTabs(DASHBOARD_TAB, DASHBOARD_TAB.ADDRESSES, "url", "dashboard-tab")
 
     return (
         <div className="h-full">
-            <Tabs value={currentTab} onValueChange={value => onTabChange(value as DASHBOARD_TAB)} className="h-full">
+            <Tabs
+                value={currentTab}
+                onValueChange={value => handleTabChange(value as DASHBOARD_TAB)}
+                className="h-full"
+            >
                 <div className="relative flex justify-center items-center">
                     <div className="absolute bg-foreground h-0.5 inset-x-0 mt-0.5 hidden sm:block" />
 
                     <div className="sm:hidden w-full pb-2">
-                        <Select value={currentTab} onValueChange={value => onTabChange(value as DASHBOARD_TAB)}>
+                        <Select value={currentTab} onValueChange={value => handleTabChange(value as DASHBOARD_TAB)}>
                             <SelectTrigger className="w-full" size="xs">
                                 <SelectValue />
                             </SelectTrigger>

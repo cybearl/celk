@@ -42,7 +42,7 @@ export const getServerSideProps = withSession<HomepageProps>(async (ctx, session
         const configRow = await caller.config.get()
         initialConfig = {
             ...configRow,
-            totalAttempts: configRow.totalAttempts.toString(),
+            attempts: configRow.attempts.toString(),
             updatedAt: configRow.updatedAt.toISOString(),
         }
 
@@ -83,9 +83,7 @@ export default function Homepage({ initialConfig, initialAddresses, initialAddre
     return (
         <MainLayout
             topRightSection={
-                <p className="text-foreground font-medium px-4">
-                    {(config?.totalAttempts ?? 0n).toLocaleString("en-US")}
-                </p>
+                <p className="text-foreground font-medium px-4">{(config?.attempts ?? 0n).toLocaleString("en-US")}</p>
             }
             bottomLeftSection={
                 <p className="text-foreground font-medium pb-1.5 px-4">@cybearl/celk :: {PUBLIC_ENV.version}</p>

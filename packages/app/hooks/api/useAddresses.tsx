@@ -1,5 +1,5 @@
 import type { AddressSelectModel } from "@app/db/schema/address"
-import { getAddressById, getAddresses } from "@app/queries/addresses"
+import { getAddressById, getAddresses, getAddressesByListId } from "@app/queries/addresses"
 import useSWR from "swr"
 
 /**
@@ -9,6 +9,17 @@ import useSWR from "swr"
  */
 export function useAddresses(initialData?: AddressSelectModel[] | null) {
     const swr = useSWR(["addresses"], getAddresses, { fallbackData: initialData ?? undefined })
+    return { ...swr, data: swr.data ?? null }
+}
+
+/**
+ * Retrieves all addresses for a specific address list by sending a query request to the tRPC API.
+ * @param listId The ID of the address list to retrieve addresses from.
+ * @returns An array of address objects returned from the API.
+ */
+export function useAddressesByListId(listId?: string | null, initialData?: AddressSelectModel[] | null) {
+    const key = listId ? ["addresses", "listId", listId] : null
+    const swr = useSWR(key, () => getAddressesByListId(listId!), { fallbackData: initialData ?? undefined })
     return { ...swr, data: swr.data ?? null }
 }
 

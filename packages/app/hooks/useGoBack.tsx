@@ -15,7 +15,7 @@ export default function useGoBack() {
      * Triggers a `router.back()` followed by a `router.push("/")` if a `setTimeout` ends up triggering
      * because the `router.back()` did not work.
      */
-    const onGoBack = useCallback(() => {
+    const handleGoBack = useCallback(() => {
         if (isTriggered) return
 
         if (window.history?.length && window.history.length > 1) router.back()
@@ -36,5 +36,5 @@ export default function useGoBack() {
         return () => clearTimeout(timeoutId)
     }, [isTriggered, lastRoute, router])
 
-    return { onGoBack }
+    return { handleGoBack }
 }

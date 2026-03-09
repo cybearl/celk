@@ -48,11 +48,10 @@ export default function AddressesTable({ config, addresses }: AddressesTableProp
     return (
         <Table className="border">
             <TableCaption className="pb-4">
-                {!addresses || addresses.length === 0
-                    ? "No addresses found."
-                    : dedent`${addresses.length}${config?.maxAddressesPerUser ? ` / ${config.maxAddressesPerUser}` : ""}
-                            address${config?.maxAddressesPerUser !== undefined || addresses.length > 1 ? "es" : ""}
-                            registered.`}
+                <p className="text-sm text-muted-foreground">
+                    &gt;{" "}
+                    {`Registered: ${addresses?.length ?? 0}${config?.maxAddressesPerUser ? ` / ${config.maxAddressesPerUser}` : ""}`}
+                </p>
             </TableCaption>
 
             <TableHeader>

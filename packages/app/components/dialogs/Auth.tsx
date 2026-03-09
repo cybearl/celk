@@ -110,7 +110,7 @@ export default function AuthDialog() {
      * while also saving the email address so the user can resend the email.
      * @param email The email address to send the password reset link to.
      */
-    const onForgotPasswordEmailSent = useCallback((email: string) => {
+    const handleForgotPasswordEmailSent = useCallback((email: string) => {
         setForgotPasswordEmail(email)
         setMode("forgot-password-email-sent")
     }, [])
@@ -249,7 +249,7 @@ export default function AuthDialog() {
                                 </div>
                             </DialogFooter>
                         )}
-                        onSuccess={email => onForgotPasswordEmailSent(email)}
+                        onSuccess={email => handleForgotPasswordEmailSent(email)}
                     />
                 )
             case "forgot-password-email-sent":
@@ -292,7 +292,7 @@ export default function AuthDialog() {
                     />
                 )
         }
-    }, [mode, resetToken, signUpEmail, forgotPasswordEmail, handleOpenChange, onForgotPasswordEmailSent])
+    }, [mode, resetToken, signUpEmail, forgotPasswordEmail, handleOpenChange, handleForgotPasswordEmailSent])
 
     return (
         <div className="w-full h-full flex flex-col items-center justify-center px-1">
