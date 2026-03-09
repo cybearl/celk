@@ -34,7 +34,9 @@ export function checkEnvironmentVariables() {
             throw new Error(`Missing required environment variables: ${missingVars.join(", ")}`)
         }
     } else {
-        console.log(`${READY}All required environment variables are set for the '${environment}' environment.`)
+        console.log(
+            `${environment === "server" ? READY : ""}All required environment variables are set for the '${environment}' environment.`,
+        )
     }
 
     // Check if any private env vars somehow ended up in the public vars

@@ -17,7 +17,7 @@ export type StartWorkerMessage = {
     listId: string
     reportIntervalMs: number
     stopOnFirstMatch: boolean
-    addresses: Array<{ type: string; value: string }>
+    addressesDumpPath: string
 }
 
 /**

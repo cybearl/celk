@@ -1,20 +1,56 @@
 import scAddress, { ADDRESS_NETWORK, ADDRESS_TYPE } from "@app/db/schema/address"
+import scAddressList from "@app/db/schema/addressList"
+import scPvtAddressListMember from "@app/db/schema/addressListMember"
 import scConfig, { CONFIG_ID } from "@app/db/schema/config"
 import { convertBytesToHexAddress, decodeBitcoinAddress, isValidCryptoAddress } from "@app/lib/base/utils/addresses"
 import { db } from "@app/lib/server/connectors/db"
 import { protectedProcedure, router } from "@app/lib/server/trpc/trpc"
 import { TRPCError } from "@trpc/server"
-import { and, count, eq } from "drizzle-orm"
+import { and, count, eq, getTableColumns } from "drizzle-orm"
 import z from "zod"
 
 /**
  * The router for managing addresses.
  */
 export const addressesRouter = router({
+    /**
+     * Retrieve all addresses belonging to the current user.
+     * @param ctx The request context.
+     * @returns An array of address objects.
+     */
     getAll: protectedProcedure.query(async ({ ctx }) => {
         return await db.select().from(scAddress).where(eq(scAddress.userId, ctx.session.user.id))
     }),
 
+    /**
+     * Retrieves all addresses belonging to a specific address list.
+     * @param ctx The request context.
+     * @param input The input object containing the list ID.
+     * @returns An array of address objects.
+     */
+    getByListId: protectedProcedure.input(z.object({ listId: z.string() })).query(async ({ ctx, input }) => {
+        const [list] = await db
+            .select({ id: scAddressList.id })
+            .from(scAddressList)
+            .where(and(eq(scAddressList.id, input.listId), eq(scAddressList.userId, ctx.session.user.id)))
+            .limit(1)
+
+        if (!list) throw new TRPCError({ code: "NOT_FOUND" })
+
+        return await db
+            .select(getTableColumns(scAddress)) // Filters out the inner join columns
+            .from(scAddress)
+            .innerJoin(scPvtAddressListMember, eq(scPvtAddressListMember.addressId, scAddress.id))
+            .where(eq(scPvtAddressListMember.addressListId, input.listId))
+    }),
+
+    /**
+     * Create a new crypto address for the current user after validating its format and checksum,
+     * also automatically computes the pre-encoding for Bitcoin addresses.
+     * @param ctx The request context.
+     * @param input The input object containing the address details.
+     * @returns The created address object.
+     */
     create: protectedProcedure
         .input(
             z.object({
@@ -75,6 +111,12 @@ export const addressesRouter = router({
             return address
         }),
 
+    /**
+     * Retrieves an address by its ID.
+     * @param ctx The request context.
+     * @param input The input object containing the address ID.
+     * @returns The address object.
+     */
     getById: protectedProcedure.input(z.object({ id: z.string() })).query(async ({ ctx, input }) => {
         const [address] = await db
             .select()
@@ -87,12 +129,20 @@ export const addressesRouter = router({
         return address
     }),
 
+    /**
+     * Deletes an address by its ID.
+     * @param ctx The request context.
+     * @param input The input object containing the address ID.
+     */
     deleteById: protectedProcedure.input(z.object({ id: z.string() })).mutation(async ({ ctx, input }) => {
         const result = await db
             .delete(scAddress)
             .where(and(eq(scAddress.id, input.id), eq(scAddress.userId, ctx.session.user.id)))
 
         if (result.rowCount === 0) throw new TRPCError({ code: "NOT_FOUND" })
-        return { success: true }
+
+        return {
+            success: true,
+        }
     }),
 })

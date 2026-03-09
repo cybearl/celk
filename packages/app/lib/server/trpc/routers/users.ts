@@ -1,11 +1,11 @@
 import scRoles from "@app/db/schema/role"
 import scUser from "@app/db/schema/user"
 import scUserRoles from "@app/db/schema/userRoles"
-import { db } from "@app/lib/server/connectors/db"
 import { normalizeUsername } from "@app/lib/base/utils/auth"
+import { db } from "@app/lib/server/connectors/db"
 import { adminProcedure, protectedProcedure, router } from "@app/lib/server/trpc/trpc"
-import { TRPCError } from "@trpc/server"
 import { CyCONSTANTS } from "@cybearl/cypack"
+import { TRPCError } from "@trpc/server"
 import { and, eq, inArray, ne } from "drizzle-orm"
 import z from "zod"
 
@@ -13,6 +13,12 @@ import z from "zod"
  * The router for user management (self-service and admin).
  */
 export const usersRouter = router({
+    /**
+     * Updates the current user's username and display name.
+     * @param ctx The request context.
+     * @param input The input object containing the new username and display name.
+     * @returns The updated user object.
+     */
     updateInfo: protectedProcedure
         .input(
             z.object({
@@ -46,15 +52,25 @@ export const usersRouter = router({
             return updated
         }),
 
+    /**
+     * Deletes the current user's account and all their role assignments in a single transaction.
+     * @param ctx The request context.
+     */
     deleteAccount: protectedProcedure.mutation(async ({ ctx }) => {
         await db.transaction(async tx => {
             await tx.delete(scUserRoles).where(eq(scUserRoles.userId, ctx.session.user.id))
             await tx.delete(scUser).where(eq(scUser.id, ctx.session.user.id))
         })
 
-        return { success: true }
+        return {
+            success: true,
+        }
     }),
 
+    /**
+     * [ADMIN] Replaces the target user's roles with the provided set of role slugs.
+     * @param input The input object containing the target user ID and the new set of role slugs.
+     */
     setRoles: adminProcedure
         .input(
             z.object({
@@ -88,9 +104,16 @@ export const usersRouter = router({
                 }
             })
 
-            return { success: true }
+            return {
+                success: true,
+            }
         }),
 
+    /**
+     * [ADMIN] Sets the locked state of the target user.
+     * @param ctx The request context.
+     * @param input The input object containing the user ID and the new locked state.
+     */
     setLocked: adminProcedure
         .input(
             z.object({

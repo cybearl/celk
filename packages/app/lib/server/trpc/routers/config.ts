@@ -10,12 +10,21 @@ import z from "zod"
  * All procedures are restricted to admin users.
  */
 export const configRouter = router({
+    /**
+     * Retrieves the application config row.
+     * @returns The config object.
+     */
     get: publicProcedure.query(async () => {
         const [config] = await db.select().from(scConfig).where(eq(scConfig.id, CONFIG_ID)).limit(1)
         if (!config) throw new TRPCError({ code: "NOT_FOUND", message: "Config row not found: run the seeder." })
         return config
     }),
 
+    /**
+     * [ADMIN] Updates the application config with the provided fields.
+     * @param input The input object containing the config fields to update.
+     * @returns The updated config object.
+     */
     update: adminProcedure
         .input(
             z.object({

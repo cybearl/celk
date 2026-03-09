@@ -64,12 +64,6 @@ export const authOptions = {
     databaseHooks: {
         user: {
             create: {
-                before: async user => ({
-                    data: {
-                        ...user,
-                        isLocked: PUBLIC_ENV.lockNewUsers,
-                    },
-                }),
                 after: async user => {
                     const userRole = await db
                         .select()

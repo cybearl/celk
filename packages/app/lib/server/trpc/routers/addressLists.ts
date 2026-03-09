@@ -5,17 +5,45 @@ import scConfig, { CONFIG_ID } from "@app/db/schema/config"
 import { db } from "@app/lib/server/connectors/db"
 import { protectedProcedure, router } from "@app/lib/server/trpc/trpc"
 import { TRPCError } from "@trpc/server"
-import { and, count, eq, inArray } from "drizzle-orm"
+import { and, asc, count, eq, inArray } from "drizzle-orm"
 import z from "zod"
 
 /**
  * The router for managing address lists.
  */
 export const addressListsRouter = router({
+    /**
+     * Retrieves all address lists belonging to the current user.
+     * @param ctx The request context.
+     * @returns An array of address list objects.
+     */
     getAll: protectedProcedure.query(async ({ ctx }) => {
-        return await db.select().from(scAddressList).where(eq(scAddressList.userId, ctx.session.user.id))
+        return await db
+            .select()
+            .from(scAddressList)
+            .where(eq(scAddressList.userId, ctx.session.user.id))
+            .orderBy(asc(scAddressList.createdAt))
     }),
 
+    /**
+     * Retrieves all currently enabled address lists belonging to the current user.
+     * @param ctx The request context.
+     * @returns An array of enabled address list objects.
+     */
+    getEnabled: protectedProcedure.query(async ({ ctx }) => {
+        return await db
+            .select()
+            .from(scAddressList)
+            .where(and(eq(scAddressList.userId, ctx.session.user.id), eq(scAddressList.isEnabled, true)))
+            .orderBy(asc(scAddressList.createdAt))
+    }),
+
+    /**
+     * Creates a new address list with an initial set of addresses for the current user.
+     * @param ctx The request context.
+     * @param input The input object containing the address list details.
+     * @returns The created address list object.
+     */
     create: protectedProcedure
         .input(
             z.object({
@@ -96,6 +124,12 @@ export const addressListsRouter = router({
             return addressList
         }),
 
+    /**
+     * Retrieves an address list by its ID, including the IDs of all its member addresses.
+     * @param ctx The request context.
+     * @param input The input object containing the address list ID.
+     * @returns The address list object with its member address IDs.
+     */
     getById: protectedProcedure.input(z.object({ id: z.string() })).query(async ({ ctx, input }) => {
         const [addressList] = await db
             .select()
@@ -110,18 +144,35 @@ export const addressListsRouter = router({
             .from(scPvtAddressListMember)
             .where(eq(scPvtAddressListMember.addressListId, addressList.id))
 
-        return { ...addressList, addressIds: members.map(m => m.addressId) }
+        return {
+            ...addressList,
+            addressIds: members.map(m => m.addressId),
+        }
     }),
 
+    /**
+     * Deletes an address list by its ID.
+     * @param ctx The request context.
+     * @param input The input object containing the address list ID.
+     */
     deleteById: protectedProcedure.input(z.object({ id: z.string() })).mutation(async ({ ctx, input }) => {
         const result = await db
             .delete(scAddressList)
             .where(and(eq(scAddressList.id, input.id), eq(scAddressList.userId, ctx.session.user.id)))
 
         if (result.rowCount === 0) throw new TRPCError({ code: "NOT_FOUND" })
-        return { success: true }
+
+        return {
+            success: true,
+        }
     }),
 
+    /**
+     * Adds an address to an address list.
+     * @param ctx The request context.
+     * @param input The input object containing the address list ID and address ID.
+     * @returns The created membership record.
+     */
     addAddress: protectedProcedure
         .input(z.object({ id: z.string(), addressId: z.string() }))
         .mutation(async ({ ctx, input }) => {
@@ -171,9 +222,17 @@ export const addressListsRouter = router({
                 })
                 .returning()
 
+            // Nullify the latest dump ID
+            await db.update(scAddressList).set({ latestDumpId: null }).where(eq(scAddressList.id, input.id))
+
             return member
         }),
 
+    /**
+     * Removes an address from an address list.
+     * @param ctx The request context.
+     * @param input The input object containing the address list ID and address ID.
+     */
     removeAddress: protectedProcedure
         .input(z.object({ id: z.string(), addressId: z.string() }))
         .mutation(async ({ ctx, input }) => {
@@ -195,6 +254,90 @@ export const addressListsRouter = router({
                 )
 
             if (result.rowCount === 0) throw new TRPCError({ code: "NOT_FOUND" })
-            return { success: true }
+
+            // Nullify the latest dump ID
+            await db.update(scAddressList).set({ latestDumpId: null }).where(eq(scAddressList.id, input.id))
+
+            return {
+                success: true,
+            }
         }),
+
+    /**
+     * Enables an address list by taking the config's `maxRunningAddressListsPerUser` limitation into account.
+     * @param ctx The request context.
+     * @param input The input object containing the address list ID.
+     * @returns The updated address list object.
+     */
+    enable: protectedProcedure.input(z.object({ id: z.string() })).mutation(async ({ ctx, input }) => {
+        const [[addressList], [{ enabledCount }], [config]] = await Promise.all([
+            db
+                .select({ id: scAddressList.id, isEnabled: scAddressList.isEnabled })
+                .from(scAddressList)
+                .where(and(eq(scAddressList.id, input.id), eq(scAddressList.userId, ctx.session.user.id)))
+                .limit(1),
+            db
+                .select({ enabledCount: count() })
+                .from(scAddressList)
+                .where(and(eq(scAddressList.userId, ctx.session.user.id), eq(scAddressList.isEnabled, true))),
+            db
+                .select({ maxRunningAddressListsPerUser: scConfig.maxRunningAddressListsPerUser })
+                .from(scConfig)
+                .where(eq(scConfig.id, CONFIG_ID))
+                .limit(1),
+        ])
+
+        if (!addressList) throw new TRPCError({ code: "NOT_FOUND" })
+
+        if (!config) {
+            throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "Config not found: run the seeder." })
+        }
+
+        if (addressList.isEnabled) {
+            throw new TRPCError({ code: "CONFLICT", message: "Address list is already enabled." })
+        }
+
+        if (enabledCount >= config.maxRunningAddressListsPerUser) {
+            throw new TRPCError({
+                code: "FORBIDDEN",
+                message: "You have reached the maximum number of running address lists allowed.",
+            })
+        }
+
+        const [updated] = await db
+            .update(scAddressList)
+            .set({ isEnabled: true })
+            .where(eq(scAddressList.id, input.id))
+            .returning()
+
+        return updated
+    }),
+
+    /**
+     * Disables an address list by its ID.
+     * @param ctx The request context.
+     * @param input The input object containing the address list ID.
+     * @returns The updated address list object.
+     */
+    disable: protectedProcedure.input(z.object({ id: z.string() })).mutation(async ({ ctx, input }) => {
+        const [addressList] = await db
+            .select({ id: scAddressList.id, isEnabled: scAddressList.isEnabled })
+            .from(scAddressList)
+            .where(and(eq(scAddressList.id, input.id), eq(scAddressList.userId, ctx.session.user.id)))
+            .limit(1)
+
+        if (!addressList) throw new TRPCError({ code: "NOT_FOUND" })
+
+        if (!addressList.isEnabled) {
+            throw new TRPCError({ code: "CONFLICT", message: "Address list is already disabled." })
+        }
+
+        const [updated] = await db
+            .update(scAddressList)
+            .set({ isEnabled: false })
+            .where(eq(scAddressList.id, input.id))
+            .returning()
+
+        return updated
+    }),
 })
