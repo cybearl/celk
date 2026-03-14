@@ -7,7 +7,7 @@ import type { AddressListSelectModel } from "@app/db/schema/addressList"
 import type { ConfigSelectModel } from "@app/db/schema/config"
 import { deleteAddressListById, disableAddressList, enableAddressList } from "@app/queries/addressLists"
 import dedent from "dedent"
-import { Trash } from "lucide-react"
+import { TrashIcon } from "lucide-react"
 import { useCallback, useEffect, useState } from "react"
 
 type AddressListsTableProps = {
@@ -128,7 +128,7 @@ export default function AddressListsTable({ config, addressLists }: AddressLists
                                 onConfirm={() => handleDeleteAddressList(addressList.id)}
                             >
                                 <Button variant="ghost" size="icon-sm">
-                                    <Trash />
+                                    <TrashIcon />
                                 </Button>
                             </ConfirmationDialog>
                         </TableCell>

@@ -14,7 +14,7 @@ import type { ConfigSelectModel } from "@app/db/schema/config"
 import { createAddressList } from "@app/queries/addressLists"
 import { DialogTrigger } from "@radix-ui/react-dialog"
 import { TRPCClientError } from "@trpc/client"
-import { Scroll } from "lucide-react"
+import { ScrollIcon } from "lucide-react"
 import { useCallback, useState } from "react"
 
 type AddAddressListDialogProps = {
@@ -108,7 +108,7 @@ export default function AddAddressListDialog({
 
             <DialogTrigger asChild>
                 <Button size="sm">
-                    <Scroll />
+                    <ScrollIcon />
                     Create List
                 </Button>
             </DialogTrigger>

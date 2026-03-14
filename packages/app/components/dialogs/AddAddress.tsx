@@ -15,7 +15,7 @@ import type { ConfigSelectModel } from "@app/db/schema/config"
 import { createAddress } from "@app/queries/addresses"
 import { DialogTrigger } from "@radix-ui/react-dialog"
 import { TRPCClientError } from "@trpc/client"
-import { Plus } from "lucide-react"
+import { PlusIcon } from "lucide-react"
 import { useCallback, useState } from "react"
 
 type AddAddressDialogProps = {
@@ -119,7 +119,7 @@ export default function AddAddressDialog({ config, addresses, onSuccess }: AddAd
                     size="sm"
                     disabled={addresses !== null && config !== null && addresses.length >= config.maxAddressesPerUser}
                 >
-                    <Plus />
+                    <PlusIcon />
                     Add Address
                 </Button>
             </DialogTrigger>

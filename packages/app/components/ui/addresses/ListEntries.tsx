@@ -3,7 +3,7 @@ import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectVa
 import type { AddressSelectModel } from "@app/db/schema/address"
 import type { ConfigSelectModel } from "@app/db/schema/config"
 import { getFormattedAddressNetwork, getFormattedAddressType } from "@app/lib/base/utils/addresses"
-import { Trash } from "lucide-react"
+import { TrashIcon } from "lucide-react"
 import { useCallback, useState } from "react"
 
 type AddressListEntriesProps = {
@@ -87,7 +87,7 @@ export default function AddressListEntries({ config, addresses, value, onChange 
                                 size="icon-sm"
                                 onClick={() => handleRemove(address.id)}
                             >
-                                <Trash />
+                                <TrashIcon />
                             </Button>
                         </div>
                     ))}
@@ -96,7 +96,7 @@ export default function AddressListEntries({ config, addresses, value, onChange 
                         {config !== null && addresses !== null
                             ? `${selectedAddresses.length} ${
                                   config.maxAddressesPerList !== undefined ? ` / ${config.maxAddressesPerList}` : ""
-                              } address${config.maxAddressesPerList !== undefined || addresses.length > 1 ? "es" : ""} allowed.`
+                              } address${config.maxAddressesPerList !== undefined || selectedAddresses.length > 1 ? "es" : ""} allowed.`
                             : null}
                     </p>
                 </div>

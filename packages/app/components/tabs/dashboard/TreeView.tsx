@@ -9,7 +9,7 @@ import { convertAddressToBytes, convertHexAddressToBytes } from "@app/lib/base/u
 import { extractNumberFromLocalStorage } from "@app/lib/base/utils/localStorage"
 import { applyHexColorOpacity, invertHexColor } from "@app/lib/base/utils/miscellaneous"
 import ColorHash from "color-hash"
-import { X } from "lucide-react"
+import { XIcon } from "lucide-react"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 
 /**
@@ -268,7 +268,7 @@ export default function TreeViewDashboardTab({ addresses }: TreeViewDashboardTab
                         size="icon"
                         onClick={() => handleHighlightEntry(null)}
                     >
-                        <X />
+                        <XIcon />
                     </Button>
 
                     {entries.map((entry, index) => (

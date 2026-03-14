@@ -12,7 +12,7 @@ import {
 } from "@app/lib/base/utils/addresses"
 import { deleteAddressById } from "@app/queries/addresses"
 import dedent from "dedent"
-import { Link, Trash } from "lucide-react"
+import { LinkIcon, TrashIcon } from "lucide-react"
 import { useCallback, useMemo } from "react"
 
 type AddressesTableProps = {
@@ -101,7 +101,7 @@ export default function AddressesTable({ config, addresses }: AddressesTableProp
                                     target="_blank"
                                     href={addressExplorerUrlsMap[address.id] ?? window.location.href}
                                 >
-                                    <Link />
+                                    <LinkIcon />
                                 </LinkButton>
                             )}
 
@@ -116,7 +116,7 @@ export default function AddressesTable({ config, addresses }: AddressesTableProp
                                 onConfirm={() => handleDeleteAddress(address.id)}
                             >
                                 <Button variant="ghost" size="icon-sm">
-                                    <Trash />
+                                    <TrashIcon />
                                 </Button>
                             </ConfirmationDialog>
                         </TableCell>
