@@ -10,7 +10,7 @@ export async function register() {
         const { seedDefaultAdminUser } = await import("@app/lib/server/utils/users")
         await seedDefaultAdminUser()
 
-        const { workersManager } = await import("@app/lib/server/workers/manager")
+        const { workersManager } = await import("@app/workers/manager")
         await workersManager.start()
     }
 }

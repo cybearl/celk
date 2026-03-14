@@ -2,6 +2,7 @@ import NonceProvider from "@app/components/contexts/Nonce"
 import SessionProvider from "@app/components/contexts/Session"
 import { SOURCE_CODE_PRO } from "@app/config/fonts"
 import { checkEnvironmentVariables } from "@app/lib/base/utils/env"
+import { logger } from "@app/lib/base/utils/logger"
 import { cn } from "@app/lib/client/utils/styling"
 import type { Session } from "@app/types/auth"
 import type { AppContext as NextAppContext, AppProps as NextAppProps } from "next/app"
@@ -70,7 +71,7 @@ App.getInitialProps = async (appContext: NextAppContext) => {
             const sessionData = await auth.api.getSession({ headers })
             if (sessionData) initialSession = sessionData
         } catch (error) {
-            console.debug("Failed to load session on server-side:", error)
+            logger.warn(`Failed to load session on server-side`, { data: error })
         }
     }
 

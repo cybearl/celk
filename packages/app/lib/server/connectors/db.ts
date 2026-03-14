@@ -17,6 +17,7 @@ export const dbClient =
         },
     })
 
+// Writing back to the global variable
 if (process.env.NODE_ENV !== "production") globalDbClient.client = dbClient
 
 export const db = drizzle(dbClient, { schema })

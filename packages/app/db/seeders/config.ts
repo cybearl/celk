@@ -24,10 +24,15 @@ export default async function seedConfig() {
             maxAddressesPerList: 1024,
             maxRunningAddressListsPerUser: 1,
 
-            // Worker
+            // Workers manager intervals
             balanceRefreshDelayMs: 43_200_000, // 12 hours
             workerPollIntervalMs: 10_000, // 10 seconds
             workerReportIntervalMs: 60_000, // 1 minute
+
+            // Workers manager sync settings
+            maxSyncRetries: 5,
+            syncRetryBaseDelayMs: 5000, // 5 seconds
+            syncRetryMaxDelayMs: 3_600_000, // 1 hour
         })
         .onConflictDoNothing()
 }

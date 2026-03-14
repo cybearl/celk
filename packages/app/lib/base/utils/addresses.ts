@@ -129,9 +129,9 @@ export function getAddressExplorerUrl(address: string, network: ADDRESS_NETWORK)
 }
 
 /**
- * Converts a hex string (with or without "0x" prefix) to a Uint8Array of bytes.
+ * Converts a hex string (with or without "0x" prefix) to a `Uint8Array` of bytes.
  * @param hexAddress The hex string to convert.
- * @return A Uint8Array containing the bytes represented by the hex string.
+ * @return A `Uint8Array` containing the bytes represented by the hex string.
  */
 export function convertHexAddressToBytes(hexAddress: string): Uint8Array {
     // Remove "0x" prefix and whitespace
@@ -156,7 +156,7 @@ export function convertHexAddressToBytes(hexAddress: string): Uint8Array {
 const HEX_LOOKUP = Array.from({ length: 256 }, (_, i) => i.toString(16).padStart(2, "0"))
 
 /**
- * Converts a Uint8Array of bytes to a lowercase hex string (no "0x" prefix).
+ * Converts a `Uint8Array` of bytes to a lowercase hex string (no "0x" prefix).
  * Uses a precomputed lookup table to avoid per-byte `toString(16)` + padding overhead.
  * @param bytes The bytes to convert.
  * @returns A lowercase hex string.
@@ -168,10 +168,10 @@ export function convertBytesToHexAddress(bytes: Uint8Array): string {
 }
 
 /**
- * Converts a Bitcoin or Ethereum address to a Uint8Array of bytes.
+ * Converts a Bitcoin or Ethereum address into a `Uint8Array` of bytes.
  * @param address The address to convert.
- * @returns A Uint8Array containing the bytes represented by the address,
- * or null if the format is unrecognized.
+ * @returns A `Uint8Array` containing the bytes represented by the address, or
+ * its pre-encoded form if available, and null if the format is unrecognized.
  */
 export function convertAddressToBytes(address: AddressSelectModel): Uint8Array | null {
     // Prefer pre-encoding (raw bytes before Base58/encoding)
@@ -186,7 +186,7 @@ export function convertAddressToBytes(address: AddressSelectModel): Uint8Array |
 /**
  * Decodes the payload of a Base58Check-encoded string.
  * @param value The Base58Check-encoded string to decode.
- * @returns The decoded payload as a Uint8Array, or null if the input is invalid.
+ * @returns The decoded payload as a `Uint8Array`, or null if the input is invalid.
  */
 function decodeBase58CheckPayload(value: string): Uint8Array | null {
     try {

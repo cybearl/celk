@@ -1,8 +1,8 @@
 import { PRIVATE_ENV } from "@app/config/env"
-import { READY } from "@app/lib/base/utils/formats"
 import scUser from "@app/db/schema/user"
 import auth from "@app/lib/auth"
 import { normalizeUser } from "@app/lib/base/utils/auth"
+import { logger } from "@app/lib/base/utils/logger"
 import { db } from "@app/lib/server/connectors/db"
 import type { SignUpResponse } from "@app/types/auth"
 import { eq } from "drizzle-orm"
@@ -34,11 +34,11 @@ export async function seedDefaultAdminUser() {
             user: normalizeUser(rawResponse.user),
         }
 
-        if (response) console.log(`${READY}The default admin user has successfully been seeded.`)
+        if (response) logger.success(`The default admin user has successfully been seeded.`)
     } catch (error) {
         // Only log if it's not just because the user has already been seeded
         if (!(error instanceof Error) || !error.message.includes("Username is already taken.")) {
-            console.error("An error occurred while trying to seed the default admin user:", error)
+            logger.error(`An error occurred while trying to seed the default admin user`, { data: error })
         }
     }
 

@@ -1,3 +1,4 @@
+import { logger } from "@app/lib/base/utils/logger"
 import { dbClient } from "@app/lib/server/connectors/db"
 import { config } from "dotenv"
 import { drizzle } from "drizzle-orm/node-postgres"
@@ -18,7 +19,7 @@ async function main() {
     await dbClient.end()
 }
 
-main().catch(err => {
-    console.error(`An error occurred while trying to migrate the database: ${err.message}`)
+main().catch(error => {
+    logger.error(`An error occurred while trying to migrate the database`, { data: error })
     process.exit(1)
 })

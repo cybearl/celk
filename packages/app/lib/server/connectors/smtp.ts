@@ -20,6 +20,7 @@ const smtpTransporter =
         },
     })
 
+// Writing back to the global variable
 if (process.env.NODE_ENV !== "production") globalSmtpTransporter = smtpTransporter
 
 export default smtpTransporter

@@ -1,5 +1,5 @@
 import { ENV_RUNTIME_VALUES, REQUIRED_ENV_VARS } from "@app/config/env"
-import { READY } from "@app/lib/base/utils/formats"
+import { logger } from "@app/lib/base/utils/logger"
 
 /**
  * Check for required environment variables and throws if any are missing.
@@ -21,22 +21,20 @@ export function checkEnvironmentVariables() {
         missingVars = REQUIRED_ENV_VARS.public.filter(varName => ENV_RUNTIME_VALUES[varName] === undefined)
     } else {
         if (process.env.NODE_ENV === "production") {
-            console.error("An error occurred while checking environment variables, the environment is unknown?!")
+            logger.error(`An error occurred while checking environment variables, the environment is unknown.`)
         } else {
-            throw new Error("An error occurred while checking environment variables, the environment is unknown?!")
+            throw new Error("An error occurred while checking environment variables, the environment is unknown.")
         }
     }
 
     if (missingVars.length > 0) {
         if (process.env.NODE_ENV === "production") {
-            console.error(`Missing required environment variables: ${missingVars.join(", ")}`)
+            logger.error(`Missing required environment variables: ${missingVars.join(", ")}`)
         } else {
             throw new Error(`Missing required environment variables: ${missingVars.join(", ")}`)
         }
     } else {
-        console.log(
-            `${environment === "server" ? READY : ""}All required environment variables are set for the '${environment}' environment.`,
-        )
+        logger.success(`All required environment variables are set for the '${environment}' environment.`)
     }
 
     // Check if any private env vars somehow ended up in the public vars
@@ -47,9 +45,7 @@ export function checkEnvironmentVariables() {
 
         if (privateVarsInPublic.length > 0) {
             if (process.env.NODE_ENV === "production") {
-                console.error(
-                    `The following private environment variables are set but should not be exposed: ${privateVarsInPublic.join(", ")}`,
-                )
+                logger.error(`The following private environment variables are set but should not be exposed: ${privateVarsInPublic.join(", ")}`)
             } else {
                 throw new Error(
                     `The following private environment variables are set but should not be exposed: ${privateVarsInPublic.join(", ")}`,

@@ -30,10 +30,15 @@ const scConfig = pgTable("config", {
     maxAddressesPerList: integer("max_addresses_per_list").notNull(),
     maxRunningAddressListsPerUser: integer("max_running_address_lists_per_user").notNull(),
 
-    // Worker
+    // Workers manager intervals
     balanceRefreshDelayMs: integer("balance_refresh_delay_ms").notNull(),
     workerPollIntervalMs: integer("worker_poll_interval_ms").notNull(),
     workerReportIntervalMs: integer("worker_report_interval_ms").notNull(),
+
+    // Workers manager sync settings
+    maxSyncRetries: integer("max_sync_retries").notNull(),
+    syncRetryBaseDelayMs: integer("sync_retry_base_delay_ms").notNull(),
+    syncRetryMaxDelayMs: integer("sync_retry_max_delay_ms").notNull(),
 
     // Timestamps
     updatedAt: timestamp("updated_at").notNull().defaultNow(),

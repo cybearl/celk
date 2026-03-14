@@ -1,5 +1,5 @@
 import seeders from "@app/db/seeders"
-import { READY } from "@app/lib/base/utils/formats"
+import { logger } from "@app/lib/base/utils/logger"
 import { dbClient } from "@app/lib/server/connectors/db"
 import { config } from "dotenv"
 
@@ -17,7 +17,7 @@ const validEnvs: string[] = ["development", "production", "test"]
  */
 async function main() {
     if (!process.env.NODE_ENV || !validEnvs.includes(process.env.NODE_ENV)) {
-        console.error(`Skipping seeding process because of non-recognized 'NODE_ENV': '${process.env.NODE_ENV}'`)
+        logger.error(`Skipping seeding process because of non-recognized 'NODE_ENV': '${process.env.NODE_ENV}'.`)
 
         process.exit(1)
     }
@@ -27,17 +27,17 @@ async function main() {
         try {
             await seeder()
         } catch (error: any) {
-            console.error(`An error occurred while running seeder '${name}': ${error.message}`)
+            logger.error(`An error occurred while running seeder '${name}': ${error.message}`)
             continue
         }
 
-        console.log(`${READY}Seeder '${name}' completed successfully.`)
+        logger.success(`Seeder '${name}' completed successfully.`)
     }
 
     await dbClient.end()
 }
 
 main().catch(err => {
-    console.error(`An error occurred while trying to seed the database: ${err.message}`)
+    logger.error(`An error occurred while trying to seed the database: ${err.message}`)
     process.exit(1)
 })

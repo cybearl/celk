@@ -12,6 +12,11 @@ export const REQUIRED_ENV_VARS = {
     private: [
         "BETTER_AUTH_SECRET",
         "DATABASE_URL",
+        "DEFAULT_ADMIN_USERNAME",
+        "DEFAULT_ADMIN_DISPLAY_USERNAME",
+        "DEFAULT_ADMIN_NAME",
+        "DEFAULT_ADMIN_EMAIL",
+        "DEFAULT_ADMIN_PASSWORD",
         "SMTP_HOST",
         "SMTP_PORT",
         "SMTP_USER",
@@ -19,6 +24,8 @@ export const REQUIRED_ENV_VARS = {
         "ETHEREUM_RPC_URL",
         "POLYGON_RPC_URL",
         "BITCOIN_RPC_URL",
+        "ADDRESS_LIST_DUMP_VERSION",
+        "PRIVATE_KEYS_ENCRYPTION_SECRET",
     ],
 }
 
@@ -41,11 +48,11 @@ export const PRIVATE_ENV = {
     betterAuthSecret: process.env.BETTER_AUTH_SECRET as string,
     databaseUrl: process.env.DATABASE_URL as string,
     defaultAdmin: {
-        username: process.env.DEFAULT_ADMIN_USERNAME as string | undefined,
-        displayUsername: process.env.DEFAULT_ADMIN_DISPLAY_USERNAME as string | undefined,
-        name: process.env.DEFAULT_ADMIN_NAME as string | undefined,
-        email: process.env.DEFAULT_ADMIN_EMAIL as string | undefined,
-        password: process.env.DEFAULT_ADMIN_PASSWORD as string | undefined,
+        username: process.env.DEFAULT_ADMIN_USERNAME as string,
+        displayUsername: process.env.DEFAULT_ADMIN_DISPLAY_USERNAME as string,
+        name: process.env.DEFAULT_ADMIN_NAME as string,
+        email: process.env.DEFAULT_ADMIN_EMAIL as string,
+        password: process.env.DEFAULT_ADMIN_PASSWORD as string,
     },
     smtp: {
         host: process.env.SMTP_HOST as string | undefined,
@@ -58,6 +65,8 @@ export const PRIVATE_ENV = {
         polygon: process.env.POLYGON_RPC_URL as string | undefined,
         bitcoin: process.env.BITCOIN_RPC_URL as string | undefined,
     },
+    addressListDumpVersion: process.env.ADDRESS_LIST_DUMP_VERSION ? Number(process.env.ADDRESS_LIST_DUMP_VERSION) : 1,
+    privateKeysEncryptionSecret: process.env.PRIVATE_KEYS_ENCRYPTION_SECRET as string,
 }
 
 /**
@@ -84,4 +93,6 @@ export const ENV_RUNTIME_VALUES: Record<string, string | undefined> = {
     ETHEREUM_RPC_URL: process.env.ETHEREUM_RPC_URL,
     POLYGON_RPC_URL: process.env.POLYGON_RPC_URL,
     BITCOIN_RPC_URL: process.env.BITCOIN_RPC_URL,
+    ADDRESS_LIST_DUMP_VERSION: process.env.ADDRESS_LIST_DUMP_VERSION,
+    PRIVATE_KEYS_ENCRYPTION_SECRET: process.env.PRIVATE_KEYS_ENCRYPTION_SECRET,
 }

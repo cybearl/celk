@@ -16,7 +16,7 @@ export const addressesRouter = router({
     /**
      * Retrieve all addresses belonging to the current user.
      * @param ctx The request context.
-     * @returns An array of address objects.
+     * @returns An array of addresses.
      */
     getAll: protectedProcedure.query(async ({ ctx }) => {
         return await db.select().from(scAddress).where(eq(scAddress.userId, ctx.session.user.id))
@@ -26,7 +26,7 @@ export const addressesRouter = router({
      * Retrieves all addresses belonging to a specific address list.
      * @param ctx The request context.
      * @param input The input object containing the list ID.
-     * @returns An array of address objects.
+     * @returns An array of addresses.
      */
     getByListId: protectedProcedure.input(z.object({ listId: z.string() })).query(async ({ ctx, input }) => {
         const [list] = await db
@@ -49,7 +49,7 @@ export const addressesRouter = router({
      * also automatically computes the pre-encoding for Bitcoin addresses.
      * @param ctx The request context.
      * @param input The input object containing the address details.
-     * @returns The created address object.
+     * @returns The created address.
      */
     create: protectedProcedure
         .input(
@@ -88,10 +88,10 @@ export const addressesRouter = router({
             }
 
             // Automatically add pre-encoding to all Bitcoin addresses
-            let preEncoding: string | undefined
+            let addressPreEncoding: string | undefined
             if (input.network === ADDRESS_NETWORK.BITCOIN) {
                 const bytes = decodeBitcoinAddress(input.value)
-                if (bytes) preEncoding = convertBytesToHexAddress(bytes) ?? undefined
+                if (bytes) addressPreEncoding = convertBytesToHexAddress(bytes) ?? undefined
             }
 
             const [address] = await db
@@ -101,7 +101,7 @@ export const addressesRouter = router({
                     network: input.network,
                     type: input.type,
                     value: input.value,
-                    preEncoding,
+                    preEncoding: addressPreEncoding,
                     attempts: 0n,
                     isDisabled: false,
                     userId: ctx.session.user.id,
@@ -115,7 +115,7 @@ export const addressesRouter = router({
      * Retrieves an address by its ID.
      * @param ctx The request context.
      * @param input The input object containing the address ID.
-     * @returns The address object.
+     * @returns The address.
      */
     getById: protectedProcedure.input(z.object({ id: z.string() })).query(async ({ ctx, input }) => {
         const [address] = await db

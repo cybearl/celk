@@ -3,7 +3,7 @@ import { mutate } from "swr"
 
 /**
  * Retrieves all addresses for the current user by sending a query request to the tRPC API.
- * @returns An array of address objects returned from the API.
+ * @returns An array of address records returned from the API.
  */
 export async function getAddresses() {
     return await trpcClient.addresses.getAll.query()
@@ -12,7 +12,7 @@ export async function getAddresses() {
 /**
  * Retrieves all addresses for a specific address list by sending a query request to the tRPC API.
  * @param listId The ID of the address list to retrieve addresses from.
- * @returns An array of address objects returned from the API.
+ * @returns An array of address records returned from the API.
  */
 export async function getAddressesByListId(listId: string) {
     return await trpcClient.addresses.getByListId.query({ listId })
@@ -21,7 +21,7 @@ export async function getAddressesByListId(listId: string) {
 /**
  * Creates a new address by sending a mutation request to the tRPC API.
  * @param data The data for the new address.
- * @returns The created address object returned from the API.
+ * @returns The created address returned from the API.
  */
 export async function createAddress(data: Parameters<typeof trpcClient.addresses.create.mutate>[0]) {
     const address = await trpcClient.addresses.create.mutate(data)
@@ -32,7 +32,7 @@ export async function createAddress(data: Parameters<typeof trpcClient.addresses
 /**
  * Retrieves an address by its ID by sending a query request to the tRPC API.
  * @param id The ID of the address to retrieve.
- * @returns The address object returned from the API, or null if not found.
+ * @returns The address returned from the API, or null if not found.
  */
 export async function getAddressById(id: string) {
     return await trpcClient.addresses.getById.query({ id })

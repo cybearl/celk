@@ -16,7 +16,7 @@ export const configRouter = router({
      */
     get: publicProcedure.query(async () => {
         const [config] = await db.select().from(scConfig).where(eq(scConfig.id, CONFIG_ID)).limit(1)
-        if (!config) throw new TRPCError({ code: "NOT_FOUND", message: "Config row not found: run the seeder." })
+        if (!config) throw new TRPCError({ code: "NOT_FOUND", message: "The config row could not be found." })
         return config
     }),
 
@@ -41,7 +41,7 @@ export const configRouter = router({
                 .where(eq(scConfig.id, CONFIG_ID))
                 .returning()
 
-            if (!config) throw new TRPCError({ code: "NOT_FOUND", message: "Config row not found: run the seeder." })
+            if (!config) throw new TRPCError({ code: "NOT_FOUND", message: "The config row could not be found." })
             return config
         }),
 })

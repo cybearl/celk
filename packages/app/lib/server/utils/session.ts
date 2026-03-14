@@ -1,4 +1,5 @@
 import auth from "@app/lib/auth"
+import { logger } from "@app/lib/base/utils/logger"
 import { convertNodeHeadersToWebHeaders } from "@app/lib/server/utils/headers"
 import type { Session } from "@app/types/auth"
 import type { GetServerSideProps, GetServerSidePropsContext, GetServerSidePropsResult } from "next"
@@ -28,7 +29,7 @@ export function withSession<P extends Record<string, unknown>>(
             const sessionData = await auth.api.getSession({ headers })
             if (sessionData) session = sessionData
         } catch (error) {
-            console.debug("Failed to load session on server-side via the 'withSession' wrapper:", error)
+            logger.warn(`Failed to load session on server-side via the 'withSession' wrapper`, { data: error })
         }
 
         return gssp(ctx, session)

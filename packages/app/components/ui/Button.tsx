@@ -1,7 +1,8 @@
 import { cn } from "@app/lib/client/utils/styling"
+import { logger } from "@app/lib/base/utils/logger"
 import { Slot } from "@radix-ui/react-slot"
 import { cva, type VariantProps } from "class-variance-authority"
-import { Loader2 } from "lucide-react"
+import { Loader2Icon } from "lucide-react"
 import Link from "next/link"
 import { type ButtonHTMLAttributes, forwardRef, type MouseEvent, useState } from "react"
 
@@ -60,7 +61,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
             try {
                 await onClick(event)
             } catch (error) {
-                console.error("An error occurred on the 'Button' component:", error)
+                logger.error(`An error occurred on the 'Button' component`, { data: error })
             }
 
             setIsLoadingInternally(false)
@@ -95,7 +96,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
             props.children = (
                 <div className="relative flex items-center justify-center">
                     <div className="w-full h-full absolute inset-0 flex items-center justify-center">
-                        <Loader2 className="animate-spin w-6 h-6" />
+                        <Loader2Icon className="animate-spin w-6 h-6" />
                     </div>
                     <div className="opacity-0">{props.children}</div>
                 </div>

@@ -1,7 +1,7 @@
 import { createInterface } from "node:readline"
+import { logger } from "@app/lib/base/utils/logger"
 import { config } from "dotenv"
 import { Pool } from "pg"
-import { READY } from "../lib/base/utils/formats"
 
 // Manually loading environment variables as
 // this is outside of the Next.js runtime
@@ -40,11 +40,11 @@ async function main() {
     await client.query("CREATE SCHEMA public")
     await client.query("GRANT ALL ON SCHEMA public TO public")
 
-    console.log(`${READY}Database reset successfully.`)
+    logger.success(`The database has been reset successfully.`)
     await client.end()
 }
 
-main().catch(err => {
-    console.error(`An error occurred while trying to reset the database: ${err.message}`)
+main().catch(error => {
+    logger.error(`An error occurred while trying to reset the database`, { data: error })
     process.exit(1)
 })
