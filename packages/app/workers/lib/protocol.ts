@@ -112,6 +112,8 @@ export type AddressDump = {
     type: ADDRESS_TYPE
     value: string
     preEncoding: string | null
+    privateKeyRangeStart: bigint | null
+    privateKeyRangeEnd: bigint | null
     isDisabled: boolean
     addressListId: string
 }

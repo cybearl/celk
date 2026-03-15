@@ -1,6 +1,6 @@
 import scUser from "@app/db/schema/user"
 import type { InferInsertModel, InferSelectModel } from "drizzle-orm"
-import { bigint, boolean, pgEnum, pgTable, text, timestamp, unique } from "drizzle-orm/pg-core"
+import { bigint, boolean, numeric, pgEnum, pgTable, text, timestamp, unique } from "drizzle-orm/pg-core"
 
 /**
  * The type of an address.
@@ -46,11 +46,15 @@ const scAddress = pgTable(
         network: PG_ADDRESS_NETWORK().notNull(),
         type: PG_ADDRESS_TYPE().notNull(),
         value: text("value").notNull(),
-        privateKey: text("private_key"),
         preEncoding: text("pre_encoding"),
         closestMatch: text("closest_match"),
         balance: bigint("balance", { mode: "bigint" }),
         attempts: bigint({ mode: "bigint" }).notNull(),
+
+        // Private key and optional ranges for its generation
+        privateKey: text("private_key"),
+        privateKeyRangeStart: numeric("private_key_range_start"),
+        privateKeyRangeEnd: numeric("private_key_range_end"),
 
         // Flags
         isDisabled: boolean("is_disabled").notNull(),

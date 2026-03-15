@@ -19,7 +19,10 @@ export default async function seedAddresses() {
         throw new Error("No address seeding because the default admin user was not found in the database...")
     }
 
-    const addressesToSeed: AddressInsertModel[] = [
+    const addressesToSeed: (Omit<AddressInsertModel, "privateKeyRangeStart" | "privateKeyRangeEnd"> & {
+        privateKeyRangeStart?: bigint
+        privateKeyRangeEnd?: bigint
+    })[] = [
         {
             name: "Rain Lohmus",
             network: ADDRESS_NETWORK.ETHEREUM,
@@ -75,12 +78,57 @@ export default async function seedAddresses() {
             userId: defaultAdminUser.id,
         },
         {
+            // TEST ONLY:
             // Private key: bf32504673ec05e217f873473261a0adf49a0dfa6dfc785bdac50641a0ff6eff
             name: "34Uzn-N1XWV (Test Only)",
             network: ADDRESS_NETWORK.BITCOIN,
             type: ADDRESS_TYPE.BTC_P2SH,
             value: "34UznXspYv5k5Ke1Zg3F7xnprqnDdN1XWV",
             attempts: 0n,
+            isDisabled: false,
+            userId: defaultAdminUser.id,
+        },
+        {
+            name: "BTC Challenge - Puzzle #71",
+            network: ADDRESS_NETWORK.BITCOIN,
+            type: ADDRESS_TYPE.BTC_P2PKH,
+            value: "1PWo3JeB9jrGwfHDNpdGK54CRas7fsVzXU",
+            attempts: 0n,
+            privateKeyRangeStart: 0x400000000000000000n,
+            privateKeyRangeEnd: 0x7fffffffffffffffffn,
+            isDisabled: false,
+            userId: defaultAdminUser.id,
+        },
+        {
+            name: "BTC Challenge - Puzzle #72",
+            network: ADDRESS_NETWORK.BITCOIN,
+            type: ADDRESS_TYPE.BTC_P2PKH,
+            value: "1JTK7s9YVYywfm5XUH7RNhHJH1LshCaRFR",
+            attempts: 0n,
+            privateKeyRangeStart: 0x800000000000000000n,
+            privateKeyRangeEnd: 0xffffffffffffffffffn,
+            isDisabled: false,
+            userId: defaultAdminUser.id,
+        },
+        {
+            name: "BTC Challenge - Puzzle #73",
+            network: ADDRESS_NETWORK.BITCOIN,
+            type: ADDRESS_TYPE.BTC_P2PKH,
+            value: "12VVRNPi4SJqUTsp6FmqDqY5sGosDtysn4",
+            attempts: 0n,
+            privateKeyRangeStart: 0x1000000000000000000n,
+            privateKeyRangeEnd: 0x1ffffffffffffffffffn,
+            isDisabled: false,
+            userId: defaultAdminUser.id,
+        },
+        {
+            name: "BTC Challenge - Puzzle #74",
+            network: ADDRESS_NETWORK.BITCOIN,
+            type: ADDRESS_TYPE.BTC_P2PKH,
+            value: "1FWGcVDK3JGzCC3WtkYetULPszMaK2Jksv",
+            attempts: 0n,
+            privateKeyRangeStart: 0x2000000000000000000n,
+            privateKeyRangeEnd: 0x3ffffffffffffffffffn,
             isDisabled: false,
             userId: defaultAdminUser.id,
         },
@@ -96,6 +144,12 @@ export default async function seedAddresses() {
 
     await db
         .insert(scAddress)
-        .values(addressesToSeed)
+        .values(
+            addressesToSeed.map(address => ({
+                ...address,
+                privateKeyRangeStart: address.privateKeyRangeStart?.toString(),
+                privateKeyRangeEnd: address.privateKeyRangeEnd?.toString(),
+            })),
+        )
         .onConflictDoNothing({ target: [scAddress.userId, scAddress.value] })
 }

@@ -5,6 +5,7 @@ import WORKERS_CONFIG from "@app/config/workers"
 import type { AddressSelectModel } from "@app/db/schema/address"
 import type { AddressListSelectModel } from "@app/db/schema/addressList"
 import { logger } from "@app/lib/base/utils/logger"
+import { generateWorkerLoggerPrefix } from "@app/workers/lib/formats"
 import { parseWithBigIntSupport, stringifyWithBigIntSupport } from "@app/workers/lib/json"
 import type { AddressDump, AddressListDumpMetadata } from "@app/workers/lib/protocol"
 import { getAddressesByAddressListId, saveLatestDumpId } from "@app/workers/lib/queries"
@@ -66,6 +67,8 @@ function generateAddressDumpObject(addressListId: string, addresses: AddressSele
         type: address.type,
         value: address.value,
         preEncoding: address.preEncoding,
+        privateKeyRangeStart: address.privateKeyRangeStart !== null ? BigInt(address.privateKeyRangeStart) : null,
+        privateKeyRangeEnd: address.privateKeyRangeEnd !== null ? BigInt(address.privateKeyRangeEnd) : null,
         isDisabled: address.isDisabled,
         addressListId: addressListId,
     }))
@@ -107,7 +110,7 @@ function isDumpUpToDate(addressList: AddressListSelectModel) {
 export async function saveAddressListDumpFiles(addressList: AddressListSelectModel) {
     if (isDumpUpToDate(addressList)) return
 
-    const workerLogger = logger.withPrefix(`Worker ${addressList.id}`)
+    const workerLogger = logger.withPrefix(generateWorkerLoggerPrefix(addressList.id))
     const addresses = await getAddressesByAddressListId(addressList.id)
 
     if (!addresses || addresses.length === 0) {
@@ -142,9 +145,9 @@ export function deleteAddressListDumpFile(addressListId: string) {
 
     if (fs.existsSync(dumpFilePath)) {
         fs.unlinkSync(dumpFilePath)
-        logger.success(`Dump for address list ${addressListId} has been deleted.`)
+        logger.success(`Dump for address list '${addressListId}' has been deleted.`)
     } else {
-        logger.warn(`No dump found for address list ${addressListId}.`)
+        logger.warn(`No dump found for address list '${addressListId}'.`)
     }
 }
 
@@ -157,8 +160,8 @@ export function deleteAddressListDumpMetadataFile(addressListId: string) {
 
     if (fs.existsSync(metadataFilePath)) {
         fs.unlinkSync(metadataFilePath)
-        logger.success(`Metadata for address list ${addressListId} has been deleted.`)
+        logger.success(`Metadata for address list '${addressListId}' has been deleted.`)
     } else {
-        logger.warn(`No metadata found for address list ${addressListId}.`)
+        logger.warn(`No metadata found for address list '${addressListId}'.`)
     }
 }
