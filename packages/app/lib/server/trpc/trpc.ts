@@ -34,6 +34,14 @@ export const protectedProcedure = t.procedure.use(({ ctx, next }) => {
 })
 
 /**
+ * A protected procedure that requires the user to not be locked.
+ */
+export const unlockedProcedure = protectedProcedure.use(({ ctx, next }) => {
+    if (ctx.session.user.isLocked) throw new TRPCError({ code: "FORBIDDEN", message: "Your account is locked." })
+    return next({ ctx })
+})
+
+/**
  * A protected procedure that requires the user to have the admin role.
  */
 export const adminProcedure = protectedProcedure.use(async ({ ctx, next }) => {

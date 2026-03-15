@@ -5,7 +5,7 @@ import { AnimatedGridPattern } from "@app/components/ui/AnimatedGridPattern"
 import { Button } from "@app/components/ui/Button"
 import Profile from "@app/components/ui/Profile"
 import { Tabs, TabsList, TabsTrigger } from "@app/components/ui/Tabs"
-import { LOGGED_IN_ONLY_PAGES, MAIN_LAYOUT_PAGE } from "@app/config/pages"
+import { LOCKED_FORBIDDEN_PAGES, LOGGED_IN_ONLY_PAGES, MAIN_LAYOUT_PAGE } from "@app/config/pages"
 import useTabs from "@app/hooks/useTabs"
 import { cn } from "@app/lib/client/utils/styling"
 import { type ReactNode, useEffect, useRef } from "react"
@@ -41,6 +41,14 @@ export default function MainLayout({ topRightSection, bottomLeftSection, childre
             handlePageChange(MAIN_LAYOUT_PAGE.HOME)
         }
     }, [session])
+
+    // Redirect locked users away from forbidden pages (e.g. via direct URL)
+    // biome-ignore lint/correctness/useExhaustiveDependencies: Only needs session and currentPage
+    useEffect(() => {
+        if (session?.user.isLocked && LOCKED_FORBIDDEN_PAGES.includes(currentPage)) {
+            handlePageChange(MAIN_LAYOUT_PAGE.HOME)
+        }
+    }, [session, currentPage])
 
     return (
         <div className="h-screen w-screen overflow-hidden absolute opacity-80">
@@ -90,7 +98,7 @@ export default function MainLayout({ topRightSection, bottomLeftSection, childre
                             </Button>
                         </TabsTrigger>
 
-                        <TabsTrigger value={MAIN_LAYOUT_PAGE.SETTINGS} hidden={!session}>
+                        <TabsTrigger value={MAIN_LAYOUT_PAGE.SETTINGS} hidden={!session || !!session?.user.isLocked}>
                             <Button
                                 variant={currentPage === MAIN_LAYOUT_PAGE.SETTINGS ? "active-tab" : "inactive-tab"}
                                 size="sm"

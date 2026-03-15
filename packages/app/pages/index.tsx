@@ -104,9 +104,11 @@ export default function Homepage({ initialConfig, initialAddresses, initialAddre
                             />
                         </TabsContent>
 
-                        <TabsContent value={MAIN_LAYOUT_PAGE.SETTINGS} className="w-full h-full">
-                            <SettingsPage />
-                        </TabsContent>
+                        {!session.user.isLocked && (
+                            <TabsContent value={MAIN_LAYOUT_PAGE.SETTINGS} className="w-full h-full">
+                                <SettingsPage />
+                            </TabsContent>
+                        )}
                     </>
                 ) : (
                     <></>

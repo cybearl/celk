@@ -36,6 +36,14 @@ export default function DashboardPage({ config, initialAddresses, initialAddress
 
     const { currentTab, handleTabChange } = useTabs(DASHBOARD_TAB, DASHBOARD_TAB.ADDRESSES, "url", "dashboard-tab")
 
+    if (session?.user.isLocked) {
+        return (
+            <div className="h-full flex items-center justify-center">
+                <p className="text-foreground font-medium text-lg">Your account is currently locked.</p>
+            </div>
+        )
+    }
+
     return (
         <div className="h-full">
             <Tabs
@@ -53,9 +61,7 @@ export default function DashboardPage({ config, initialAddresses, initialAddress
                             </SelectTrigger>
                             <SelectContent>
                                 <SelectItem value={DASHBOARD_TAB.ADDRESSES}>Addresses</SelectItem>
-                                <SelectItem value={DASHBOARD_TAB.ADDRESS_LISTS}>
-                                    Address Lists {session?.user.isLocked && "(Locked)"}
-                                </SelectItem>
+                                <SelectItem value={DASHBOARD_TAB.ADDRESS_LISTS}>Address Lists</SelectItem>
                                 <SelectItem value={DASHBOARD_TAB.TREE_VIEW}>Tree View</SelectItem>
                                 {session?.isAdmin && (
                                     <SelectItem value={DASHBOARD_TAB.ADMIN_PANEL}>Admin Panel</SelectItem>

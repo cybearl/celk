@@ -3,7 +3,7 @@ import scAddressList, { ADDRESS_LIST_WORKER_STATUS } from "@app/db/schema/addres
 import scPvtAddressListMember from "@app/db/schema/addressListMember"
 import scConfig, { CONFIG_ID } from "@app/db/schema/config"
 import { db } from "@app/lib/server/connectors/db"
-import { protectedProcedure, router } from "@app/lib/server/trpc/trpc"
+import { unlockedProcedure, router } from "@app/lib/server/trpc/trpc"
 import { TRPCError } from "@trpc/server"
 import { and, asc, count, eq, inArray } from "drizzle-orm"
 import z from "zod"
@@ -17,7 +17,7 @@ export const addressListsRouter = router({
      * @param ctx The request context.
      * @returns An array of address list objects.
      */
-    getAll: protectedProcedure.query(async ({ ctx }) => {
+    getAll: unlockedProcedure.query(async ({ ctx }) => {
         return await db
             .select()
             .from(scAddressList)
@@ -30,7 +30,7 @@ export const addressListsRouter = router({
      * @param ctx The request context.
      * @returns An array of enabled address list objects.
      */
-    getEnabled: protectedProcedure.query(async ({ ctx }) => {
+    getEnabled: unlockedProcedure.query(async ({ ctx }) => {
         return await db
             .select()
             .from(scAddressList)
@@ -44,7 +44,7 @@ export const addressListsRouter = router({
      * @param input The input object containing the address list details.
      * @returns The created address list object.
      */
-    create: protectedProcedure
+    create: unlockedProcedure
         .input(
             z.object({
                 name: z.string().min(1),
@@ -130,7 +130,7 @@ export const addressListsRouter = router({
      * @param input The input object containing the address list ID.
      * @returns The address list object with its member address IDs.
      */
-    getById: protectedProcedure.input(z.object({ id: z.string() })).query(async ({ ctx, input }) => {
+    getById: unlockedProcedure.input(z.object({ id: z.string() })).query(async ({ ctx, input }) => {
         const [addressList] = await db
             .select()
             .from(scAddressList)
@@ -155,7 +155,7 @@ export const addressListsRouter = router({
      * @param ctx The request context.
      * @param input The input object containing the address list ID.
      */
-    deleteById: protectedProcedure.input(z.object({ id: z.string() })).mutation(async ({ ctx, input }) => {
+    deleteById: unlockedProcedure.input(z.object({ id: z.string() })).mutation(async ({ ctx, input }) => {
         const result = await db
             .delete(scAddressList)
             .where(and(eq(scAddressList.id, input.id), eq(scAddressList.userId, ctx.session.user.id)))
@@ -173,7 +173,7 @@ export const addressListsRouter = router({
      * @param input The input object containing the address list ID and address ID.
      * @returns The created membership record.
      */
-    addAddress: protectedProcedure
+    addAddress: unlockedProcedure
         .input(z.object({ id: z.string(), addressId: z.string() }))
         .mutation(async ({ ctx, input }) => {
             const [[addressList], [{ memberCount }], [config]] = await Promise.all([
@@ -233,7 +233,7 @@ export const addressListsRouter = router({
      * @param ctx The request context.
      * @param input The input object containing the address list ID and address ID.
      */
-    removeAddress: protectedProcedure
+    removeAddress: unlockedProcedure
         .input(z.object({ id: z.string(), addressId: z.string() }))
         .mutation(async ({ ctx, input }) => {
             const [addressList] = await db
@@ -269,7 +269,7 @@ export const addressListsRouter = router({
      * @param input The input object containing the address list ID.
      * @returns The updated address list object.
      */
-    enable: protectedProcedure.input(z.object({ id: z.string() })).mutation(async ({ ctx, input }) => {
+    enable: unlockedProcedure.input(z.object({ id: z.string() })).mutation(async ({ ctx, input }) => {
         const [[addressList], [{ enabledCount }], [config]] = await Promise.all([
             db
                 .select({ id: scAddressList.id, isEnabled: scAddressList.isEnabled })
@@ -319,7 +319,7 @@ export const addressListsRouter = router({
      * @param input The input object containing the address list ID.
      * @returns The updated address list object.
      */
-    disable: protectedProcedure.input(z.object({ id: z.string() })).mutation(async ({ ctx, input }) => {
+    disable: unlockedProcedure.input(z.object({ id: z.string() })).mutation(async ({ ctx, input }) => {
         const [addressList] = await db
             .select({ id: scAddressList.id, isEnabled: scAddressList.isEnabled })
             .from(scAddressList)

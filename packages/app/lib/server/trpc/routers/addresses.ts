@@ -4,7 +4,7 @@ import scPvtAddressListMember from "@app/db/schema/addressListMember"
 import scConfig, { CONFIG_ID } from "@app/db/schema/config"
 import { convertBytesToHexAddress, decodeBitcoinAddress, isValidCryptoAddress } from "@app/lib/base/utils/addresses"
 import { db } from "@app/lib/server/connectors/db"
-import { protectedProcedure, router } from "@app/lib/server/trpc/trpc"
+import { unlockedProcedure, router } from "@app/lib/server/trpc/trpc"
 import { TRPCError } from "@trpc/server"
 import { and, count, eq, getTableColumns } from "drizzle-orm"
 import z from "zod"
@@ -18,7 +18,7 @@ export const addressesRouter = router({
      * @param ctx The request context.
      * @returns An array of addresses.
      */
-    getAll: protectedProcedure.query(async ({ ctx }) => {
+    getAll: unlockedProcedure.query(async ({ ctx }) => {
         return await db.select().from(scAddress).where(eq(scAddress.userId, ctx.session.user.id))
     }),
 
@@ -28,7 +28,7 @@ export const addressesRouter = router({
      * @param input The input object containing the list ID.
      * @returns An array of addresses.
      */
-    getByListId: protectedProcedure.input(z.object({ listId: z.string() })).query(async ({ ctx, input }) => {
+    getByListId: unlockedProcedure.input(z.object({ listId: z.string() })).query(async ({ ctx, input }) => {
         const [list] = await db
             .select({ id: scAddressList.id })
             .from(scAddressList)
@@ -51,7 +51,7 @@ export const addressesRouter = router({
      * @param input The input object containing the address details.
      * @returns The created address.
      */
-    create: protectedProcedure
+    create: unlockedProcedure
         .input(
             z.object({
                 name: z.string().min(1),
@@ -117,7 +117,7 @@ export const addressesRouter = router({
      * @param input The input object containing the address ID.
      * @returns The address.
      */
-    getById: protectedProcedure.input(z.object({ id: z.string() })).query(async ({ ctx, input }) => {
+    getById: unlockedProcedure.input(z.object({ id: z.string() })).query(async ({ ctx, input }) => {
         const [address] = await db
             .select()
             .from(scAddress)
@@ -134,7 +134,7 @@ export const addressesRouter = router({
      * @param ctx The request context.
      * @param input The input object containing the address ID.
      */
-    deleteById: protectedProcedure.input(z.object({ id: z.string() })).mutation(async ({ ctx, input }) => {
+    deleteById: unlockedProcedure.input(z.object({ id: z.string() })).mutation(async ({ ctx, input }) => {
         const result = await db
             .delete(scAddress)
             .where(and(eq(scAddress.id, input.id), eq(scAddress.userId, ctx.session.user.id)))

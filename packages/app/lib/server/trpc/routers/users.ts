@@ -3,7 +3,7 @@ import scUser from "@app/db/schema/user"
 import scUserRoles from "@app/db/schema/userRoles"
 import { normalizeUsername } from "@app/lib/base/utils/auth"
 import { db } from "@app/lib/server/connectors/db"
-import { adminProcedure, protectedProcedure, router } from "@app/lib/server/trpc/trpc"
+import { adminProcedure, protectedProcedure, unlockedProcedure, router } from "@app/lib/server/trpc/trpc"
 import { CyCONSTANTS } from "@cybearl/cypack"
 import { TRPCError } from "@trpc/server"
 import { and, eq, inArray, ne } from "drizzle-orm"
@@ -19,7 +19,7 @@ export const usersRouter = router({
      * @param input The input object containing the new username and display name.
      * @returns The updated user object.
      */
-    updateInfo: protectedProcedure
+    updateInfo: unlockedProcedure
         .input(
             z.object({
                 username: z
