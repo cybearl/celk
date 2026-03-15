@@ -1,32 +1,31 @@
 cmake_minimum_required(VERSION 3.20)
 
-project(CppBase VERSION 0.0.1 LANGUAGES CXX)
+project(celk-workers VERSION 0.0.1 LANGUAGES CXX)
 
-# Standard
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
+# Compiler flags
+include(cmake/compiler_flags.cmake)
+
+# Dependencies
+find_package(fmt CONFIG REQUIRED)
+find_package(nlohmann_json CONFIG REQUIRED)
+
 # Executable
-add_executable(CppBase src/main.cpp)
+add_executable(worker src/main.cpp)
 
-# Include Directories
-target_include_directories(CppBase PRIVATE include)
+# Included headers
+target_include_directories(worker PRIVATE include)
 
-# Flags
-if(MSVC)
-    target_compile_options(CppBase PRIVATE /W4 /WX)
-else()
-    target_compile_options(CppBase PRIVATE
-        -Wall
-        -Wextra
-        -Wpedantic
-        -Wshadow
-        -Wnon-virtual-dtor
-        -Wcast-align
-        -Wunused
-        -Woverloaded-virtual
-        -Wnull-dereference
-        -Wformat=2
-    )
-endif()
+# Apply the compiler flags
+apply_compiler_flags(worker)
+
+# Dependencies (defined in deps CMake files)
+target_link_libraries(worker PRIVATE
+    fmt::fmt
+    nlohmann_json::nlohmann_json
+)
+
+install(TARGETS worker DESTINATION bin)
