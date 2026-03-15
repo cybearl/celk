@@ -28,6 +28,7 @@
         "knip": "knip",
         "app": "yarn workspace @cybearl/celk-app",
         "wrk": "yarn workspace @cybearl/celk-workers",
+        "wrk:deploy": "yarn workspace @cybearl/celk-workers build && yarn workspace @cybearl/celk-workers install:dev",
         "lint": "yarn workspace @cybearl/celk-app lint && yarn workspace @cybearl/celk-workers lint",
         "lint:fix": "yarn workspace @cybearl/celk-app lint:fix && yarn workspace @cybearl/celk-workers lint:fix"
     },

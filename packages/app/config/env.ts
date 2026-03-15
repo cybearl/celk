@@ -26,6 +26,8 @@ export const REQUIRED_ENV_VARS = {
         "BITCOIN_RPC_URL",
         "ADDRESS_LIST_DUMP_VERSION",
         "PRIVATE_KEYS_ENCRYPTION_SECRET",
+        "WORKER_BIN_PATH",
+        "DATA_DIR_PATH",
     ],
 }
 
@@ -67,6 +69,10 @@ export const PRIVATE_ENV = {
     },
     addressListDumpVersion: process.env.ADDRESS_LIST_DUMP_VERSION ? Number(process.env.ADDRESS_LIST_DUMP_VERSION) : 1,
     privateKeysEncryptionSecret: process.env.PRIVATE_KEYS_ENCRYPTION_SECRET as string,
+    paths: {
+        workerBin: process.env.WORKER_BIN_PATH as string,
+        dataDir: process.env.DATA_DIR_PATH as string,
+    },
 }
 
 /**
@@ -95,4 +101,6 @@ export const ENV_RUNTIME_VALUES: Record<string, string | undefined> = {
     BITCOIN_RPC_URL: process.env.BITCOIN_RPC_URL,
     ADDRESS_LIST_DUMP_VERSION: process.env.ADDRESS_LIST_DUMP_VERSION,
     PRIVATE_KEYS_ENCRYPTION_SECRET: process.env.PRIVATE_KEYS_ENCRYPTION_SECRET,
+    WORKER_BIN_PATH: process.env.WORKER_BIN_PATH,
+    DATA_DIR_PATH: process.env.DATA_DIR_PATH,
 }

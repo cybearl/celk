@@ -1,12 +1,13 @@
 import path from "node:path"
+import { PRIVATE_ENV } from "@app/config/env"
 
 /**
  * The main configuration for the workers.
  */
 const WORKERS_CONFIG = {
-    binaryPath: path.join(process.cwd(), ".celk", "worker"),
-    dumpsDir: path.join(process.cwd(), ".celk", "dumps"),
-    matchesDir: path.join(process.cwd(), ".celk", "matches"),
+    binaryPath: PRIVATE_ENV.paths.workerBin,
+    dumpsDir: path.join(PRIVATE_ENV.paths.dataDir, "dumps"),
+    matchesDir: path.join(PRIVATE_ENV.paths.dataDir, "matches"),
 
     // Fallback synchronization retry settings when the config
     // cannot be loaded from the DB

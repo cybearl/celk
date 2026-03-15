@@ -143,3 +143,6 @@ build
 
 # AI
 .claude
+
+# Celk workers binary and data directory
+.celk/
