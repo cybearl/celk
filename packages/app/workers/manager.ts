@@ -21,7 +21,12 @@ class WorkersManager {
     private _syncRetryCount: number
     private _hasSyncAlertBeenSent: boolean
 
-    private readonly _syncLogger = logger.withPrefix("Workers Synchronization")
+    /**
+     * The logger for the synchronization process, uses the first 8 chars
+     * to keep log lines aligned with worker logs that use the first 8
+     * chars of the address list ID as prefix.
+     */
+    private readonly _syncLogger = logger.withPrefix("W-SYNCHRON")
 
     private _config: ConfigSelectModel | null
     private _enabledAddressLists: AddressListSelectModel[] | null

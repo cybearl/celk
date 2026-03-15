@@ -5,6 +5,7 @@ import { type LoggerInstance, logger } from "@app/lib/base/utils/logger"
 import { sendMatchAlert } from "@app/lib/server/utils/emails"
 import { encryptPrivateKey } from "@app/lib/server/utils/encryption"
 import { getAddressListDumpFilePath } from "@app/workers/lib/dumps"
+import { generateWorkerLoggerPrefix } from "@app/workers/lib/formats"
 import { parseWithBigIntSupport, stringifyWithBigIntSupport } from "@app/workers/lib/json"
 import { saveMatchLocally } from "@app/workers/lib/matches"
 import {
@@ -135,9 +136,13 @@ function routeWorkerMessage(
  * them to the appropriate handlers.
  * @param worker The child process representing the worker.
  * @param addressListId The ID of the address list being processed by the worker.
+ * @param workerLogger The logger instance for the worker.
  */
-export function listenToWorker(worker: ChildProcessWithoutNullStreams, addressListId: string) {
-    const workerLogger = logger.withPrefix(`Worker ${addressListId}`)
+export function listenToWorker(
+    worker: ChildProcessWithoutNullStreams,
+    addressListId: string,
+    workerLogger: LoggerInstance,
+) {
     let stdoutBuffer = ""
 
     worker.stdout.on("data", (chunk: Buffer) => {
@@ -184,7 +189,7 @@ export function listenToWorker(worker: ChildProcessWithoutNullStreams, addressLi
  * @returns The spawned child process representing the worker.
  */
 export function spawnWorker(addressList: AddressListSelectModel, reportIntervalMs: number) {
-    const workerLogger = logger.withPrefix(`Worker ${addressList.id}`)
+    const workerLogger = logger.withPrefix(generateWorkerLoggerPrefix(addressList.id))
 
     const worker = spawn(WORKERS_CONFIG.binaryPath, [], { stdio: ["pipe", "pipe", "pipe"] })
 
@@ -210,7 +215,7 @@ export function spawnWorker(addressList: AddressListSelectModel, reportIntervalM
     }
 
     sendToWorker(worker, startMessage)
-    listenToWorker(worker, addressList.id)
+    listenToWorker(worker, addressList.id, workerLogger)
 
     worker.stderr.on("data", (chunk: Buffer) => {
         workerLogger.error(chunk.toString().trimEnd())
@@ -232,7 +237,7 @@ export function spawnWorker(addressList: AddressListSelectModel, reportIntervalM
  * @param addressListId The ID of the address list being processed by the worker.
  */
 export function stopWorker(worker: ChildProcessWithoutNullStreams, addressListId: string) {
-    const workerLogger = logger.withPrefix(`Worker ${addressListId}`)
+    const workerLogger = logger.withPrefix(generateWorkerLoggerPrefix(addressListId))
 
     const stopMessage: StopWorkerMessage = {
         type: WORKER_MESSAGE_TYPE.Stop,

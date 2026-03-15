@@ -51,7 +51,17 @@ function createLogger(defaultPrefix?: string): LoggerInstance {
         const prefix = options?.prefix ?? defaultPrefix
         const formatted = `${isClient ? "" : indicator}${prefix ? `[${prefix}] ` : ""}${message}`
 
-        options?.data !== undefined ? fn(formatted, options.data) : fn(formatted)
+        if (options?.data === undefined) {
+            fn(formatted)
+        } else {
+            // Aligning each new line with the message (server-side only)
+            const dataString = JSON.stringify(options.data, null, 2)
+                .split("\n")
+                .map(line => (isClient ? line : `   ${line}`))
+                .join("\n")
+
+            fn(`${formatted}:`, `\n${dataString}`)
+        }
     }
 
     return {
