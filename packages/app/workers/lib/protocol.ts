@@ -1,6 +1,11 @@
 import type { ADDRESS_NETWORK, ADDRESS_TYPE } from "@app/db/schema/address"
 
 /**
+ * Note: All change to the protocol should be reflected in the worker's `protocol.hpp` file,
+ * and any affiliated code that uses the protocol.
+ */
+
+/**
  * The available types of messages between the main process and the worker.
  */
 export enum WORKER_MESSAGE_TYPE {
@@ -78,6 +83,14 @@ export type WorkerMatchMessage = WorkerMessage & {
 }
 
 /**
+ * The type for an error message sent from the worker to the main process.
+ */
+export type WorkerErrorMessage = WorkerMessage & {
+    type: WORKER_MESSAGE_TYPE.Error
+    message: string
+}
+
+/**
  * A discriminated union of all message types the manager can receive from a worker.
  */
 export type AnyIncomingWorkerMessage =
@@ -85,14 +98,6 @@ export type AnyIncomingWorkerMessage =
     | WorkerProgressMessage
     | WorkerMatchMessage
     | WorkerErrorMessage
-
-/**
- * The type for an error message sent from the worker to the main process.
- */
-export type WorkerErrorMessage = WorkerMessage & {
-    type: WORKER_MESSAGE_TYPE.Error
-    message: string
-}
 
 /**
  * The format of the metadata file for an address list dump.

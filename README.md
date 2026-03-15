@@ -9,6 +9,47 @@
 ### Prerequisites
 - [vcpkg](https://vcpkg.io) installed and the `VCPKG_ROOT` environment variable set to its directory
 - [Ninja](https://ninja-build.org) build system (used by the CMake presets)
+  ```bash
+  # Linux
+  sudo apt install ninja-build
+
+  # macOS
+  brew install ninja
+
+  # Windows (winget)
+  winget install Ninja-build.Ninja
+
+  # Windows (MSYS2/ucrt64 GCC)
+  pacman -S mingw-w64-ucrt-x86_64-ninja
+  ```
+
+There's a known issue about the `-v` flag not working with the bundled Ninja in vcpkg on Windows,
+in case you miss some required dependencies, you check that by running:
+```bash
+$ <path>/vcpkg/downloads/tools/ninja-1.13.2-windows/ninja.exe -v
+ninja: error: loading 'build.ninja': The system cannot find the file specified.
+```
+In order to fix this, make sure you have Visual Studio Desktop development tools installed with C++,
+and Windows 11 SDK (or Windows 10 SDK if you're on Windows 10).
+
+### App
+```bash
+# From the root of the repo
+$ yarn install # (or npm install)
+
+# Initial DB push (apply the schema to the database)
+$ yarn app db:push
+
+# Run the app in development mode once to seed the admin user,
+# required as we're using BetterAuth internally with Next.js
+$ yarn app dev
+
+# Then you can kill the app and run the final seeding
+$ yarn app db:seed
+
+# Run the app in development mode
+$ yarn app dev
+```
 
 ### Workers
 - Development:

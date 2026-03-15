@@ -7,10 +7,10 @@ import { bigint, boolean, numeric, pgEnum, pgTable, text, timestamp, unique } fr
  */
 export enum ADDRESS_TYPE {
     ETHEREUM = "ethereum",
-    BTC_P2PKH = "btc_p2pkh", // "1..."   Base58Check
-    BTC_P2WPKH = "btc_p2wpkh", // "bc1q..."  Bech32
-    BTC_P2SH = "btc_p2sh", // "3..."   Base58Check (nested segwit)
-    BTC_P2TR = "btc_p2tr", // "bc1p..."  Bech32m
+    BTC_P2PKH = "btc-p2pkh", // "1..."   Base58Check
+    BTC_P2WPKH = "btc-p2wpkh", // "bc1q..."  Bech32
+    BTC_P2SH = "btc-p2sh", // "3..."   Base58Check (nested segwit)
+    BTC_P2TR = "btc-p2tr", // "bc1p..."  Bech32m
 }
 
 /**
@@ -19,7 +19,7 @@ export enum ADDRESS_TYPE {
 export const PG_ADDRESS_TYPE = pgEnum("address_type", ADDRESS_TYPE)
 
 /**
- * The network the address belongs to.
+ * The network an address belongs to.
  */
 export enum ADDRESS_NETWORK {
     BITCOIN = "bitcoin",
