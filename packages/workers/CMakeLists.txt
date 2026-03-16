@@ -13,11 +13,16 @@ include(cmake/compiler_flags.cmake)
 find_package(fmt CONFIG REQUIRED)
 find_package(nlohmann_json CONFIG REQUIRED)
 
+# Root directory for source files
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src)
+
 # Executable
-add_executable(worker src/main.cpp)
+# Note: Uses "CONFIGURE_DEPENDS" to automatically re-run CMake when new source files are added
+file(GLOB_RECURSE SOURCES CONFIGURE_DEPENDS src/**/*.cpp src/*.cpp)
+add_executable(worker ${SOURCES})
 
 # Included headers
-target_include_directories(worker PRIVATE include)
+#target_include_directories(worker PRIVATE include)
 
 # Apply the compiler flags
 apply_compiler_flags(worker)

@@ -197,14 +197,46 @@ add_executable(worker src/main.cpp src/dump.cpp)
 **Goal:** Background thread reads stdin line-by-line, pushes to a queue.
 Main thread drains the queue each tick without blocking.
 
+---
+
 ### Why you can't call `std::getline` in the main loop
 
-`std::getline` **blocks** until a line arrives. Calling it in the main loop would
-freeze everything — no heartbeats sent, no progress reported. Same as calling a
-synchronous network read inside a `setInterval` callback.
+`std::getline` **blocks** — it halts the entire thread until a full line arrives on stdin.
+Calling it directly in the main loop would freeze everything: no heartbeats sent, no
+progress reported, nothing — just a frozen process waiting for input that may not come for seconds.
 
-Solution: dedicated reader thread that does nothing but block on `std::getline`
-and push lines into a shared queue. Main thread checks the queue without blocking.
+In TypeScript you never think about this because everything I/O-related is asynchronous by
+default. In C++, I/O is synchronous unless you explicitly put it on another thread.
+
+The solution: a dedicated **reader thread** whose only job is to sit blocked on `std::getline`
+and push lines into a shared queue as they arrive. The main thread just checks the queue each
+loop iteration — instant, non-blocking.
+
+---
+
+### `std::queue` — FIFO, not a random-access array
+
+`std::queue` is a first-in, first-out container. Unlike `std::vector`, you can't index into it
+(`queue[0]` doesn't exist). You only interact with the front and back:
+
+```cpp
+#include <queue>
+
+std::queue<std::string> q;
+
+q.push("first");    // add to back
+q.push("second");
+
+q.empty();          // false
+q.front();          // "first" — peek without removing
+q.pop();            // remove front (returns void)
+q.front();          // "second" now
+```
+
+In TypeScript terms: a `string[]` where you only ever `.push()` to the back and `.shift()` from
+the front — but more efficient because it doesn't shift every element on removal.
+
+---
 
 ### Threads in C++
 
@@ -212,29 +244,71 @@ and push lines into a shared queue. Main thread checks the queue without blockin
 #include <thread>
 
 std::thread t([]() {
-    // this runs on its own thread — lambda syntax same as TypeScript
+    // this runs in parallel on its own OS thread
+    // lambda syntax is identical to TypeScript — () => { ... }
 });
-t.detach();   // fire-and-forget, like not awaiting a Promise
+
+t.detach();   // fire-and-forget: main thread continues, doesn't care when t ends
 // OR
-t.join();     // wait for it to finish
+t.join();     // block until t finishes — you MUST call one or the other
 ```
+
+**Important:** if you destroy a `std::thread` object without calling `detach()` or `join()`,
+the program crashes immediately with `std::terminate`. C++ forces you to make a deliberate
+choice about thread lifetime.
+
+For the stdin reader, use `t.detach()` — it runs forever until stdin closes, and you don't
+need to wait for it.
+
+#### Lambda captures in threads — a common gotcha
+
+When a thread lambda captures local variables, those variables must outlive the thread:
+
+```cpp
+// DANGEROUS — `line` is a local variable, the thread might outlive it
+std::string line = "hello";
+std::thread t([&line]() { std::cout << line; });
+t.detach();
+// line is destroyed here — thread reads garbage
+
+// SAFE — capture by value (copy)
+std::thread t([line]() { std::cout << line; });
+t.detach();
+```
+
+`[&]` = capture everything by reference (dangerous for detached threads).
+`[=]` = capture everything by value (copies — safe but uses more memory).
+
+For the reader thread, you'll capture the shared queue and mutex by reference — that's fine
+because they're declared at global or `io.cpp` file scope, so they always outlive the thread.
+
+---
 
 ### Protecting shared data with a mutex
 
+Two threads touching the same `std::queue` simultaneously is undefined behavior — one thread
+might be in the middle of reallocating memory when the other tries to read. This is a **data race**.
+
+Fix: a `std::mutex` (mutual exclusion lock). Only one thread can hold it at a time.
+
 ```cpp
 #include <mutex>
-#include <queue>
 
 std::queue<std::string> message_queue;
 std::mutex queue_mutex;
+```
 
-// Reader thread pushes:
+To lock, you could call `queue_mutex.lock()` and `queue_mutex.unlock()` manually — but that's
+error-prone (what if an exception is thrown between them?). Instead, use `std::lock_guard`:
+
+```cpp
+// Reader thread — pushes a line:
 {
-    std::lock_guard<std::mutex> lock(queue_mutex);  // acquires lock
+    std::lock_guard<std::mutex> lock(queue_mutex);  // acquires the lock in its constructor
     message_queue.push(line);
-}  // lock released automatically here (RAII)
+}   // `lock` goes out of scope here — destructor releases the mutex automatically (RAII)
 
-// Main thread pops:
+// Main thread — pops a line:
 {
     std::lock_guard<std::mutex> lock(queue_mutex);
     if (!message_queue.empty()) {
@@ -242,26 +316,62 @@ std::mutex queue_mutex;
         message_queue.pop();
         // process line...
     }
-}
+}   // mutex released here
 ```
+
+The `{ }` blocks are plain C++ scopes — they don't do anything special on their own, but
+they control where `lock` is destroyed, which controls when the mutex is released. Putting
+them as tight as possible means you hold the lock for the shortest possible time.
+
+In TypeScript terms: imagine `std::lock_guard` as a token you must hold to touch shared
+state, and it automatically gives up the token when it falls out of the current block.
+
+---
 
 ### Thread-safe stdout
 
-Two problems to avoid:
-1. **Buffering** — `std::cout` doesn't flush automatically. Fix: `std::cout << std::unitbuf` at startup.
-2. **Interleaving** — two threads writing at once mix their output. Fix: a write mutex.
+`std::cout` has two problems when used from multiple threads:
+
+**1. Buffering** — `std::cout` accumulates output in a buffer and only flushes it periodically.
+The Node.js manager reads lines via stdout, so unflushed lines would never arrive. Fix:
+
+```cpp
+std::cout << std::unitbuf;   // enables automatic flush after every << write
+```
+
+Call this once at startup in `io_init()`.
+
+**2. Interleaving** — two threads writing to stdout simultaneously produce garbled output.
+The lines mix character-by-character. Fix: a dedicated write mutex, same pattern as the queue:
+
+```cpp
+std::mutex write_mutex;
+
+void io_write(const std::string& line) {
+    std::lock_guard<std::mutex> lock(write_mutex);
+    std::cout << line << '\n';
+}
+```
+
+---
 
 ### Detecting stdin close
 
-The reader thread needs to stop when the manager kills the process (stdin closes):
+When Node.js kills the worker process, stdin is closed. `std::getline` returns `false` at
+that point, so the reader thread exits naturally:
 
 ```cpp
 std::string line;
-while (std::getline(std::cin, line)) {  // returns false on EOF
-    // push to queue
+while (std::getline(std::cin, line)) {   // returns false on EOF (stdin closed)
+    std::lock_guard<std::mutex> lock(queue_mutex);
+    message_queue.push(line);
 }
-// stdin closed — thread ends naturally
+// EOF reached — loop exits, thread function returns, thread ends cleanly
 ```
+
+No cleanup needed — when the thread function returns, the thread is done.
+
+---
 
 ### Your task
 
@@ -271,20 +381,69 @@ Create `src/io.hpp`:
 #include <queue>
 #include <string>
 
-// Call once at startup — enables auto-flush, starts the reader thread
+// Call once at startup — enables auto-flush and starts the stdin reader thread
 void io_init();
 
 // Thread-safe stdout write — adds '\n' and flushes
 void io_write(const std::string& line);
 
-// Moves all pending lines into `out`. Returns count drained.
+// Drains all pending lines from the queue into `out` (passed by reference so we can fill it).
+// Returns the number of lines moved.
 int io_drain(std::queue<std::string>& out);
 ```
 
-Create `src/io.cpp` implementing those three functions.
+> `io_drain` takes `out` by non-const reference (`&` without `const`) because it needs to
+> **modify** it — adding lines to it. This is the C++ equivalent of passing an object to a
+> function and mutating it in TypeScript.
 
-**Checkpoint:** `io_init()` starts the reader thread. Type lines into stdin, see them
-echoed back via `io_write` in the main loop.
+Create `src/io.cpp`:
+```cpp
+#include "io.hpp"
+#include <iostream>
+#include <mutex>
+#include <thread>
+
+// File-scope (internal) state — not exposed in the header
+static std::queue<std::string> s_queue;
+static std::mutex               s_queue_mutex;
+static std::mutex               s_write_mutex;
+
+void io_init() {
+    std::cout << std::unitbuf;   // auto-flush on every write
+
+    std::thread reader([]() {
+        std::string line;
+        while (std::getline(std::cin, line)) {
+            std::lock_guard<std::mutex> lock(s_queue_mutex);
+            s_queue.push(line);
+        }
+    });
+    reader.detach();
+}
+
+void io_write(const std::string& line) {
+    std::lock_guard<std::mutex> lock(s_write_mutex);
+    std::cout << line << '\n';
+}
+
+int io_drain(std::queue<std::string>& out) {
+    std::lock_guard<std::mutex> lock(s_queue_mutex);
+    int count = 0;
+    while (!s_queue.empty()) {
+        out.push(s_queue.front());
+        s_queue.pop();
+        ++count;
+    }
+    return count;
+}
+```
+
+> The `static` keyword on file-scope variables means "private to this translation unit" —
+> other `.cpp` files can't see them even if they include the header. Think of it as module-private.
+
+**Checkpoint:** `io_init()` starts the reader thread. In a temporary `main.cpp`, call `io_init()`,
+then loop: drain the queue and `io_write` each line back. Type lines into stdin and confirm they
+echo back via stdout.
 
 ---
 
@@ -292,102 +451,194 @@ echoed back via `io_write` in the main loop.
 
 **Goal:** Read the `start` message, load the dump, run the main loop with timers.
 
+---
+
+### `auto` — type inference
+
+You'll see `auto` a lot in this chapter. It means "compiler, figure out the type yourself":
+
+```cpp
+auto x = 42;                            // int
+auto name = std::string("hello");       // std::string
+auto now = std::chrono::steady_clock::now();  // some long internal chrono type
+```
+
+Same as TypeScript's `const` inference — except it happens at compile time and the type
+is fixed forever. You can't reassign an `auto` variable to a different type later.
+
+It's especially useful with `std::chrono` types where the actual type name is unreadably long.
+
+---
+
 ### Timing in C++
 
-No `setTimeout` or `setInterval`. Track "last time I did X" and check elapsed time
-each loop iteration:
+There's no `setTimeout` or `setInterval`. Instead, you track "when did I last do X" and
+check elapsed time on every loop iteration:
 
 ```cpp
 #include <chrono>
 
-auto last_heartbeat = std::chrono::steady_clock::now();
+auto lastHeartbeat = std::chrono::steady_clock::now();
 
 while (true) {
     auto now     = std::chrono::steady_clock::now();
     auto elapsed = std::chrono::duration_cast<std::chrono::milliseconds>(
-        now - last_heartbeat
-    ).count();  // int, milliseconds
+        now - lastHeartbeat
+    ).count();   // plain integer, in milliseconds
 
     if (elapsed >= heartbeatIntervalMs) {
-        // send heartbeat
-        last_heartbeat = now;  // reset
+        // send heartbeat...
+        lastHeartbeat = now;   // reset the timer
     }
-
-    std::this_thread::sleep_for(std::chrono::milliseconds(10));  // 10ms tick
 }
 ```
 
-Use `std::chrono::steady_clock` — it never goes backwards (unlike wall-clock time).
+The verbose `std::chrono::duration_cast<std::chrono::milliseconds>(...).count()` is just
+C++'s way of saying "convert this duration to milliseconds and give me the integer value".
+It's boilerplate — don't overthink it.
 
-### Atomic flags and counters
+Use `std::chrono::steady_clock` specifically — it only ever moves forward at a constant rate.
+`std::chrono::system_clock` (wall time) can jump backwards if the user changes their clock
+or DST kicks in, which would break your timers.
+
+To sleep without blocking the whole process:
+```cpp
+std::this_thread::sleep_for(std::chrono::milliseconds(10));
+```
+
+This only sleeps the current thread. The reader thread keeps running.
+
+---
+
+### `std::atomic<T>` — sharing simple values between threads
+
+If two threads read and write the same regular variable simultaneously, it's undefined
+behavior — the CPU can partially write a value while the other thread reads it.
+
+`std::atomic<T>` wraps a value and makes every read and write **indivisible** (atomic),
+so no thread ever sees a half-written value:
 
 ```cpp
 #include <atomic>
 
-std::atomic<bool>     stop_flag{false};
+std::atomic<bool>     stopFlag{false};   // {false} initializes the value
 std::atomic<uint64_t> attempts{0};
-
-// Set from any thread:
-stop_flag.store(true);
-attempts.fetch_add(1, std::memory_order_relaxed);
-
-// Read from any thread:
-if (stop_flag.load()) break;
-
-// Swap counter to zero and get old value atomically (for progress reporting):
-uint64_t count = attempts.exchange(0);
 ```
 
-`std::memory_order_relaxed` is a performance hint — no strict ordering needed for
-a simple counter.
+You can't use regular `=` and `+=` on atomics — those would silently bypass the protection.
+Instead you use explicit methods:
 
-### Match state
+```cpp
+stopFlag.store(true);                                 // write
+stopFlag.load();                                      // read
+attempts.fetch_add(1, std::memory_order_relaxed);     // add and return old value
+attempts.exchange(0);                                 // swap to 0, return old value
+```
 
-Shared between threads. The flag is atomic; the payload is mutex-protected and only
-ever written once:
+`std::memory_order_relaxed` is a performance hint that tells the CPU it doesn't need to
+synchronize memory ordering with other operations — fine for a simple counter where you
+only care about the value, not what order it was written relative to other things.
+
+The `.exchange(0)` operation is key for progress reporting: it atomically resets the
+counter to zero and gives you the previous value in a single operation, so you never
+lose a count between reading and resetting.
+
+---
+
+### Why you can't just use a mutex for everything
+
+You could protect `attempts` with a mutex instead of `std::atomic`. It would be correct,
+but the worker thread increments it millions of times per second. Locking and unlocking
+a mutex that often has significant overhead. `std::atomic` is hardware-level — on modern
+CPUs it compiles down to a single instruction with no lock.
+
+Rule of thumb: atomic for simple values (counters, flags), mutex for complex data (structs,
+strings, multiple values that must change together).
+
+---
+
+### Match state — mixing atomic and mutex
+
+The match result involves multiple fields (address string, private key, attempt count) that
+must be written together consistently. A struct that combines both patterns works well:
 
 ```cpp
 struct MatchState {
-    std::atomic<bool> found{false};
-    std::mutex        mu;
+    std::atomic<bool> found{false};   // checked in the hot loop — must be atomic
+    std::mutex        mu;             // protects the payload below
     std::string       address;
     std::string       privateKey;
     uint64_t          totalAttempts{0};
 };
 ```
 
+The worker thread writes `address`, `privateKey`, `totalAttempts` under the mutex, then
+sets `found` to `true`. The main thread checks `found` cheaply (no lock), and only locks
+the mutex to read the payload once a match is confirmed.
+
+---
+
+### Reading the start message
+
+`main()` starts by blocking once on stdin, waiting for the `start` message from Node.js.
+This is fine — the worker shouldn't do anything until instructed:
+
+```cpp
+std::string startLine;
+std::getline(std::cin, startLine);   // blocks until Node sends the start message
+auto startMsg = deserializeJson(startLine).get<StartWorkerMessage>();
+```
+
+This is a deliberate one-time blocking read, before `ioInit()` starts the reader thread.
+After this point, all stdin reading goes through the thread/queue.
+
+---
+
+### `exit(1)` vs `return 1`
+
+In `main()` they're nearly equivalent, but `exit(1)` works from anywhere — including
+functions called from `main()`. Use it for fatal errors like heartbeat timeout:
+
+```cpp
+exit(1);   // terminate immediately with error code, callable from any function
+```
+
+`return 1` only works in `main()` itself.
+
+---
+
 ### Your task
 
 Rewrite `main.cpp` following this structure:
 
 ```
-1. io_init()  (enables auto-flush, starts stdin reader thread)
-2. Read one line → parse as StartWorkerMessage
-3. load_dump(msg.addressesDumpFilePath) → vector<AddressDump>
-4. Declare shared state: stop_flag, attempts, match_state
+1. Read the start message (one blocking std::getline before ioInit)
+2. ioInit()
+3. loadDumpFile(startMsg.addressesDumpFilePath)
+4. Declare shared state: stopFlag, attempts, matchState
 5. Launch stub worker thread (just loops: attempts++, sleep 1ms)
-6. Main loop:
-   - io_drain() → handle "stop" (set stop_flag) and "heartbeat-ack" (update last_ack)
-   - heartbeat timer  → send heartbeat JSON
-   - heartbeat timeout → exit(1)
-   - progress timer   → send progress JSON (use attempts.exchange(0), format as "Xn")
-   - match_found flag → send match JSON, maybe set stop_flag
-   - sleep_for(10ms)
-7. worker_thread.join()
+6. Initialize timers: lastHeartbeat, lastProgress, lastHeartbeatAck
+7. Main loop:
+   a. ioDrain() → for each line, parse type field and handle:
+        "stop"          → stopFlag.store(true)
+        "heartbeat-ack" → update lastHeartbeatAck
+   b. heartbeat timer  → send heartbeat JSON, update lastHeartbeat
+   c. heartbeat timeout → exit(1)
+   d. progress timer   → send progress JSON (attempts.exchange(0), format as "Xn")
+   e. match found      → send match JSON, maybe stopFlag.store(true)
+   f. stopFlag check   → break
+   g. sleep_for(10ms)
+8. workerThread.join()
 ```
 
-**BigInt serialization reminder:**
+**BigInt serialization reminder** — don't use the struct macro for outgoing messages
+with attempt counts, build the JSON object manually:
 ```cpp
-json progress = {
-    {"type", "progress"},
-    {"addressListId", addressListId},
-    {"attempts", std::to_string(count) + "n"}
-};
-io_write(serializeJson(progress));
+{"attempts", std::to_string(count) + "n"}   // "12345n"
 ```
 
-**Checkpoint:** Run the worker, send a `start` JSON line via stdin, see heartbeats and
-progress messages appearing on stdout at the configured intervals.
+**Checkpoint:** Run the worker, send a `start` JSON line via stdin, confirm heartbeats
+and progress messages appear on stdout at the configured intervals.
 
 ---
 

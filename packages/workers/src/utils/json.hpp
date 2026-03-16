@@ -26,5 +26,14 @@ template <typename T> struct adl_serializer<std::optional<T>> {
 
 /**
  * @brief A small helper function that serializes a JSON object to a string.
+ * @param j The JSON object to serialize.
+ * @returns The serialized JSON string.
  */
-std::string serializeJson(const nlohmann::json& j);
+std::string serializeJson(const nlohmann::json& json);
+
+/**
+ * @brief A small helper function that deserializes a JSON string to a JSON object.
+ * @param jsonString The JSON string to deserialize.
+ * @returns The deserialized JSON object.
+ */
+nlohmann::json deserializeJson(const std::string& jsonString);
