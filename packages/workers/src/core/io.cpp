@@ -31,7 +31,7 @@ void ioWrite(const std::string& line) {
 int ioDrain(std::queue<std::string>& output) {
     std::lock_guard<std::mutex> lock(queueMutex);
 
-    int lineCount = 0;
+    int lineCount { 0 };
 
     while (!lineQueue.empty()) {
         output.push(lineQueue.front());

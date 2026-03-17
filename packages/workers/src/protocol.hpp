@@ -84,7 +84,7 @@ NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(WorkerHeartbeatMessage, type, addressListId)
 
 /**
  * @brief The struct for a progress message sent from the worker to the main process,
- * with the number of attempts being from the last report.
+ * with the number of attempts being from the last progress message sent.
  */
 struct WorkerProgressMessage : WorkerMessage {
     std::string attempts; // JS BigInt serialized as a string (1234n)

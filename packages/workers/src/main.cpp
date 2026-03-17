@@ -1,12 +1,14 @@
 #include "core/dump.hpp"
 #include "core/io.hpp"
+#include "protocol.hpp"
+#include "utils/json.hpp"
 #include <atomic>
+#include <chrono>
 #include <iostream>
 #include <mutex>
 #include <queue>
 #include <string>
 #include <thread>
-#include <utils/json.hpp>
 
 struct MatchState {
     std::atomic<bool> isFound { false };
@@ -36,6 +38,11 @@ int main() {
         std::this_thread::sleep_for(std::chrono::milliseconds(1));
     });
 
+    auto now = std::chrono::steady_clock::now();
+    auto lastHeartbeat = now;
+    auto lastHeartbeatAck = now;
+    auto lastProgress = now;
+
     while (true) {
         std::queue<std::string> rawMessages;
 
@@ -43,7 +50,9 @@ int main() {
 
         while (!rawMessages.empty()) {
             std::string rawMessage = rawMessages.front();
-            auto messageType = deserializeJson(rawMessage)["type"].get<WorkerMessageType>();
+
+            auto message = deserializeJson(rawMessage);
+            auto messageType = message["type"].get<WorkerMessageType>();
 
             switch (messageType) { }
 

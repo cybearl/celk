@@ -65,7 +65,7 @@ export type WorkerHeartbeatMessage = WorkerMessage & {
 
 /**
  * The type for a progress message sent from the worker to the main process,
- * with the number of attempts being from the last report.
+ * with the number of attempts being from the last progress message sent.
  */
 export type WorkerProgressMessage = WorkerMessage & {
     type: WORKER_MESSAGE_TYPE.Progress
