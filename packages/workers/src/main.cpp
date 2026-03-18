@@ -16,13 +16,13 @@ struct MatchState {
     std::mutex stateMutex;
     std::string address;
     std::string privateKey;
-    uint64_t totalAttempts { 0 };
+    uint64_t attempts { 0 };
 };
 
 int main() {
-    std::string rawStartMessage;
-    std::getline(std::cin, rawStartMessage);
-    auto startMessage = deserializeJson(rawStartMessage).get<StartWorkerMessage>();
+    std::string startLine;
+    std::getline(std::cin, startLine);
+    auto startMessage = deserializeJson(startLine).get<StartWorkerMessage>();
 
     ioInit();
 
@@ -33,30 +33,113 @@ int main() {
     MatchState matchState;
 
     // Stub worker thread for now
-    std::thread worker([&attempts]() {
-        attempts.fetch_add(1, std::memory_order_relaxed);
-        std::this_thread::sleep_for(std::chrono::milliseconds(1));
+    std::thread workerThread([&stopFlag, &attempts]() {
+        while (!stopFlag.load()) {
+            attempts.fetch_add(1, std::memory_order_relaxed);
+            std::this_thread::sleep_for(std::chrono::milliseconds(1));
+        }
     });
 
-    auto now = std::chrono::steady_clock::now();
-    auto lastHeartbeat = now;
-    auto lastHeartbeatAck = now;
-    auto lastProgress = now;
+    auto initialTime = std::chrono::steady_clock::now();
+    auto lastHeartbeat { initialTime };
+    auto lastHeartbeatAck { initialTime };
+    auto lastReport { initialTime };
 
     while (true) {
-        std::queue<std::string> rawMessages;
+        std::queue<std::string> lines;
 
-        ioDrain(rawMessages);
+        ioDrain(lines);
 
-        while (!rawMessages.empty()) {
-            std::string rawMessage = rawMessages.front();
+        while (!lines.empty()) {
+            std::string line = lines.front();
 
-            auto message = deserializeJson(rawMessage);
+            auto message = deserializeJson(line);
             auto messageType = message["type"].get<WorkerMessageType>();
 
-            switch (messageType) { }
+            switch (messageType) {
+                case WorkerMessageType::HeartbeatAck:
+                    lastHeartbeatAck = std::chrono::steady_clock::now();
+                    break;
+                case WorkerMessageType::Stop:
+                    stopFlag.store(true);
+                    break;
+            }
 
-            rawMessages.pop();
+            lines.pop();
         }
+
+        auto now = std::chrono::steady_clock::now();
+
+        auto elapsedTimeSinceLastHeartbeat
+            = std::chrono::duration_cast<std::chrono::milliseconds>(now - lastHeartbeat).count();
+
+        // Send a heartbeat message to the manager
+        if (elapsedTimeSinceLastHeartbeat >= startMessage.heartbeatIntervalMs) {
+            WorkerHeartbeatMessage message;
+            message.type = WorkerMessageType::Heartbeat;
+            message.addressListId = startMessage.addressListId;
+
+            std::string line = serializeJson(nlohmann::json(message));
+            ioWrite(line);
+
+            lastHeartbeat = now;
+        }
+
+        auto elapsedTimeSinceLastHeartbeatAck
+            = std::chrono::duration_cast<std::chrono::milliseconds>(now - lastHeartbeatAck).count();
+
+        // Exit if the worker didn't receive the timeout in time
+        if (elapsedTimeSinceLastHeartbeatAck >= startMessage.heartbeatTimeoutMs) {
+            exit(1);
+        }
+
+        auto elapsedTimeSinceLastReport
+            = std::chrono::duration_cast<std::chrono::milliseconds>(now - lastReport).count();
+
+        // Send a report message to the manager
+        if (elapsedTimeSinceLastReport >= startMessage.reportIntervalMs) {
+            uint64_t drainedAttempts = attempts.exchange(0);
+
+            // Use the match state to store the total number of attempts
+            std::lock_guard<std::mutex> lock(matchState.stateMutex);
+            matchState.attempts += drainedAttempts;
+
+            WorkerReportMessage message;
+            message.type = WorkerMessageType::Report;
+            message.addressListId = startMessage.addressListId;
+            message.attempts = std::to_string(drainedAttempts) + "n";
+
+            std::string line = serializeJson(nlohmann::json(message));
+            ioWrite(line);
+
+            lastReport = now;
+        }
+
+        // Send a match to the manager
+        if (matchState.isFound.exchange(false)) {
+            std::lock_guard<std::mutex> lock(matchState.stateMutex);
+
+            WorkerMatchMessage message;
+            message.type = WorkerMessageType::Match;
+            message.addressListId = startMessage.addressListId;
+            message.address = "0x1234";
+            message.privateKey = "0x1234";
+            message.attempts = std::to_string(matchState.attempts) + "n";
+
+            std::string line = serializeJson(nlohmann::json(message));
+            ioWrite(line);
+
+            if (startMessage.stopOnFirstMatch) {
+                stopFlag.store(true);
+            }
+        }
+
+        if (stopFlag.load()) {
+            break;
+        }
+
+        std::this_thread::sleep_for(std::chrono::milliseconds(10));
     }
+
+    workerThread.join();
 }

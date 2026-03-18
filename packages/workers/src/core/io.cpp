@@ -1,4 +1,6 @@
 #include "core/io.hpp"
+#include <fcntl.h>
+#include <io.h>
 #include <iostream>
 #include <mutex>
 #include <thread>
@@ -8,6 +10,9 @@ static std::mutex queueMutex;
 static std::mutex ioMutex;
 
 void ioInit() {
+    // Set stdin and stdout to binary mode to prevent any newline translation
+    _setmode(_fileno(stdout), _O_BINARY);
+
     // Enable auto-flush for stdout
     std::cout << std::unitbuf;
 

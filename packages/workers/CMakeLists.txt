@@ -7,7 +7,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
 # Compiler flags
-include(cmake/compiler_flags.cmake)
+include(cmake/compilerFlags.cmake)
 
 # Dependencies
 find_package(fmt CONFIG REQUIRED)
@@ -33,4 +33,5 @@ target_link_libraries(worker PRIVATE
     nlohmann_json::nlohmann_json
 )
 
+# Install into bin directory
 install(TARGETS worker DESTINATION bin)
