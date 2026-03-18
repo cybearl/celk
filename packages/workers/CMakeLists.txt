@@ -9,15 +9,8 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 # Compiler flags
 include(cmake/compilerFlags.cmake)
 
-# Header-only dependencies
-find_path(PCG_INCLUDE_DIRS "pcg_extras.hpp")
-
 # Dependencies
-find_package(fmt CONFIG REQUIRED)
-find_package(nlohmann_json CONFIG REQUIRED)
-find_package(unofficial-secp256k1 CONFIG REQUIRED)
-find_package(OpenSSL CONFIG REQUIRED)
-find_package(unofficial-keccak-tiny CONFIG REQUIRED)
+include(cmake/dependencies.cmake)
 
 # Root directory for source files
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src)
@@ -45,6 +38,7 @@ target_link_libraries(worker PRIVATE
     unofficial::secp256k1
     OpenSSL::Crypto
     unofficial::keccak-tiny::keccak-tiny
+    uint256_t
 )
 
 # Install into bin directory

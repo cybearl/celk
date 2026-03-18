@@ -59,7 +59,7 @@ int main() {
 
     // Stub worker thread for now
     std::thread workerThread([&stopFlag, &attempts]() {
-        while (!stopFlag.load()) {
+        while (!stopFlag.load(std::memory_order_relaxed)) {
             attempts.fetch_add(1, std::memory_order_relaxed);
             std::this_thread::sleep_for(std::chrono::milliseconds(1));
         }
@@ -87,7 +87,7 @@ int main() {
                         lastHeartbeatAck = std::chrono::steady_clock::now();
                         break;
                     case WorkerMessageType::Stop:
-                        stopFlag.store(true);
+                        stopFlag.store(true, std::memory_order_relaxed);
                         break;
                 }
             } catch (const std::exception& error) {
@@ -157,11 +157,11 @@ int main() {
             ioWrite(line);
 
             if (startMessage.stopOnFirstMatch) {
-                stopFlag.store(true);
+                stopFlag.store(true, std::memory_order_relaxed);
             }
         }
 
-        if (stopFlag.load()) {
+        if (stopFlag.load(std::memory_order_relaxed)) {
             break;
         }
 

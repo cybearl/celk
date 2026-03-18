@@ -146,3 +146,6 @@ build
 
 # Celk workers binary and data directory
 .celk/
+
+# CMake libs
+packages/workers/build

@@ -17,6 +17,6 @@ void ioWrite(const std::string& line);
 /**
  * @brief Drains all pending lines from the queue into `out`.
  * @param output A reference to the string queue where the lines will be drained.
- * @returns The number of lines that were drained.
+ * @return The number of lines that were drained.
  */
 int ioDrain(std::queue<std::string>& output);
