@@ -10,6 +10,14 @@ export async function getAddressLists() {
 }
 
 /**
+ * Retrieves only the attempts counter for each address list by sending a query request to the tRPC API.
+ * @returns An array of objects containing each address list ID and its current attempts count.
+ */
+export async function getAddressListAttempts() {
+    return await trpcClient.addressLists.getAttempts.query()
+}
+
+/**
  * Retrieves all currently enabled address lists for the current user by sending a query
  * request to the tRPC API.
  * @returns An array of enabled address list objects returned from the API.

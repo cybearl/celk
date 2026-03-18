@@ -23,6 +23,18 @@ export const addressesRouter = router({
     }),
 
     /**
+     * Retrieves only the attempts counter for each address belonging to the current user.
+     * @param ctx The request context.
+     * @returns An array of objects containing each address ID and its current attempts count.
+     */
+    getAttempts: unlockedProcedure.query(async ({ ctx }) => {
+        return await db
+            .select({ id: scAddress.id, attempts: scAddress.attempts })
+            .from(scAddress)
+            .where(eq(scAddress.userId, ctx.session.user.id))
+    }),
+
+    /**
      * Retrieves all addresses belonging to a specific address list.
      * @param ctx The request context.
      * @param input The input object containing the list ID.

@@ -59,10 +59,11 @@ function routeWorkerMessage(
             }
 
             sendToWorker(worker, ackMessage)
+            workerLogger.debug(`Heartbeat received and acknowledged.`)
 
             break
         }
-        case WORKER_MESSAGE_TYPE.Progress:
+        case WORKER_MESSAGE_TYPE.Report:
             // Fire-and-forget update of attempts count
             updateAttemptsCount(message.attempts, message.addressListId).catch(error => {
                 workerLogger.error(`Failed to update attempts count`, { data: error })
@@ -151,14 +152,25 @@ export function listenToWorker(
         const lines = stdoutBuffer.split("\n")
         stdoutBuffer = lines.pop() ?? ""
 
-        for (const line of lines) {
-            if (line.trim() === "") continue
+        for (const rawLine of lines) {
+            const line = rawLine.trim()
+            if (line === "") continue
 
             try {
                 const message = parseWithBigIntSupport(line) as AnyIncomingWorkerMessage
+
+                workerLogger.debug(`New message received from ${generateWorkerLoggerPrefix(addressListId)}:`, {
+                    data: message,
+                })
+
                 routeWorkerMessage(worker, addressListId, message, workerLogger)
             } catch (error) {
-                workerLogger.error(`Failed to parse message`, { data: error })
+                workerLogger.error(`Failed to parse message`, {
+                    data: {
+                        line,
+                        error,
+                    },
+                })
             }
         }
     })
@@ -192,6 +204,7 @@ export function spawnWorker(addressList: AddressListSelectModel, reportIntervalM
     const workerLogger = logger.withPrefix(generateWorkerLoggerPrefix(addressList.id))
 
     const worker = spawn(WORKERS_CONFIG.binaryPath, [], { stdio: ["pipe", "pipe", "pipe"] })
+    workerLogger.info(`Spawned worker with PID ${worker.pid} for address list ${addressList.name} (${addressList.id}).`)
 
     // Stream write errors like EPIPE are emitted asynchronously,
     // so we need to listen for the error event on the worker's stdin to prevent
@@ -222,7 +235,7 @@ export function spawnWorker(addressList: AddressListSelectModel, reportIntervalM
     })
 
     worker.on("exit", (code, signal) => {
-        if (code === 0) workerLogger.success(`Worker exited successfully`)
+        if (code === 0) workerLogger.success(`Worker exited successfully.`)
         else workerLogger.error(`Worker exited with ${code ?? signal}`)
     })
 

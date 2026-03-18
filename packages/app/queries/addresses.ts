@@ -10,6 +10,14 @@ export async function getAddresses() {
 }
 
 /**
+ * Retrieves only the attempts counter for each address by sending a query request to the tRPC API.
+ * @returns An array of objects containing each address ID and its current attempts count.
+ */
+export async function getAddressAttempts() {
+    return await trpcClient.addresses.getAttempts.query()
+}
+
+/**
  * Retrieves all addresses for a specific address list by sending a query request to the tRPC API.
  * @param listId The ID of the address list to retrieve addresses from.
  * @returns An array of address records returned from the API.

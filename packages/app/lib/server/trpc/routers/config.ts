@@ -21,6 +21,21 @@ export const configRouter = router({
     }),
 
     /**
+     * Retrieves only the global attempts counter from the config row.
+     * @returns An object containing the current attempts count.
+     */
+    getAttempts: publicProcedure.query(async () => {
+        const [config] = await db
+            .select({ attempts: scConfig.attempts })
+            .from(scConfig)
+            .where(eq(scConfig.id, CONFIG_ID))
+            .limit(1)
+
+        if (!config) throw new TRPCError({ code: "NOT_FOUND", message: "The config row could not be found." })
+        return config
+    }),
+
+    /**
      * [ADMIN] Updates the application config with the provided fields.
      * @param input The input object containing the config fields to update.
      * @returns The updated config object.

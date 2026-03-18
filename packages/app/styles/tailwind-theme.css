@@ -40,6 +40,8 @@
     --radius-lg: var(--radius);
     --radius-xl: calc(var(--radius) + 4px);
 
+    --animate-flash: flash 400ms ease-out;
+
     --shadow-2xs: var(--shadow-2xs);
     --shadow-xs: var(--shadow-xs);
     --shadow-sm: var(--shadow-sm);
@@ -120,4 +122,13 @@
     --color-info-950: hsl(210, 82%, 5%);
 
     --color-info-foreground: hsl(0, 0%, 100%);
+}
+
+@keyframes flash {
+    0% {
+        color: var(--color-success);
+    }
+    100% {
+        color: inherit;
+    }
 }

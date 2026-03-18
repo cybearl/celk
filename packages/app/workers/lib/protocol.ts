@@ -11,12 +11,12 @@ import type { ADDRESS_NETWORK, ADDRESS_TYPE } from "@app/db/schema/address"
 export enum WORKER_MESSAGE_TYPE {
     // Manager -> worker
     Start = "start",
-    Stop = "stop",
     HeartbeatAck = "heartbeat-ack",
+    Stop = "stop",
 
     // Worker -> manager
     Heartbeat = "heartbeat",
-    Progress = "progress",
+    Report = "report",
     Match = "match",
     Error = "error",
 }
@@ -42,18 +42,18 @@ export type StartWorkerMessage = WorkerMessage & {
 }
 
 /**
- * The type for a stop message sent from the main process to the worker.
- */
-export type StopWorkerMessage = WorkerMessage & {
-    type: WORKER_MESSAGE_TYPE.Stop
-}
-
-/**
  * The type for a heartbeat acknowledgement sent from the main process to the worker,
  * the worker kills itself if it does not receive this within `heartbeatTimeoutMs`.
  */
 export type HeartbeatAckWorkerMessage = WorkerMessage & {
     type: WORKER_MESSAGE_TYPE.HeartbeatAck
+}
+
+/**
+ * The type for a stop message sent from the main process to the worker.
+ */
+export type StopWorkerMessage = WorkerMessage & {
+    type: WORKER_MESSAGE_TYPE.Stop
 }
 
 /**
@@ -64,11 +64,11 @@ export type WorkerHeartbeatMessage = WorkerMessage & {
 }
 
 /**
- * The type for a progress message sent from the worker to the main process,
- * with the number of attempts being from the last progress message sent.
+ * The type for a report message sent from the worker to the main process,
+ * with the number of attempts being from the last report message sent.
  */
-export type WorkerProgressMessage = WorkerMessage & {
-    type: WORKER_MESSAGE_TYPE.Progress
+export type WorkerReportMessage = WorkerMessage & {
+    type: WORKER_MESSAGE_TYPE.Report
     attempts: bigint
 }
 
@@ -95,7 +95,7 @@ export type WorkerErrorMessage = WorkerMessage & {
  */
 export type AnyIncomingWorkerMessage =
     | WorkerHeartbeatMessage
-    | WorkerProgressMessage
+    | WorkerReportMessage
     | WorkerMatchMessage
     | WorkerErrorMessage
 

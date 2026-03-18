@@ -1,6 +1,7 @@
 import ConfirmationDialog from "@app/components/dialogs/Confirmation"
 import ConcatenatedAddress from "@app/components/ui/addresses/ConcatenatedAddress"
 import { Button, LinkButton } from "@app/components/ui/Button"
+import Flash from "@app/components/ui/Flash"
 import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from "@app/components/ui/Table"
 import toast from "@app/components/ui/Toast"
 import type { AddressSelectModel } from "@app/db/schema/address"
@@ -91,8 +92,12 @@ export default function AddressesTable({ config, addresses }: AddressesTableProp
                                 "N/A"
                             )}
                         </TableCell>
-                        <TableCell className="text-right">{address.balance?.toString() ?? "-"}</TableCell>
-                        <TableCell className="text-right">{address.attempts.toString()}</TableCell>
+                        <TableCell className="text-right">
+                            <Flash value={address.balance ? (address.balance ?? 0n).toLocaleString("en-US") : "N/A"} />
+                        </TableCell>
+                        <TableCell className="text-right">
+                            <Flash value={address.attempts.toLocaleString("en-US")} />
+                        </TableCell>
                         <TableCell className="text-right flex justify-end gap-2">
                             {addressExplorerUrlsMap[address.id] && (
                                 <LinkButton

@@ -1,6 +1,7 @@
 import ConfirmationDialog from "@app/components/dialogs/Confirmation"
 import { Button } from "@app/components/ui/Button"
 import { Checkbox } from "@app/components/ui/Checkbox"
+import Flash from "@app/components/ui/Flash"
 import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from "@app/components/ui/Table"
 import toast from "@app/components/ui/Toast"
 import type { AddressListSelectModel } from "@app/db/schema/addressList"
@@ -102,7 +103,9 @@ export default function AddressListsTable({ config, addressLists }: AddressLists
                     <TableRow key={addressList.id}>
                         <TableCell className="font-medium">{addressList.name}</TableCell>
                         <TableCell>{addressList.description ?? "N/A"}</TableCell>
-                        <TableCell className="text-right">{addressList.attempts.toString()}</TableCell>
+                        <TableCell className="text-right">
+                            <Flash value={addressList.attempts.toLocaleString("en-US")} />
+                        </TableCell>
                         <TableCell className="text-right">
                             <Checkbox
                                 className="mt-px ml-auto mr-3"

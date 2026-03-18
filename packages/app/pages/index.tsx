@@ -2,6 +2,7 @@ import { useSessionContext } from "@app/components/contexts/Session"
 import MainLayout from "@app/components/layouts/main"
 import DashboardPage from "@app/components/pages/Dashboard"
 import SettingsPage from "@app/components/pages/Settings"
+import Flash from "@app/components/ui/Flash"
 import Scrollbar from "@app/components/ui/Scrollbar"
 import { TabsContent } from "@app/components/ui/Tabs"
 import { PUBLIC_ENV } from "@app/config/env"
@@ -9,6 +10,7 @@ import { MAIN_LAYOUT_PAGE } from "@app/config/pages"
 import type { SerializedAddressSelectModel } from "@app/db/schema/address"
 import type { SerializedAddressListSelectModel } from "@app/db/schema/addressList"
 import type { ConfigSelectModel, SerializedConfigSelectModel } from "@app/db/schema/config"
+import { useAttemptsSync } from "@app/hooks/api/useAttemptsSync"
 import { useConfig } from "@app/hooks/api/useConfig"
 import { appRouter } from "@app/lib/server/trpc/routers/_app"
 import { withSession } from "@app/lib/server/utils/session"
@@ -80,10 +82,16 @@ export default function Homepage({ initialConfig, initialAddresses, initialAddre
     const { data: config } = useConfig(initialConfig as unknown as ConfigSelectModel | null)
     const { session } = useSessionContext()
 
+    // Sync the attempts counters for the config, addresses, and address lists
+    // at a regular interval defined in the config
+    useAttemptsSync(session && config ? config.workerReportIntervalMs : null)
+
     return (
         <MainLayout
             topRightSection={
-                <p className="text-foreground font-medium px-4">{(config?.attempts ?? 0n).toLocaleString("en-US")}</p>
+                <p className="text-foreground font-medium px-4">
+                    <Flash value={(config?.attempts ?? 0n).toLocaleString("en-US")} />
+                </p>
             }
             bottomLeftSection={
                 <p className="text-foreground font-medium pb-1.5 px-4">@cybearl/celk :: {PUBLIC_ENV.version}</p>
