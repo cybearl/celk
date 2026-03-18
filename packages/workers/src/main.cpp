@@ -21,16 +21,41 @@ struct MatchState {
 
 int main() {
     std::string startLine;
-    std::getline(std::cin, startLine);
-    auto startMessage = deserializeJson(startLine).get<StartWorkerMessage>();
+    StartWorkerMessage startMessage;
+
+    try {
+        std::getline(std::cin, startLine);
+        startMessage = deserializeJson(startLine).get<StartWorkerMessage>();
+    } catch (const std::exception&) {
+        exit(1);
+    }
 
     ioInit();
 
-    std::vector<AddressDump> addressDumps = loadDumpFile(startMessage.addressesDumpFilePath);
+    /**
+     * @brief Helper function to send an error message to the manager.
+     * @param errorMessage The error message to send.
+     */
+    auto sendError = [&](const std::string& errorMessage) {
+        WorkerErrorMessage err;
+        err.type = WorkerMessageType::Error;
+        err.addressListId = startMessage.addressListId;
+        err.message = errorMessage;
+
+        ioWrite(serializeJson(nlohmann::json(err)));
+    };
+
+    std::vector<AddressDump> addressDumps;
     std::atomic<bool> stopFlag { false };
     std::atomic<uint64_t> attempts { 0 };
-
     MatchState matchState;
+
+    try {
+        addressDumps = loadDumpFile(startMessage.addressesDumpFilePath);
+    } catch (const std::exception& e) {
+        sendError(e.what());
+        return 1;
+    }
 
     // Stub worker thread for now
     std::thread workerThread([&stopFlag, &attempts]() {
@@ -47,25 +72,27 @@ int main() {
 
     while (true) {
         std::queue<std::string> lines;
-
         ioDrain(lines);
 
         while (!lines.empty()) {
             std::string line = lines.front();
-
-            auto message = deserializeJson(line);
-            auto messageType = message["type"].get<WorkerMessageType>();
-
-            switch (messageType) {
-                case WorkerMessageType::HeartbeatAck:
-                    lastHeartbeatAck = std::chrono::steady_clock::now();
-                    break;
-                case WorkerMessageType::Stop:
-                    stopFlag.store(true);
-                    break;
-            }
-
             lines.pop();
+
+            try {
+                auto message = deserializeJson(line);
+                auto messageType = message["type"].get<WorkerMessageType>();
+
+                switch (messageType) {
+                    case WorkerMessageType::HeartbeatAck:
+                        lastHeartbeatAck = std::chrono::steady_clock::now();
+                        break;
+                    case WorkerMessageType::Stop:
+                        stopFlag.store(true);
+                        break;
+                }
+            } catch (const std::exception& error) {
+                sendError(std::string("Failed to parse message from manager: ") + error.what());
+            }
         }
 
         auto now = std::chrono::steady_clock::now();

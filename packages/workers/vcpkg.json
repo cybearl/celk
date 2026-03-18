@@ -1,5 +1,12 @@
 {
     "name": "celk-workers",
     "version": "0.0.1",
-    "dependencies": ["fmt", "nlohmann-json"]
+    "dependencies": [
+        "fmt",
+        "nlohmann-json",
+        "secp256k1",
+        "openssl",
+        "keccak-tiny",
+        "pcg"
+    ]
 }
