@@ -83,34 +83,23 @@ This pattern is called **RAII** — resources are tied to object lifetimes.
 - `std::variant<...>` for `AnyIncomingWorkerMessage` — excellent TypeScript-union thinking.
 - Separated `address.hpp` and `utils/json.hpp` — clean concern separation.
 
-**One issue to fix before Chapter 4:**
+**Note on BigInt serialization:**
 
-`uint64_t attempts` in `WorkerProgressMessage` and `WorkerMatchMessage` will serialize
-as a plain JSON number. But the TypeScript side expects a bigint string with an `n` suffix:
+The TypeScript side expects attempt counts as a bigint string with an `n` suffix:
 
 ```
 12345  →  "12345n"
 ```
 
-The fix: when you *send* these messages, build the JSON object manually instead of
-relying on the macro serialization:
+`attempts` is already `std::string` in `WorkerProgressMessage` and `WorkerMatchMessage`,
+so the macro serialization is correct as-is. Keep the counter as `uint64_t` internally
+(it's the right type for arithmetic), and only format it when assigning to the struct field:
 
 ```cpp
-// Don't do this (wrong format):
-WorkerProgressMessage msg{..., count};
-io_write(serializeJson(json(msg)));
-
-// Do this instead:
-json msg = {
-    {"type", "progress"},
-    {"addressListId", addressListId},
-    {"attempts", std::to_string(count) + "n"}   // "12345n"
-};
-io_write(serializeJson(msg));
+msg.attempts = std::to_string(count) + "n";   // "12345n"
 ```
 
-Keep `uint64_t` internally — it's the right type for arithmetic. Just format it as
-a string when building the outgoing JSON. Same applies to `attempts` in `WorkerMatchMessage`.
+Then serialize normally with `json(msg)` — no need to build JSON by hand.
 
 ---
 
@@ -607,6 +596,43 @@ exit(1);   // terminate immediately with error code, callable from any function
 
 ---
 
+### Building a JSON message with nlohmann
+
+`serializeJson` (from `utils/json.hpp`) takes a `nlohmann::json` object and turns it into a
+string. The question is: how do you build that object?
+
+The library supports two styles. The **initializer-list** style constructs the whole object
+at once, like an object literal:
+
+```cpp
+nlohmann::json msg = {
+    {"type", "heartbeat"},
+    {"addressListId", someId}
+};
+```
+
+Each `{key, value}` pair is a field. Values can be any basic type — string, int, bool — and
+the library handles the conversion. Nested objects are just another `{...}` inside.
+
+The **assignment** style builds fields one at a time:
+
+```cpp
+nlohmann::json msg;
+msg["type"]          = "heartbeat";
+msg["addressListId"] = someId;
+```
+
+Both produce identical JSON. Use whichever reads more clearly for the message at hand. For
+short fixed-shape messages the initializer list is compact; for messages where some fields
+are conditional the assignment style is easier.
+
+Either way, finish with `io_write(serializeJson(msg))` to send it.
+
+> `using json = nlohmann::json;` is already declared in `utils/json.hpp`, so you can write
+> `json{...}` instead of `nlohmann::json{...}` throughout `main.cpp`.
+
+---
+
 ### Your task
 
 Rewrite `main.cpp` following this structure:
@@ -620,8 +646,8 @@ Rewrite `main.cpp` following this structure:
 6. Initialize timers: lastHeartbeat, lastProgress, lastHeartbeatAck
 7. Main loop:
    a. ioDrain() → for each line, parse type field and handle:
-        "stop"          → stopFlag.store(true)
         "heartbeat-ack" → update lastHeartbeatAck
+        "stop"          → stopFlag.store(true)
    b. heartbeat timer  → send heartbeat JSON, update lastHeartbeat
    c. heartbeat timeout → exit(1)
    d. progress timer   → send progress JSON (attempts.exchange(0), format as "Xn")
@@ -631,11 +657,8 @@ Rewrite `main.cpp` following this structure:
 8. workerThread.join()
 ```
 
-**BigInt serialization reminder** — don't use the struct macro for outgoing messages
-with attempt counts, build the JSON object manually:
-```cpp
-{"attempts", std::to_string(count) + "n"}   // "12345n"
-```
+**BigInt serialization reminder** — `attempts` is `std::string` in the struct, so just
+assign `std::to_string(count) + "n"` to the field and serialize with `json(msg)` normally.
 
 **Checkpoint:** Run the worker, send a `start` JSON line via stdin, confirm heartbeats
 and progress messages appear on stdout at the configured intervals.

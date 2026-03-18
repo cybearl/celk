@@ -1,3 +1,5 @@
+import { stringifyWithBigIntSupport } from "@app/workers/lib/json"
+
 /**
  * A set of colored Next.js status indicators for console messages.
  */
@@ -55,7 +57,7 @@ function createLogger(defaultPrefix?: string): LoggerInstance {
             fn(formatted)
         } else {
             // Aligning each new line with the message (server-side only)
-            const dataString = JSON.stringify(options.data, null, 2)
+            const dataString = stringifyWithBigIntSupport(options.data, 2)
                 .split("\n")
                 .map(line => (isClient ? line : `   ${line}`))
                 .join("\n")

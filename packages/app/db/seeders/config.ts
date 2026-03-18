@@ -27,7 +27,7 @@ export default async function seedConfig() {
             // Workers manager intervals
             balanceRefreshDelayMs: 43_200_000, // 12 hours
             workerPollIntervalMs: 10_000, // 10 seconds
-            workerReportIntervalMs: 60_000, // 1 minute
+            workerReportIntervalMs: 4_000, // 4 seconds
 
             // Workers manager sync settings
             maxSyncRetries: 5,

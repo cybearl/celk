@@ -137,7 +137,7 @@ dist
 .yarn/install-state.gz
 .pnp.*
 
-# Dependencies and AdonisJS build
+# Temp folders
 tmp
 build
 

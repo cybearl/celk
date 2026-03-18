@@ -64,7 +64,7 @@ export async function sendPasswordResetEmail({ user, url }: { user: User; url: s
  * @param user The user to send the email to.
  * @param addressListName The name of the address list where the match was found.
  * @param address The address that was matched.
- * @param attempts The number of attempts made before the match was found.
+ * @param attempts The number of **total** attempts made by the worker before the match was found.
  */
 // biome-ignore lint/suspicious/useAwait: Prevent timing attacks by not awaiting email sending
 export async function sendMatchAlert({

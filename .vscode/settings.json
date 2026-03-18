@@ -74,6 +74,7 @@
         "packages/contracts/cache": true,
         "**/.vscode": true
     },
+    // JS and TS settings
     "javascript.preferences.importModuleSpecifier": "non-relative",
     "typescript.enablePromptUseWorkspaceTsdk": true,
     // Ensure to use alias import paths
