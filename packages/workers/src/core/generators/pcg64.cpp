@@ -1,3 +1,4 @@
+#include "core/constants.hpp"
 #include "core/generators/interface.hpp"
 #include <cstdint>
 #include <cstring>
@@ -15,10 +16,16 @@ struct PcgRangePrivateKeyGenerator : IPrivateKeyGenerator {
     uint256_t rangeSize;
 
     // streamId: pass the thread index for non-overlapping streams
-    PcgRangePrivateKeyGenerator(uint256_t startRange, uint256_t endRange, uint64_t seed, uint64_t streamId = 0)
+    PcgRangePrivateKeyGenerator(
+        uint256_t startRange = 1, uint256_t endRange = SECP256K1_ORDER - 1, uint64_t seed, uint64_t streamId = 0)
         : rng(seed, streamId)
         , startRange(startRange)
-        , rangeSize(endRange - startRange + 1) { }
+        , rangeSize(endRange - startRange + 1) {
+        // Validate the range beforehand
+        if (startRange < 1 || endRange > SECP256K1_ORDER - 1) {
+            throw std::invalid_argument("Range must be within [1, SECP256K1_ORDER - 1]");
+        }
+    }
 
     bool next(uint8_t privateKey[32]) override {
         // 4 PCG calls to get 256 bits of randomness

@@ -8,6 +8,7 @@ import { getAddressListDumpFilePath } from "@app/workers/lib/dumps"
 import { generateWorkerLoggerPrefix } from "@app/workers/lib/formats"
 import { parseWithBigIntSupport, stringifyWithBigIntSupport } from "@app/workers/lib/json"
 import { saveMatchLocally } from "@app/workers/lib/matches"
+import { getAddressListWithUser, saveMatchToDb, updateAttemptsCount } from "@app/workers/lib/queries"
 import {
     type AnyIncomingWorkerMessage,
     type HeartbeatAckWorkerMessage,
@@ -15,8 +16,7 @@ import {
     type StopWorkerMessage,
     WORKER_MESSAGE_TYPE,
     type WorkerMessage,
-} from "@app/workers/lib/protocol"
-import { getAddressListWithUser, saveMatchToDb, updateAttemptsCount } from "@app/workers/lib/queries"
+} from "@app/workers/protocol"
 
 /**
  * Sends a message to a worker process via its stdin.

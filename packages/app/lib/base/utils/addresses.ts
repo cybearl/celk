@@ -1,4 +1,5 @@
 import { ADDRESS_NETWORK, ADDRESS_TYPE, type AddressSelectModel } from "@app/db/schema/address"
+import { WORKER_PRIVATE_KEY_GENERATOR } from "@app/workers/protocol"
 import { sha256 } from "@noble/hashes/sha2.js"
 import { base58, bech32, bech32m, createBase58check } from "@scure/base"
 
@@ -294,5 +295,23 @@ export function decodeBitcoinAddress(address: string): Uint8Array | null {
 
         default:
             return null
+    }
+}
+
+/**
+ * Get the displayable label for a private key generator, based on its internal enum value.
+ * @param generator The private key generator to get the label for.
+ * @returns The displayable label for the private key generator.
+ */
+export function getPrivateKeyGeneratorLabel(generator: WORKER_PRIVATE_KEY_GENERATOR) {
+    switch (generator) {
+        case WORKER_PRIVATE_KEY_GENERATOR.RandBytes:
+            return "Random Bytes"
+        case WORKER_PRIVATE_KEY_GENERATOR.PCG64:
+            return "PCG64"
+        case WORKER_PRIVATE_KEY_GENERATOR.Sequential:
+            return "Sequential"
+        default:
+            return generator
     }
 }

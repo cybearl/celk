@@ -1,4 +1,5 @@
 import scUser from "@app/db/schema/user"
+import { WORKER_PRIVATE_KEY_GENERATOR } from "@app/workers/protocol"
 import type { InferInsertModel, InferSelectModel } from "drizzle-orm"
 import { bigint, boolean, numeric, pgEnum, pgTable, text, timestamp, unique } from "drizzle-orm/pg-core"
 
@@ -33,6 +34,11 @@ export enum ADDRESS_NETWORK {
 export const PG_ADDRESS_NETWORK = pgEnum("address_network", ADDRESS_NETWORK)
 
 /**
+ * The PG enum for private key generators.
+ */
+export const PG_WORKER_PRIVATE_KEY_GENERATOR = pgEnum("address_private_key_generator", WORKER_PRIVATE_KEY_GENERATOR)
+
+/**
  * The schema for addresses.
  */
 const scAddress = pgTable(
@@ -43,6 +49,7 @@ const scAddress = pgTable(
             .$defaultFn(() => crypto.randomUUID()),
 
         name: text("name").notNull(),
+        description: text("description"),
         network: PG_ADDRESS_NETWORK().notNull(),
         type: PG_ADDRESS_TYPE().notNull(),
         value: text("value").notNull(),
@@ -52,6 +59,7 @@ const scAddress = pgTable(
         attempts: bigint({ mode: "bigint" }).notNull(),
 
         // Private key and optional ranges for its generation
+        privateKeyGenerator: PG_WORKER_PRIVATE_KEY_GENERATOR("private_key_generator").notNull(),
         privateKey: text("private_key"),
         privateKeyRangeStart: numeric("private_key_range_start"),
         privateKeyRangeEnd: numeric("private_key_range_end"),
@@ -70,7 +78,10 @@ const scAddress = pgTable(
         balanceCheckedAt: timestamp("balance_checked_at"),
         closestMatchRegisteredAt: timestamp("closest_match_registered_at"),
     },
-    table => [unique("addresses_user_id_value_unique").on(table.userId, table.value)],
+    table => [
+        unique("addresses_user_id_name_unique").on(table.userId, table.name),
+        unique("addresses_user_id_value_unique").on(table.userId, table.value),
+    ],
 )
 
 export default scAddress

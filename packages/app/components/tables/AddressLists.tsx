@@ -4,6 +4,7 @@ import { Checkbox } from "@app/components/ui/Checkbox"
 import Flash from "@app/components/ui/Flash"
 import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from "@app/components/ui/Table"
 import toast from "@app/components/ui/Toast"
+import TruncatedDescription from "@app/components/ui/TruncatedDescription"
 import type { AddressListSelectModel } from "@app/db/schema/addressList"
 import type { ConfigSelectModel } from "@app/db/schema/config"
 import { deleteAddressListById, disableAddressList, enableAddressList } from "@app/queries/addressLists"
@@ -102,7 +103,9 @@ export default function AddressListsTable({ config, addressLists }: AddressLists
                 {addressLists?.map(addressList => (
                     <TableRow key={addressList.id}>
                         <TableCell className="font-medium">{addressList.name}</TableCell>
-                        <TableCell>{addressList.description ?? "N/A"}</TableCell>
+                        <TableCell>
+                            <TruncatedDescription description={addressList.description} />
+                        </TableCell>
                         <TableCell className="text-right">
                             <Flash value={addressList.attempts.toLocaleString("en-US")} />
                         </TableCell>

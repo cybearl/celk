@@ -1,15 +1,19 @@
 import { Checkbox } from "@app/components/ui/Checkbox"
 import { Field, FieldError, FieldGroup, FieldLabel } from "@app/components/ui/Field"
 import { Input } from "@app/components/ui/Input"
+import { InputWithPrefix } from "@app/components/ui/InputWithPrefix"
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@app/components/ui/Select"
+import { TextArea } from "@app/components/ui/TextArea"
 import { ADDRESS_NETWORK, ADDRESS_TYPE } from "@app/db/schema/address"
 import {
     getAddressPrefix,
     getCompatibleAddressTypes,
     getFormattedAddressNetwork,
     getFormattedAddressType,
+    getPrivateKeyGeneratorLabel,
     isValidCryptoAddress,
 } from "@app/lib/base/utils/addresses"
+import { GENERATOR_SUPPORTS_RANGE, WORKER_PRIVATE_KEY_GENERATOR } from "@app/workers/protocol"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { type ReactNode, useCallback, useEffect, useMemo } from "react"
 import { Controller, useForm } from "react-hook-form"
@@ -18,10 +22,20 @@ import z from "zod"
 const addAddressFormSchema = z
     .object({
         name: z.string().min(1, "Name is required."),
+        description: z.string().optional(),
         type: z.enum(ADDRESS_TYPE),
         network: z.enum(ADDRESS_NETWORK),
         value: z.string().min(1, "Address value is required."),
         bypassChecksum: z.boolean().optional(),
+        privateKeyGenerator: z.enum(WORKER_PRIVATE_KEY_GENERATOR),
+        privateKeyRangeStart: z
+            .string()
+            .regex(/^[0-9a-fA-F]*$/, "Must be a hex value")
+            .optional(),
+        privateKeyRangeEnd: z
+            .string()
+            .regex(/^[0-9a-fA-F]*$/, "Must be a hex value")
+            .optional(),
     })
     .superRefine(({ type, value, bypassChecksum }, ctx) => {
         if (!type || !value || bypassChecksum) return
@@ -47,13 +61,20 @@ export default function AddAddressForm({ trigger, onSubmit, onSuccess }: AddAddr
     const form = useForm<AddAddressFormData>({
         defaultValues: {
             name: "",
+            description: "",
             value: "",
+            privateKeyGenerator: WORKER_PRIVATE_KEY_GENERATOR.RandBytes,
+            privateKeyRangeStart: "",
+            privateKeyRangeEnd: "",
         },
         resolver: zodResolver(addAddressFormSchema),
     })
 
     const network = form.watch("network")
     const type = form.watch("type")
+    const privateKeyGenerator = form.watch("privateKeyGenerator")
+    const privateKeyRangeStart = form.watch("privateKeyRangeStart")
+    const privateKeyRangeEnd = form.watch("privateKeyRangeEnd")
 
     // Reset type whenever network changes to ensure a compatible type is always set
     useEffect(() => {
@@ -66,6 +87,22 @@ export default function AddAddressForm({ trigger, onSubmit, onSuccess }: AddAddr
             form.setValue("type", ADDRESS_TYPE.ETHEREUM)
         }
     }, [network, form, type])
+
+    // If a range is entered and the current generator doesn't support ranges, switch to PCG64
+    useEffect(() => {
+        const hasRange = privateKeyRangeStart || privateKeyRangeEnd
+        if (hasRange && !GENERATOR_SUPPORTS_RANGE[privateKeyGenerator]) {
+            form.setValue("privateKeyGenerator", WORKER_PRIVATE_KEY_GENERATOR.PCG64)
+        }
+    }, [privateKeyRangeStart, privateKeyRangeEnd, privateKeyGenerator, form])
+
+    // If the generator switches to one that doesn't support ranges, clear range fields
+    useEffect(() => {
+        if (!GENERATOR_SUPPORTS_RANGE[privateKeyGenerator]) {
+            form.setValue("privateKeyRangeStart", "")
+            form.setValue("privateKeyRangeEnd", "")
+        }
+    }, [privateKeyGenerator, form])
 
     /**
      * Handles the submission of the add address form.
@@ -91,6 +128,8 @@ export default function AddAddressForm({ trigger, onSubmit, onSuccess }: AddAddr
      */
     const valuePlaceholder = useMemo(() => `${getAddressPrefix({ type }) ?? "X"}..`, [type])
 
+    const hasRange = privateKeyRangeStart || privateKeyRangeEnd
+
     return (
         <form className="space-y-4 w-full" onSubmit={form.handleSubmit(handleSubmit)}>
             <FieldGroup>
@@ -107,6 +146,18 @@ export default function AddAddressForm({ trigger, onSubmit, onSuccess }: AddAddr
                                 placeholder="My Ethereum Wallet"
                                 {...field}
                             />
+                            {fieldState.invalid && <FieldError errors={[fieldState.error!]} />}
+                        </Field>
+                    )}
+                />
+
+                <Controller
+                    control={form.control}
+                    name="description"
+                    render={({ field, fieldState }) => (
+                        <Field data-invalid={fieldState.invalid}>
+                            <FieldLabel htmlFor={field.name}>Description</FieldLabel>
+                            <TextArea id={field.name} placeholder="A description for my address" {...field} />
                             {fieldState.invalid && <FieldError errors={[fieldState.error!]} />}
                         </Field>
                     )}
@@ -221,6 +272,73 @@ export default function AddAddressForm({ trigger, onSubmit, onSuccess }: AddAddr
                             <FieldLabel htmlFor={field.name} className="font-normal cursor-pointer">
                                 Bypass checksum validation
                             </FieldLabel>
+                        </Field>
+                    )}
+                />
+
+                <Controller
+                    control={form.control}
+                    name="privateKeyGenerator"
+                    render={({ field, fieldState }) => (
+                        <Field data-invalid={fieldState.invalid}>
+                            <FieldLabel htmlFor={field.name}>Generator</FieldLabel>
+                            <Select value={field.value} name={field.name} onValueChange={field.onChange}>
+                                <SelectTrigger id={field.name} aria-invalid={fieldState.invalid}>
+                                    <SelectValue placeholder="Select generator" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectGroup>
+                                        {Object.values(WORKER_PRIVATE_KEY_GENERATOR).map(generator => (
+                                            <SelectItem
+                                                key={generator}
+                                                value={generator}
+                                                disabled={!!hasRange && !GENERATOR_SUPPORTS_RANGE[generator]}
+                                            >
+                                                {getPrivateKeyGeneratorLabel(generator)}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectGroup>
+                                </SelectContent>
+                            </Select>
+                            {fieldState.invalid && <FieldError errors={[fieldState.error!]} />}
+                        </Field>
+                    )}
+                />
+
+                <Controller
+                    control={form.control}
+                    name="privateKeyRangeStart"
+                    render={({ field, fieldState }) => (
+                        <Field data-invalid={fieldState.invalid}>
+                            <FieldLabel htmlFor={field.name}>Range Start</FieldLabel>
+                            <InputWithPrefix
+                                prefix="0x"
+                                aria-invalid={fieldState.invalid}
+                                id={field.name}
+                                placeholder="400000..."
+                                disabled={!GENERATOR_SUPPORTS_RANGE[privateKeyGenerator]}
+                                {...field}
+                            />
+                            {fieldState.invalid && <FieldError errors={[fieldState.error!]} />}
+                        </Field>
+                    )}
+                />
+
+                <Controller
+                    control={form.control}
+                    name="privateKeyRangeEnd"
+                    render={({ field, fieldState }) => (
+                        <Field data-invalid={fieldState.invalid}>
+                            <FieldLabel htmlFor={field.name}>Range End</FieldLabel>
+                            <InputWithPrefix
+                                prefix="0x"
+                                aria-invalid={fieldState.invalid}
+                                id={field.name}
+                                placeholder="7fffff..."
+                                disabled={!GENERATOR_SUPPORTS_RANGE[privateKeyGenerator]}
+                                {...field}
+                            />
+                            {fieldState.invalid && <FieldError errors={[fieldState.error!]} />}
                         </Field>
                     )}
                 />

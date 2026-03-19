@@ -22,6 +22,34 @@ export enum WORKER_MESSAGE_TYPE {
 }
 
 /**
+ * The different private key generators available for workers to use
+ * when generating private keys to check against the target addresses.
+ */
+export enum WORKER_PRIVATE_KEY_GENERATOR {
+    RandBytes = "rand-bytes",
+    PCG64 = "pcg64", // Supports ranges, defaults to it when start and end ranges are provided
+    Sequential = "sequential", // Supports ranges
+}
+
+/**
+ * Whether each generator supports private key range bounds.
+ */
+export const GENERATOR_SUPPORTS_RANGE: Record<WORKER_PRIVATE_KEY_GENERATOR, boolean> = {
+    [WORKER_PRIVATE_KEY_GENERATOR.RandBytes]: false,
+    [WORKER_PRIVATE_KEY_GENERATOR.PCG64]: true,
+    [WORKER_PRIVATE_KEY_GENERATOR.Sequential]: true,
+}
+
+/**
+ * The status of a worker attached to an address list.
+ */
+export enum WORKER_STATUS {
+    IDLE = "idle",
+    RUNNING = "running",
+    FAILED = "failed",
+}
+
+/**
  * The base type for all messages sent between the main process and the worker.
  */
 export type WorkerMessage = {

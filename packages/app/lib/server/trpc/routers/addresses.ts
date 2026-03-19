@@ -1,4 +1,6 @@
 import scAddress, { ADDRESS_NETWORK, ADDRESS_TYPE } from "@app/db/schema/address"
+import { hexToNumericString } from "@app/lib/base/utils/bigint"
+import { GENERATOR_SUPPORTS_RANGE, WORKER_PRIVATE_KEY_GENERATOR } from "@app/workers/protocol"
 import scAddressList from "@app/db/schema/addressList"
 import scPvtAddressListMember from "@app/db/schema/addressListMember"
 import scConfig, { CONFIG_ID } from "@app/db/schema/config"
@@ -71,6 +73,17 @@ export const addressesRouter = router({
                 type: z.enum(ADDRESS_TYPE),
                 value: z.string().min(1),
                 bypassChecksum: z.boolean().optional(),
+                privateKeyGenerator: z
+                    .enum(WORKER_PRIVATE_KEY_GENERATOR)
+                    .default(WORKER_PRIVATE_KEY_GENERATOR.RandBytes),
+                privateKeyRangeStart: z
+                    .string()
+                    .regex(/^[0-9a-fA-F]+$/)
+                    .optional(),
+                privateKeyRangeEnd: z
+                    .string()
+                    .regex(/^[0-9a-fA-F]+$/)
+                    .optional(),
             }),
         )
         .mutation(async ({ ctx, input }) => {
@@ -99,6 +112,14 @@ export const addressesRouter = router({
                 throw new TRPCError({ code: "BAD_REQUEST", message: "Invalid address (check format and checksum)." })
             }
 
+            const hasRange = input.privateKeyRangeStart || input.privateKeyRangeEnd
+            if (hasRange && !GENERATOR_SUPPORTS_RANGE[input.privateKeyGenerator]) {
+                throw new TRPCError({
+                    code: "BAD_REQUEST",
+                    message: "Selected generator does not support private key ranges.",
+                })
+            }
+
             // Automatically add pre-encoding to all Bitcoin addresses
             let addressPreEncoding: string | undefined
             if (input.network === ADDRESS_NETWORK.BITCOIN) {
@@ -115,6 +136,13 @@ export const addressesRouter = router({
                     value: input.value,
                     preEncoding: addressPreEncoding,
                     attempts: 0n,
+                    privateKeyGenerator: input.privateKeyGenerator,
+                    privateKeyRangeStart: input.privateKeyRangeStart
+                        ? hexToNumericString(input.privateKeyRangeStart)
+                        : undefined,
+                    privateKeyRangeEnd: input.privateKeyRangeEnd
+                        ? hexToNumericString(input.privateKeyRangeEnd)
+                        : undefined,
                     isDisabled: false,
                     userId: ctx.session.user.id,
                 })

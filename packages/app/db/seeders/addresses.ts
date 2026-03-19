@@ -2,6 +2,7 @@ import { PRIVATE_ENV } from "@app/config/env"
 import scAddress, { ADDRESS_NETWORK, ADDRESS_TYPE, type AddressInsertModel } from "@app/db/schema/address"
 import { convertBytesToHexAddress, decodeBitcoinAddress } from "@app/lib/base/utils/addresses"
 import { db } from "@app/lib/server/connectors/db"
+import { WORKER_PRIVATE_KEY_GENERATOR } from "@app/workers/protocol"
 
 /**
  * Seed base addresses into the database.
@@ -25,10 +26,12 @@ export default async function seedAddresses() {
     })[] = [
         {
             name: "Rain Lohmus",
+            description: "Founder of the LHV bank who lost his Ethereum wallet private key.",
             network: ADDRESS_NETWORK.ETHEREUM,
             type: ADDRESS_TYPE.ETHEREUM,
             value: "0x2B6eD29A95753C3Ad948348e3e7b1A251080Ffb9",
             attempts: 0n,
+            privateKeyGenerator: WORKER_PRIVATE_KEY_GENERATOR.RandBytes,
             isDisabled: false,
             userId: defaultAdminUser.id,
         },
@@ -38,6 +41,7 @@ export default async function seedAddresses() {
             type: ADDRESS_TYPE.BTC_P2PKH,
             value: "17VeBSnvmvqxChtEH1UM1wBGGHDQwHADGn",
             attempts: 0n,
+            privateKeyGenerator: WORKER_PRIVATE_KEY_GENERATOR.RandBytes,
             isDisabled: false,
             userId: defaultAdminUser.id,
         },
@@ -47,6 +51,7 @@ export default async function seedAddresses() {
             type: ADDRESS_TYPE.BTC_P2PKH,
             value: "1MueFgEA93yN3gFvMePM7eFfhMUHH5Dsgv",
             attempts: 0n,
+            privateKeyGenerator: WORKER_PRIVATE_KEY_GENERATOR.RandBytes,
             isDisabled: false,
             userId: defaultAdminUser.id,
         },
@@ -56,6 +61,7 @@ export default async function seedAddresses() {
             type: ADDRESS_TYPE.BTC_P2PKH,
             value: "1L1zrH8xDZxqncomih5tPq7GZcCVa9N92f",
             attempts: 0n,
+            privateKeyGenerator: WORKER_PRIVATE_KEY_GENERATOR.RandBytes,
             isDisabled: false,
             userId: defaultAdminUser.id,
         },
@@ -65,6 +71,7 @@ export default async function seedAddresses() {
             type: ADDRESS_TYPE.BTC_P2WPKH,
             value: "bc1q9ny8ykmmqnfwrdh4u8senrt4m8f8swkg4dtl6c",
             attempts: 0n,
+            privateKeyGenerator: WORKER_PRIVATE_KEY_GENERATOR.RandBytes,
             isDisabled: false,
             userId: defaultAdminUser.id,
         },
@@ -74,6 +81,7 @@ export default async function seedAddresses() {
             type: ADDRESS_TYPE.BTC_P2TR,
             value: "bc1p8e779lz89jzqj82nwjywn632smwnsna2u7rzg9uvmyg8d6twqd7q75j9kd",
             attempts: 0n,
+            privateKeyGenerator: WORKER_PRIVATE_KEY_GENERATOR.RandBytes,
             isDisabled: false,
             userId: defaultAdminUser.id,
         },
@@ -85,6 +93,7 @@ export default async function seedAddresses() {
             type: ADDRESS_TYPE.BTC_P2SH,
             value: "34UznXspYv5k5Ke1Zg3F7xnprqnDdN1XWV",
             attempts: 0n,
+            privateKeyGenerator: WORKER_PRIVATE_KEY_GENERATOR.RandBytes,
             isDisabled: false,
             userId: defaultAdminUser.id,
         },
@@ -94,6 +103,7 @@ export default async function seedAddresses() {
             type: ADDRESS_TYPE.BTC_P2PKH,
             value: "1PWo3JeB9jrGwfHDNpdGK54CRas7fsVzXU",
             attempts: 0n,
+            privateKeyGenerator: WORKER_PRIVATE_KEY_GENERATOR.PCG64,
             privateKeyRangeStart: 0x400000000000000000n,
             privateKeyRangeEnd: 0x7fffffffffffffffffn,
             isDisabled: false,
@@ -105,6 +115,7 @@ export default async function seedAddresses() {
             type: ADDRESS_TYPE.BTC_P2PKH,
             value: "1JTK7s9YVYywfm5XUH7RNhHJH1LshCaRFR",
             attempts: 0n,
+            privateKeyGenerator: WORKER_PRIVATE_KEY_GENERATOR.PCG64,
             privateKeyRangeStart: 0x800000000000000000n,
             privateKeyRangeEnd: 0xffffffffffffffffffn,
             isDisabled: false,
@@ -116,6 +127,7 @@ export default async function seedAddresses() {
             type: ADDRESS_TYPE.BTC_P2PKH,
             value: "12VVRNPi4SJqUTsp6FmqDqY5sGosDtysn4",
             attempts: 0n,
+            privateKeyGenerator: WORKER_PRIVATE_KEY_GENERATOR.PCG64,
             privateKeyRangeStart: 0x1000000000000000000n,
             privateKeyRangeEnd: 0x1ffffffffffffffffffn,
             isDisabled: false,
@@ -127,6 +139,7 @@ export default async function seedAddresses() {
             type: ADDRESS_TYPE.BTC_P2PKH,
             value: "1FWGcVDK3JGzCC3WtkYetULPszMaK2Jksv",
             attempts: 0n,
+            privateKeyGenerator: WORKER_PRIVATE_KEY_GENERATOR.PCG64,
             privateKeyRangeStart: 0x2000000000000000000n,
             privateKeyRangeEnd: 0x3ffffffffffffffffffn,
             isDisabled: false,

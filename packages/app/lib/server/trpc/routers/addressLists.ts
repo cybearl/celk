@@ -1,9 +1,10 @@
 import scAddress from "@app/db/schema/address"
-import scAddressList, { ADDRESS_LIST_WORKER_STATUS } from "@app/db/schema/addressList"
+import scAddressList from "@app/db/schema/addressList"
 import scPvtAddressListMember from "@app/db/schema/addressListMember"
 import scConfig, { CONFIG_ID } from "@app/db/schema/config"
 import { db } from "@app/lib/server/connectors/db"
-import { unlockedProcedure, router } from "@app/lib/server/trpc/trpc"
+import { router, unlockedProcedure } from "@app/lib/server/trpc/trpc"
+import { WORKER_STATUS } from "@app/workers/protocol"
 import { TRPCError } from "@trpc/server"
 import { and, asc, count, eq, inArray } from "drizzle-orm"
 import z from "zod"
@@ -118,7 +119,7 @@ export const addressListsRouter = router({
                     isEnabled: false,
                     stopOnFirstMatch: false,
                     attempts: 0n,
-                    workerStatus: ADDRESS_LIST_WORKER_STATUS.IDLE,
+                    workerStatus: WORKER_STATUS.IDLE,
                     userId: ctx.session.user.id,
                 })
                 .returning()

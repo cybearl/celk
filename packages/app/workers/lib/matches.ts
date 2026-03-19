@@ -2,7 +2,7 @@ import fs from "node:fs"
 import path from "node:path"
 import WORKERS_CONFIG from "@app/config/workers"
 import { stringifyWithBigIntSupport } from "@app/workers/lib/json"
-import type { AddressMatch } from "@app/workers/lib/protocol"
+import type { AddressMatch } from "@app/workers/protocol"
 
 /**
  * Gets the file path for a match file for a specific address list.

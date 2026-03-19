@@ -2,15 +2,19 @@ import ConfirmationDialog from "@app/components/dialogs/Confirmation"
 import ConcatenatedAddress from "@app/components/ui/addresses/ConcatenatedAddress"
 import { Button, LinkButton } from "@app/components/ui/Button"
 import Flash from "@app/components/ui/Flash"
+import ScientificNotation from "@app/components/ui/ScientificNotation"
 import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from "@app/components/ui/Table"
 import toast from "@app/components/ui/Toast"
+import TruncatedDescription from "@app/components/ui/TruncatedDescription"
 import type { AddressSelectModel } from "@app/db/schema/address"
 import type { ConfigSelectModel } from "@app/db/schema/config"
 import {
     getAddressExplorerUrl,
     getFormattedAddressNetwork,
     getFormattedAddressType,
+    getPrivateKeyGeneratorLabel,
 } from "@app/lib/base/utils/addresses"
+import { numericStringToScientific } from "@app/lib/base/utils/bigint"
 import { deleteAddressById } from "@app/queries/addresses"
 import dedent from "dedent"
 import { LinkIcon, TrashIcon } from "lucide-react"
@@ -58,6 +62,9 @@ export default function AddressesTable({ config, addresses }: AddressesTableProp
             <TableHeader>
                 <TableRow>
                     <TableHead>Name</TableHead>
+                    <TableHead>Description</TableHead>
+                    <TableHead>Generator</TableHead>
+                    <TableHead>Range</TableHead>
                     <TableHead>Network</TableHead>
                     <TableHead>Type</TableHead>
                     <TableHead>Value</TableHead>
@@ -72,6 +79,33 @@ export default function AddressesTable({ config, addresses }: AddressesTableProp
                 {addresses?.map(address => (
                     <TableRow key={address.id}>
                         <TableCell className="font-medium">{address.name}</TableCell>
+                        <TableCell>
+                            <TruncatedDescription description={address.description} />
+                        </TableCell>
+                        <TableCell>{getPrivateKeyGeneratorLabel(address.privateKeyGenerator)}</TableCell>
+                        <TableCell>
+                            {address.privateKeyRangeStart || address.privateKeyRangeEnd ? (
+                                <span className="text-sm whitespace-nowrap">
+                                    {address.privateKeyRangeStart ? (
+                                        <ScientificNotation
+                                            value={numericStringToScientific(address.privateKeyRangeStart)}
+                                        />
+                                    ) : (
+                                        "..."
+                                    )}
+                                    {" <-> "}
+                                    {address.privateKeyRangeEnd ? (
+                                        <ScientificNotation
+                                            value={numericStringToScientific(address.privateKeyRangeEnd)}
+                                        />
+                                    ) : (
+                                        "..."
+                                    )}
+                                </span>
+                            ) : (
+                                <span className="text-muted-foreground">N/A</span>
+                            )}
+                        </TableCell>
                         <TableCell>{getFormattedAddressNetwork(address.network)}</TableCell>
                         <TableCell>{getFormattedAddressType(address.type)}</TableCell>
                         <TableCell>

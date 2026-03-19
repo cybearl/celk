@@ -7,8 +7,8 @@ import type { AddressListSelectModel } from "@app/db/schema/addressList"
 import { logger } from "@app/lib/base/utils/logger"
 import { generateWorkerLoggerPrefix } from "@app/workers/lib/formats"
 import { parseWithBigIntSupport, stringifyWithBigIntSupport } from "@app/workers/lib/json"
-import type { AddressDump, AddressListDumpMetadata } from "@app/workers/lib/protocol"
 import { getAddressesByAddressListId, saveLatestDumpId } from "@app/workers/lib/queries"
+import type { AddressDump, AddressListDumpMetadata } from "@app/workers/protocol"
 
 /**
  * Get the path of an address list dump file.

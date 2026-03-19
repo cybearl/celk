@@ -50,7 +50,9 @@ export default function AddAddressListForm({
             const result = await onSubmit(data)
 
             if (result?.error) {
-                form.setError("root", { message: result.error.message })
+                form.setError("root", {
+                    message: result.error.message,
+                })
             } else {
                 onSuccess?.()
             }
