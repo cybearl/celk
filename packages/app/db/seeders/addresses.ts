@@ -20,7 +20,10 @@ export default async function seedAddresses() {
         throw new Error("No address seeding because the default admin user was not found in the database...")
     }
 
-    const addressesToSeed: (Omit<AddressInsertModel, "privateKeyRangeStart" | "privateKeyRangeEnd"> & {
+    const addressesToSeed: (Omit<
+        AddressInsertModel,
+        "closestMatch" | "attempts" | "privateKeyRangeStart" | "privateKeyRangeEnd" | "userId"
+    > & {
         privateKeyRangeStart?: bigint
         privateKeyRangeEnd?: bigint
     })[] = [
@@ -30,120 +33,117 @@ export default async function seedAddresses() {
             network: ADDRESS_NETWORK.ETHEREUM,
             type: ADDRESS_TYPE.ETHEREUM,
             value: "0x2B6eD29A95753C3Ad948348e3e7b1A251080Ffb9",
-            attempts: 0n,
             privateKeyGenerator: WORKER_PRIVATE_KEY_GENERATOR.RandBytes,
             isDisabled: false,
-            userId: defaultAdminUser.id,
         },
         {
             name: "17VeB-HADGn",
             network: ADDRESS_NETWORK.BITCOIN,
             type: ADDRESS_TYPE.BTC_P2PKH,
             value: "17VeBSnvmvqxChtEH1UM1wBGGHDQwHADGn",
-            attempts: 0n,
             privateKeyGenerator: WORKER_PRIVATE_KEY_GENERATOR.RandBytes,
             isDisabled: false,
-            userId: defaultAdminUser.id,
         },
         {
             name: "1MueF-5Dsgv",
             network: ADDRESS_NETWORK.BITCOIN,
             type: ADDRESS_TYPE.BTC_P2PKH,
             value: "1MueFgEA93yN3gFvMePM7eFfhMUHH5Dsgv",
-            attempts: 0n,
             privateKeyGenerator: WORKER_PRIVATE_KEY_GENERATOR.RandBytes,
             isDisabled: false,
-            userId: defaultAdminUser.id,
         },
         {
             name: "1L1zr-9N92f",
             network: ADDRESS_NETWORK.BITCOIN,
             type: ADDRESS_TYPE.BTC_P2PKH,
             value: "1L1zrH8xDZxqncomih5tPq7GZcCVa9N92f",
-            attempts: 0n,
             privateKeyGenerator: WORKER_PRIVATE_KEY_GENERATOR.RandBytes,
             isDisabled: false,
-            userId: defaultAdminUser.id,
         },
         {
             name: "bc1q9-dtl6c",
             network: ADDRESS_NETWORK.BITCOIN,
             type: ADDRESS_TYPE.BTC_P2WPKH,
             value: "bc1q9ny8ykmmqnfwrdh4u8senrt4m8f8swkg4dtl6c",
-            attempts: 0n,
             privateKeyGenerator: WORKER_PRIVATE_KEY_GENERATOR.RandBytes,
             isDisabled: false,
-            userId: defaultAdminUser.id,
-        },
-        {
-            name: "bc1p8-5j9kd (Test Only)",
-            network: ADDRESS_NETWORK.BITCOIN,
-            type: ADDRESS_TYPE.BTC_P2TR,
-            value: "bc1p8e779lz89jzqj82nwjywn632smwnsna2u7rzg9uvmyg8d6twqd7q75j9kd",
-            attempts: 0n,
-            privateKeyGenerator: WORKER_PRIVATE_KEY_GENERATOR.RandBytes,
-            isDisabled: false,
-            userId: defaultAdminUser.id,
         },
         {
             // TEST ONLY:
-            // Private key: bf32504673ec05e217f873473261a0adf49a0dfa6dfc785bdac50641a0ff6eff
+            // Private key: 0xbf32504673ec05e217f873473261a0adf49a0dfa6dfc785bdac50641a0ff6eff
             name: "34Uzn-N1XWV (Test Only)",
+            description: "A Bitcoin P2SH address with a known private key, for testing purposes only.",
             network: ADDRESS_NETWORK.BITCOIN,
             type: ADDRESS_TYPE.BTC_P2SH,
             value: "34UznXspYv5k5Ke1Zg3F7xnprqnDdN1XWV",
-            attempts: 0n,
             privateKeyGenerator: WORKER_PRIVATE_KEY_GENERATOR.RandBytes,
             isDisabled: false,
-            userId: defaultAdminUser.id,
         },
         {
             name: "BTC Challenge - Puzzle #71",
             network: ADDRESS_NETWORK.BITCOIN,
             type: ADDRESS_TYPE.BTC_P2PKH,
             value: "1PWo3JeB9jrGwfHDNpdGK54CRas7fsVzXU",
-            attempts: 0n,
             privateKeyGenerator: WORKER_PRIVATE_KEY_GENERATOR.PCG64,
             privateKeyRangeStart: 0x400000000000000000n,
             privateKeyRangeEnd: 0x7fffffffffffffffffn,
             isDisabled: false,
-            userId: defaultAdminUser.id,
         },
         {
             name: "BTC Challenge - Puzzle #72",
             network: ADDRESS_NETWORK.BITCOIN,
             type: ADDRESS_TYPE.BTC_P2PKH,
             value: "1JTK7s9YVYywfm5XUH7RNhHJH1LshCaRFR",
-            attempts: 0n,
             privateKeyGenerator: WORKER_PRIVATE_KEY_GENERATOR.PCG64,
             privateKeyRangeStart: 0x800000000000000000n,
             privateKeyRangeEnd: 0xffffffffffffffffffn,
             isDisabled: false,
-            userId: defaultAdminUser.id,
         },
         {
             name: "BTC Challenge - Puzzle #73",
             network: ADDRESS_NETWORK.BITCOIN,
             type: ADDRESS_TYPE.BTC_P2PKH,
             value: "12VVRNPi4SJqUTsp6FmqDqY5sGosDtysn4",
-            attempts: 0n,
             privateKeyGenerator: WORKER_PRIVATE_KEY_GENERATOR.PCG64,
             privateKeyRangeStart: 0x1000000000000000000n,
             privateKeyRangeEnd: 0x1ffffffffffffffffffn,
             isDisabled: false,
-            userId: defaultAdminUser.id,
         },
         {
             name: "BTC Challenge - Puzzle #74",
             network: ADDRESS_NETWORK.BITCOIN,
             type: ADDRESS_TYPE.BTC_P2PKH,
             value: "1FWGcVDK3JGzCC3WtkYetULPszMaK2Jksv",
-            attempts: 0n,
             privateKeyGenerator: WORKER_PRIVATE_KEY_GENERATOR.PCG64,
             privateKeyRangeStart: 0x2000000000000000000n,
             privateKeyRangeEnd: 0x3ffffffffffffffffffn,
             isDisabled: false,
-            userId: defaultAdminUser.id,
+        },
+        {
+            // TEST ONLY:
+            // Private key: 0x0000000000000000000000000000000000000000000000000000000000000001
+            name: "Sequential - 0x00...01 (Test Only)",
+            description: "An Ethereum address with a private key starting with 0x00...01, for testing purposes only.",
+            network: ADDRESS_NETWORK.ETHEREUM,
+            type: ADDRESS_TYPE.ETHEREUM,
+            value: "0x7E5F4552091A69125d5DfCb7b8C2659029395Bdf",
+            privateKeyGenerator: WORKER_PRIVATE_KEY_GENERATOR.Sequential,
+            privateKeyRangeStart: 0x00n,
+            privateKeyRangeEnd: 0xffn,
+            isDisabled: false,
+        },
+        {
+            // TEST ONLY:
+            // Private key: 0x0000000000000000000000000000000000000000000000000000000000000002
+            name: "Sequential - 0x00...02 (Test Only)",
+            description: "An Ethereum address with a private key starting with 0x00...02, for testing purposes only.",
+            network: ADDRESS_NETWORK.ETHEREUM,
+            type: ADDRESS_TYPE.ETHEREUM,
+            value: "0x2B5AD5c4795c026514f8317c7a215E218DcCD6cF",
+            privateKeyGenerator: WORKER_PRIVATE_KEY_GENERATOR.Sequential,
+            privateKeyRangeStart: 0x00n,
+            privateKeyRangeEnd: 0xffn,
+            isDisabled: false,
         },
     ]
 
@@ -160,8 +160,11 @@ export default async function seedAddresses() {
         .values(
             addressesToSeed.map(address => ({
                 ...address,
+                closestMatch: 0,
+                attempts: 0n,
                 privateKeyRangeStart: address.privateKeyRangeStart?.toString(),
                 privateKeyRangeEnd: address.privateKeyRangeEnd?.toString(),
+                userId: defaultAdminUser.id,
             })),
         )
         .onConflictDoNothing({ target: [scAddress.userId, scAddress.value] })
