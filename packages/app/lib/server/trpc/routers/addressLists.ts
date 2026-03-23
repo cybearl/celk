@@ -119,7 +119,7 @@ export const addressListsRouter = router({
                     isEnabled: false,
                     stopOnFirstMatch: false,
                     attempts: 0n,
-                    workerStatus: WORKER_STATUS.IDLE,
+                    workerStatus: WORKER_STATUS.Idle,
                     userId: ctx.session.user.id,
                 })
                 .returning()

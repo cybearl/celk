@@ -67,6 +67,7 @@ function generateAddressDumpObject(addressListId: string, addresses: AddressSele
         type: address.type,
         value: address.value,
         preEncoding: address.preEncoding,
+        privateKeyGenerator: address.privateKeyGenerator,
         privateKeyRangeStart: address.privateKeyRangeStart !== null ? BigInt(address.privateKeyRangeStart) : null,
         privateKeyRangeEnd: address.privateKeyRangeEnd !== null ? BigInt(address.privateKeyRangeEnd) : null,
         isDisabled: address.isDisabled,

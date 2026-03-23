@@ -1,7 +1,7 @@
 import scUser from "@app/db/schema/user"
 import { WORKER_PRIVATE_KEY_GENERATOR } from "@app/workers/protocol"
 import type { InferInsertModel, InferSelectModel } from "drizzle-orm"
-import { bigint, boolean, numeric, pgEnum, pgTable, text, timestamp, unique } from "drizzle-orm/pg-core"
+import { bigint, boolean, integer, numeric, pgEnum, pgTable, text, timestamp, unique } from "drizzle-orm/pg-core"
 
 /**
  * The type of an address.
@@ -54,7 +54,7 @@ const scAddress = pgTable(
         type: PG_ADDRESS_TYPE().notNull(),
         value: text("value").notNull(),
         preEncoding: text("pre_encoding"),
-        closestMatch: text("closest_match"),
+        closestMatch: integer("closest_match").notNull(), // Number of bytes reached (e.g. 20 for full match, 0 for no match)
         balance: bigint("balance", { mode: "bigint" }),
         attempts: bigint({ mode: "bigint" }).notNull(),
 

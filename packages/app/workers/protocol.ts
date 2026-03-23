@@ -44,9 +44,9 @@ export const GENERATOR_SUPPORTS_RANGE: Record<WORKER_PRIVATE_KEY_GENERATOR, bool
  * The status of a worker attached to an address list.
  */
 export enum WORKER_STATUS {
-    IDLE = "idle",
-    RUNNING = "running",
-    FAILED = "failed",
+    Idle = "idle",
+    Running = "running",
+    Failed = "failed",
 }
 
 /**
@@ -145,6 +145,7 @@ export type AddressDump = {
     type: ADDRESS_TYPE
     value: string
     preEncoding: string | null
+    privateKeyGenerator: WORKER_PRIVATE_KEY_GENERATOR
     privateKeyRangeStart: bigint | null
     privateKeyRangeEnd: bigint | null
     isDisabled: boolean

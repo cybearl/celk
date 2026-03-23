@@ -8,7 +8,8 @@
 #include <variant>
 
 /**
- * Note: Should match the app's protocol entirely.
+ * Note: All change to the protocol should be reflected in the app worker's `protocol.ts` file,
+ * and any affiliated code that uses the protocol.
  */
 
 /**
@@ -35,6 +36,21 @@ NLOHMANN_JSON_SERIALIZE_ENUM(WorkerMessageType,
         { WorkerMessageType::Report, "report" },
         { WorkerMessageType::Match, "match" },
         { WorkerMessageType::Error, "error" } })
+
+/**
+ * @brief The different private key generators available for workers to use
+ * when generating private keys to check against the target addresses.
+ */
+enum class WorkerPrivateKeyGenerator {
+    RandBytes,
+    PCG64,
+    Sequential,
+};
+
+NLOHMANN_JSON_SERIALIZE_ENUM(WorkerPrivateKeyGenerator,
+    { { WorkerPrivateKeyGenerator::RandBytes, "randBytes" },
+        { WorkerPrivateKeyGenerator::PCG64, "pcg64" },
+        { WorkerPrivateKeyGenerator::Sequential, "sequential" } })
 
 /**
  * The base struct for all messages sent between the main process and the worker.
@@ -142,6 +158,7 @@ struct AddressDump {
     AddressType type;
     std::string value;
     std::optional<std::string> preEncoding;
+    WorkerPrivateKeyGenerator privateKeyGenerator;
     std::optional<std::string> privateKeyRangeStart;
     std::optional<std::string> privateKeyRangeEnd;
     bool isDisabled;
@@ -155,6 +172,7 @@ NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(AddressDump,
     type,
     value,
     preEncoding,
+    privateKeyGenerator,
     privateKeyRangeStart,
     privateKeyRangeEnd,
     isDisabled,
