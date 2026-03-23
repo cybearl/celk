@@ -10,7 +10,7 @@ import type { ConfigSelectModel } from "@app/db/schema/config"
 import { deleteAddressListById, disableAddressList, enableAddressList } from "@app/queries/addressLists"
 import dedent from "dedent"
 import { TrashIcon } from "lucide-react"
-import { useCallback, useEffect, useState } from "react"
+import { useCallback, useEffect, useRef, useState } from "react"
 
 type AddressListsTableProps = {
     config: ConfigSelectModel | null
@@ -19,10 +19,21 @@ type AddressListsTableProps = {
 
 export default function AddressListsTable({ config, addressLists }: AddressListsTableProps) {
     const [enabledAddressListIds, setEnabledAddressListIds] = useState<string[]>([])
+    const pendingToggleIds = useRef<Set<string>>(new Set())
 
-    // Keeps in sync the local list of enabled address list IDs
+    // Keeps in sync the local list of enabled address list IDs,
+    // but preserves in-flight optimistic updates to prevent flickering
     useEffect(() => {
-        setEnabledAddressListIds(addressLists?.filter(list => list.isEnabled).map(list => list.id) || [])
+        setEnabledAddressListIds(prev => {
+            const serverIds = new Set(addressLists?.filter(list => list.isEnabled).map(list => list.id) ?? [])
+
+            for (const id of pendingToggleIds.current) {
+                if (prev.includes(id)) serverIds.add(id)
+                else serverIds.delete(id)
+            }
+
+            return [...serverIds]
+        })
     }, [addressLists])
 
     /**
@@ -37,6 +48,7 @@ export default function AddressListsTable({ config, addressLists }: AddressLists
                     toast.error(
                         "Cannot enable address list: max running address lists per user is not configured, try again or check the settings.",
                     )
+
                     return
                 }
 
@@ -44,20 +56,33 @@ export default function AddressListsTable({ config, addressLists }: AddressLists
                     toast.error(
                         `You can only enable up to ${config.maxRunningAddressListsPerUser} address lists at a time.`,
                     )
+
                     return
                 }
 
+                pendingToggleIds.current.add(id)
+
                 setEnabledAddressListIds(prev => [...prev, id])
-                enableAddressList(id).catch(() => {
-                    toast.error("An error occurred while trying to enable the address list, please try again.")
-                    setEnabledAddressListIds(prev => prev.filter(listId => listId !== id))
-                })
+                enableAddressList(id)
+                    .catch(() => {
+                        toast.error("An error occurred while trying to enable the address list, please try again.")
+                        setEnabledAddressListIds(prev => prev.filter(listId => listId !== id))
+                    })
+                    .finally(() => {
+                        pendingToggleIds.current.delete(id)
+                    })
             } else if (isEnabled === false) {
+                pendingToggleIds.current.add(id)
+
                 setEnabledAddressListIds(prev => prev.filter(listId => listId !== id))
-                disableAddressList(id).catch(() => {
-                    toast.error("An error occurred while trying to disable the address list, please try again.")
-                    setEnabledAddressListIds(prev => [...prev, id])
-                })
+                disableAddressList(id)
+                    .catch(() => {
+                        toast.error("An error occurred while trying to disable the address list, please try again.")
+                        setEnabledAddressListIds(prev => [...prev, id])
+                    })
+                    .finally(() => {
+                        pendingToggleIds.current.delete(id)
+                    })
             }
         },
         [config?.maxRunningAddressListsPerUser, enabledAddressListIds],

@@ -20,7 +20,7 @@ export type AddressEntry = {
     name: string
     color: string
     bytes: Uint8Array | null
-    matchBytes: Uint8Array | null
+    matchBytes?: Uint8Array | null
 }
 
 type TreeViewDashboardTabProps = {
@@ -46,12 +46,24 @@ export default function TreeViewDashboardTab({ addresses }: TreeViewDashboardTab
     const entries = useMemo<AddressEntry[]>(() => {
         if (addresses) {
             return addresses
-                .map(address => ({
-                    name: address.name,
-                    color: colorHash.hex(address.value),
-                    bytes: convertAddressToBytes(address),
-                    matchBytes: address.closestMatch ? convertHexAddressToBytes(address.closestMatch) : null,
-                }))
+                .map(address => {
+                    const bytes = convertAddressToBytes(address)
+
+                    return {
+                        name: address.name,
+                        color: colorHash.hex(address.value),
+                        bytes: convertAddressToBytes(address),
+
+                        // Copy the bytes Uint8Array from 0 to closestMatch (exclusive), if closestMatch is defined and valid
+                        matchBytes:
+                            bytes &&
+                            address.closestMatch !== null &&
+                            address.closestMatch > 0 &&
+                            address.closestMatch <= convertHexAddressToBytes(address.value).length
+                                ? bytes.slice(0, address.closestMatch)
+                                : null,
+                    }
+                })
                 .filter(entry => entry.bytes !== null)
         }
 
@@ -212,7 +224,7 @@ export default function TreeViewDashboardTab({ addresses }: TreeViewDashboardTab
                 ctx.fillStyle = invert
             }
 
-            drawPath(matchBytes)
+            // For closest match, we only have the byte array up to the closest match position, so we draw a truncated pat
         }
     }, [layout, entries, zoom, getNodeX, getNodeY, highlightedEntryIndex])
 
