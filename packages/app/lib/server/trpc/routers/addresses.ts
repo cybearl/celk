@@ -1,14 +1,18 @@
-import scAddress, { ADDRESS_NETWORK, ADDRESS_TYPE } from "@app/db/schema/address"
-import { hexToNumericString } from "@app/lib/base/utils/bigint"
-import { GENERATOR_SUPPORTS_RANGE, WORKER_PRIVATE_KEY_GENERATOR } from "@app/workers/protocol"
+import scAddress, {
+    ADDRESS_NETWORK,
+    ADDRESS_TYPE,
+    WORKER_PRIVATE_KEY_GENERATOR,
+    WORKER_PRIVATE_KEY_GENERATOR_SUPPORTS_RANGE,
+} from "@app/db/schema/address"
 import scAddressList from "@app/db/schema/addressList"
 import scPvtAddressListMember from "@app/db/schema/addressListMember"
-import scConfig, { CONFIG_ID } from "@app/db/schema/config"
+import scDynamicConfig, { DYNAMIC_CONFIG_ID } from "@app/db/schema/dynamicConfig"
 import { convertBytesToHexAddress, decodeBitcoinAddress, isValidCryptoAddress } from "@app/lib/base/utils/addresses"
+import { hexToNumericString } from "@app/lib/base/utils/numerics"
 import { db } from "@app/lib/server/connectors/db"
-import { unlockedProcedure, router } from "@app/lib/server/trpc/trpc"
+import { router, unlockedProcedure } from "@app/lib/server/trpc/trpc"
 import { TRPCError } from "@trpc/server"
-import { and, count, eq, getTableColumns } from "drizzle-orm"
+import { and, count, desc, eq, getTableColumns, sql } from "drizzle-orm"
 import z from "zod"
 
 /**
@@ -21,11 +25,33 @@ export const addressesRouter = router({
      * @returns An array of addresses.
      */
     getAll: unlockedProcedure.query(async ({ ctx }) => {
-        return await db.select().from(scAddress).where(eq(scAddress.userId, ctx.session.user.id))
+        return await db
+            .select()
+            .from(scAddress)
+            .where(eq(scAddress.userId, ctx.session.user.id))
+            .orderBy(desc(scAddress.attempts), sql`${scAddress.balance} DESC NULLS LAST`)
     }),
 
     /**
-     * Retrieves only the attempts counter for each address belonging to the current user.
+     * Retrieve only the balances for each address belonging to the current user,
+     * also fetches the last checked date for each balance for display purposes.
+     * @param ctx The request context.
+     * @returns An array of objects containing each address ID, its current balance
+     * and the last checked date for each balance.
+     */
+    getBalances: unlockedProcedure.query(async ({ ctx }) => {
+        return await db
+            .select({
+                id: scAddress.id,
+                balance: scAddress.balance,
+                balanceCheckedAt: scAddress.balanceCheckedAt,
+            })
+            .from(scAddress)
+            .where(eq(scAddress.userId, ctx.session.user.id))
+    }),
+
+    /**
+     * Retrieve only the attempt counts for each address belonging to the current user.
      * @param ctx The request context.
      * @returns An array of objects containing each address ID and its current attempts count.
      */
@@ -37,7 +63,7 @@ export const addressesRouter = router({
     }),
 
     /**
-     * Retrieves all addresses belonging to a specific address list.
+     * Retrieve all addresses belonging to a specific address list.
      * @param ctx The request context.
      * @param input The input object containing the list ID.
      * @returns An array of addresses.
@@ -56,6 +82,7 @@ export const addressesRouter = router({
             .from(scAddress)
             .innerJoin(scPvtAddressListMember, eq(scPvtAddressListMember.addressId, scAddress.id))
             .where(eq(scPvtAddressListMember.addressListId, input.listId))
+            .orderBy(desc(scAddress.attempts))
     }),
 
     /**
@@ -89,11 +116,18 @@ export const addressesRouter = router({
         .mutation(async ({ ctx, input }) => {
             // Ensures that the user doesn't go above their address limit
             const [[{ addressCount }], [config]] = await Promise.all([
-                db.select({ addressCount: count() }).from(scAddress).where(eq(scAddress.userId, ctx.session.user.id)),
                 db
-                    .select({ maxAddressesPerUser: scConfig.maxAddressesPerUser })
-                    .from(scConfig)
-                    .where(eq(scConfig.id, CONFIG_ID))
+                    .select({
+                        addressCount: count(),
+                    })
+                    .from(scAddress)
+                    .where(eq(scAddress.userId, ctx.session.user.id)),
+                db
+                    .select({
+                        maxAddressesPerUser: scDynamicConfig.maxAddressesPerUser,
+                    })
+                    .from(scDynamicConfig)
+                    .where(eq(scDynamicConfig.id, DYNAMIC_CONFIG_ID))
                     .limit(1),
             ])
 
@@ -113,7 +147,7 @@ export const addressesRouter = router({
             }
 
             const hasRange = input.privateKeyRangeStart || input.privateKeyRangeEnd
-            if (hasRange && !GENERATOR_SUPPORTS_RANGE[input.privateKeyGenerator]) {
+            if (hasRange && !WORKER_PRIVATE_KEY_GENERATOR_SUPPORTS_RANGE[input.privateKeyGenerator]) {
                 throw new TRPCError({
                     code: "BAD_REQUEST",
                     message: "Selected generator does not support private key ranges.",
@@ -135,7 +169,8 @@ export const addressesRouter = router({
                     type: input.type,
                     value: input.value,
                     preEncoding: addressPreEncoding,
-                    attempts: 0n,
+                    closestMatch: 0,
+                    attempts: "0",
                     privateKeyGenerator: input.privateKeyGenerator,
                     privateKeyRangeStart: input.privateKeyRangeStart
                         ? hexToNumericString(input.privateKeyRangeStart)
@@ -152,7 +187,7 @@ export const addressesRouter = router({
         }),
 
     /**
-     * Retrieves an address by its ID.
+     * Retrieve an address by its ID.
      * @param ctx The request context.
      * @param input The input object containing the address ID.
      * @returns The address.
@@ -170,7 +205,7 @@ export const addressesRouter = router({
     }),
 
     /**
-     * Deletes an address by its ID.
+     * Delete an address by its ID.
      * @param ctx The request context.
      * @param input The input object containing the address ID.
      */

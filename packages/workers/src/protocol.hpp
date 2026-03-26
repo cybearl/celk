@@ -107,7 +107,7 @@ NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(WorkerHeartbeatMessage, type, addressListId)
  * with the number of attempts being from the last report message sent.
  */
 struct WorkerReportMessage : WorkerMessage {
-    std::string attempts; // JS BigInt serialized as a string (1234n)
+    std::string attempts;
 };
 
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(WorkerReportMessage, type, addressListId, attempts)
@@ -118,10 +118,12 @@ NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(WorkerReportMessage, type, addressListId, att
 struct WorkerMatchMessage : WorkerMessage {
     std::string address;
     std::string privateKey;
-    std::string attempts; // JS BigInt serialized as a string (1234n)
+    std::string totalAttempts;
+    bool stopOnFirstMatch;
 };
 
-NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(WorkerMatchMessage, type, addressListId, address, privateKey, attempts)
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(
+    WorkerMatchMessage, type, addressListId, address, privateKey, totalAttempts, stopOnFirstMatch)
 
 /**
  * @brief The struct for an error message sent from the worker to the main process.
@@ -161,6 +163,7 @@ struct AddressDump {
     WorkerPrivateKeyGenerator privateKeyGenerator;
     std::optional<std::string> privateKeyRangeStart;
     std::optional<std::string> privateKeyRangeEnd;
+    bool isFound; // A virtual flag indicating if the address was found by checking if the private key is set in the DB
     bool isDisabled;
     std::string addressListId;
 };
@@ -175,5 +178,6 @@ NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(AddressDump,
     privateKeyGenerator,
     privateKeyRangeStart,
     privateKeyRangeEnd,
+    isFound,
     isDisabled,
     addressListId)

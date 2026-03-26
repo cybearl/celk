@@ -3,7 +3,7 @@ import scAccount from "@app/db/schema/account"
 import scAddress from "@app/db/schema/address"
 import scAddressList from "@app/db/schema/addressList"
 import scPvtAddressListMember from "@app/db/schema/addressListMember"
-import scConfig from "@app/db/schema/config"
+import scDynamicConfig from "@app/db/schema/dynamicConfig"
 import scRoles from "@app/db/schema/role"
 import scSession from "@app/db/schema/session"
 import scUser from "@app/db/schema/user"
@@ -27,7 +27,7 @@ const schema = {
     user_options: scUserOptions,
     roles: scRoles,
     user_roles: scUserRoles,
-    config: scConfig,
+    dynamicConfig: scDynamicConfig,
     ...relations,
 }
 

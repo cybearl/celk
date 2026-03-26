@@ -3,7 +3,7 @@ import scUser from "@app/db/schema/user"
 import scUserRoles from "@app/db/schema/userRoles"
 import { normalizeUsername } from "@app/lib/base/utils/auth"
 import { db } from "@app/lib/server/connectors/db"
-import { adminProcedure, protectedProcedure, unlockedProcedure, router } from "@app/lib/server/trpc/trpc"
+import { adminProcedure, protectedProcedure, router, unlockedProcedure } from "@app/lib/server/trpc/trpc"
 import { CyCONSTANTS } from "@cybearl/cypack"
 import { TRPCError } from "@trpc/server"
 import { and, eq, inArray, ne } from "drizzle-orm"
@@ -53,7 +53,7 @@ export const usersRouter = router({
         }),
 
     /**
-     * Deletes the current user's account and all their role assignments in a single transaction.
+     * Delete the current user's account and all their role assignments in a single transaction.
      * @param ctx The request context.
      */
     deleteAccount: protectedProcedure.mutation(async ({ ctx }) => {

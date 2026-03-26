@@ -1,5 +1,9 @@
-import { ADDRESS_NETWORK, ADDRESS_TYPE, type AddressSelectModel } from "@app/db/schema/address"
-import { WORKER_PRIVATE_KEY_GENERATOR } from "@app/workers/protocol"
+import {
+    ADDRESS_NETWORK,
+    ADDRESS_TYPE,
+    type AddressSelectModel,
+    WORKER_PRIVATE_KEY_GENERATOR,
+} from "@app/db/schema/address"
 import { sha256 } from "@noble/hashes/sha2.js"
 import { base58, bech32, bech32m, createBase58check } from "@scure/base"
 
@@ -208,7 +212,7 @@ function decodeBase58CheckPayload(value: string): Uint8Array | null {
 
 /**
  * Validates that a crypto address is structurally correct and passes its checksum.
- * @param type The type of the address (e.g. Ethereum, Bitcoin P2PKH, Bitcoin P2WPKH).
+ * @param type The type of the address (e.g., Ethereum, Bitcoin P2PKH, Bitcoin P2WPKH).
  * @param value The address string to validate.
  * @return True if the address is valid, false otherwise.
  */

@@ -1,8 +1,8 @@
+import { addressesRouter } from "@app/lib/server/trpc/routers/addresses"
+import { addressListsRouter } from "@app/lib/server/trpc/routers/addressLists"
+import { dynamicConfigRouter } from "@app/lib/server/trpc/routers/dynamicConfig"
+import { usersRouter } from "@app/lib/server/trpc/routers/users"
 import { router } from "@app/lib/server/trpc/trpc"
-import { addressesRouter } from "./addresses"
-import { addressListsRouter } from "./addressLists"
-import { configRouter } from "./config"
-import { usersRouter } from "./users"
 
 /**
  * The main router for the application, which combines all individual routers
@@ -11,7 +11,7 @@ import { usersRouter } from "./users"
 export const appRouter = router({
     addresses: addressesRouter,
     addressLists: addressListsRouter,
-    config: configRouter,
+    dynamicConfig: dynamicConfigRouter,
     users: usersRouter,
 })
 

@@ -1,4 +1,4 @@
-import type { ADDRESS_NETWORK, ADDRESS_TYPE } from "@app/db/schema/address"
+import type { ADDRESS_NETWORK, ADDRESS_TYPE, WORKER_PRIVATE_KEY_GENERATOR } from "@app/db/schema/address"
 
 /**
  * Note: All change to the protocol should be reflected in the worker's `protocol.hpp` file,
@@ -19,25 +19,6 @@ export enum WORKER_MESSAGE_TYPE {
     Report = "report",
     Match = "match",
     Error = "error",
-}
-
-/**
- * The different private key generators available for workers to use
- * when generating private keys to check against the target addresses.
- */
-export enum WORKER_PRIVATE_KEY_GENERATOR {
-    RandBytes = "rand-bytes",
-    PCG64 = "pcg64", // Supports ranges, defaults to it when start and end ranges are provided
-    Sequential = "sequential", // Supports ranges
-}
-
-/**
- * Whether each generator supports private key range bounds.
- */
-export const GENERATOR_SUPPORTS_RANGE: Record<WORKER_PRIVATE_KEY_GENERATOR, boolean> = {
-    [WORKER_PRIVATE_KEY_GENERATOR.RandBytes]: false,
-    [WORKER_PRIVATE_KEY_GENERATOR.PCG64]: true,
-    [WORKER_PRIVATE_KEY_GENERATOR.Sequential]: true,
 }
 
 /**
@@ -97,7 +78,7 @@ export type WorkerHeartbeatMessage = WorkerMessage & {
  */
 export type WorkerReportMessage = WorkerMessage & {
     type: WORKER_MESSAGE_TYPE.Report
-    attempts: bigint
+    attempts: string
 }
 
 /**
@@ -107,7 +88,8 @@ export type WorkerMatchMessage = WorkerMessage & {
     type: WORKER_MESSAGE_TYPE.Match
     address: string
     privateKey: string
-    attempts: bigint
+    totalAttempts: string
+    stopOnFirstMatch: boolean
 }
 
 /**
@@ -146,8 +128,9 @@ export type AddressDump = {
     value: string
     preEncoding: string | null
     privateKeyGenerator: WORKER_PRIVATE_KEY_GENERATOR
-    privateKeyRangeStart: bigint | null
-    privateKeyRangeEnd: bigint | null
+    privateKeyRangeStart: string | null
+    privateKeyRangeEnd: string | null
+    isFound: boolean // A virtual flag indicating if the address was found by checking if the private key is set in the DB
     isDisabled: boolean
     addressListId: string
 }
@@ -159,6 +142,6 @@ export type AddressMatch = {
     addressListId: string
     address: string
     encryptedPrivateKey: string
-    attempts: bigint
+    totalAttempts: string
     matchedAt: string // ISO timestamp
 }

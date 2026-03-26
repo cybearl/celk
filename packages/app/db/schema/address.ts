@@ -1,7 +1,6 @@
 import scUser from "@app/db/schema/user"
-import { WORKER_PRIVATE_KEY_GENERATOR } from "@app/workers/protocol"
 import type { InferInsertModel, InferSelectModel } from "drizzle-orm"
-import { bigint, boolean, integer, numeric, pgEnum, pgTable, text, timestamp, unique } from "drizzle-orm/pg-core"
+import { boolean, integer, numeric, pgEnum, pgTable, text, timestamp, unique } from "drizzle-orm/pg-core"
 
 /**
  * The type of an address.
@@ -25,6 +24,7 @@ export const PG_ADDRESS_TYPE = pgEnum("address_type", ADDRESS_TYPE)
 export enum ADDRESS_NETWORK {
     BITCOIN = "bitcoin",
     ETHEREUM = "ethereum",
+    BSC = "bsc",
     POLYGON = "polygon",
 }
 
@@ -34,9 +34,28 @@ export enum ADDRESS_NETWORK {
 export const PG_ADDRESS_NETWORK = pgEnum("address_network", ADDRESS_NETWORK)
 
 /**
+ * The different private key generators available for workers to use
+ * when generating private keys to check against the target addresses.
+ */
+export enum WORKER_PRIVATE_KEY_GENERATOR {
+    RandBytes = "rand-bytes",
+    PCG64 = "pcg64", // Supports ranges, defaults to it when start and end ranges are provided
+    Sequential = "sequential", // Supports ranges
+}
+
+/**
  * The PG enum for private key generators.
  */
 export const PG_WORKER_PRIVATE_KEY_GENERATOR = pgEnum("address_private_key_generator", WORKER_PRIVATE_KEY_GENERATOR)
+
+/**
+ * Whether each worker private key generator supports range bounds.
+ */
+export const WORKER_PRIVATE_KEY_GENERATOR_SUPPORTS_RANGE: Record<WORKER_PRIVATE_KEY_GENERATOR, boolean> = {
+    [WORKER_PRIVATE_KEY_GENERATOR.RandBytes]: false,
+    [WORKER_PRIVATE_KEY_GENERATOR.PCG64]: true,
+    [WORKER_PRIVATE_KEY_GENERATOR.Sequential]: true,
+}
 
 /**
  * The schema for addresses.
@@ -54,9 +73,9 @@ const scAddress = pgTable(
         type: PG_ADDRESS_TYPE().notNull(),
         value: text("value").notNull(),
         preEncoding: text("pre_encoding"),
-        closestMatch: integer("closest_match").notNull(), // Number of bytes reached (e.g. 20 for full match, 0 for no match)
-        balance: bigint("balance", { mode: "bigint" }),
-        attempts: bigint({ mode: "bigint" }).notNull(),
+        closestMatch: integer("closest_match").notNull(), // Number of bytes reached (e.g., 20 for full match, 0 for no match)
+        balance: numeric("balance"),
+        attempts: numeric("attempts").notNull(),
 
         // Private key and optional ranges for its generation
         privateKeyGenerator: PG_WORKER_PRIVATE_KEY_GENERATOR("private_key_generator").notNull(),
@@ -90,15 +109,10 @@ export type AddressSelectModel = InferSelectModel<typeof scAddress>
 export type AddressInsertModel = InferInsertModel<typeof scAddress>
 
 /**
- * A JSON-serializable version of `AddressSelectModel` for use in `getServerSideProps` props,
- * `BigInt` fields become strings, date fields become ISO strings.
+ * A JSON-serializable version of `AddressSelectModel` for use in `getServerSideProps` props:
+ * - Date fields become ISO strings.
  */
-export type SerializedAddressSelectModel = Omit<
-    AddressSelectModel,
-    "balance" | "attempts" | "createdAt" | "updatedAt" | "balanceCheckedAt"
-> & {
-    balance: string | null
-    attempts: string
+export type SerializedAddressSelectModel = Omit<AddressSelectModel, "createdAt" | "updatedAt" | "balanceCheckedAt"> & {
     createdAt: string
     updatedAt: string
     balanceCheckedAt: string | null

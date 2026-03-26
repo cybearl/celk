@@ -1,12 +1,12 @@
 import scAddress from "@app/db/schema/address"
 import scAddressList from "@app/db/schema/addressList"
 import scPvtAddressListMember from "@app/db/schema/addressListMember"
-import scConfig, { CONFIG_ID } from "@app/db/schema/config"
+import scDynamicConfig, { DYNAMIC_CONFIG_ID } from "@app/db/schema/dynamicConfig"
 import { db } from "@app/lib/server/connectors/db"
+import { WORKER_STATUS } from "@app/lib/server/instrumentations/workersManager/protocol"
 import { router, unlockedProcedure } from "@app/lib/server/trpc/trpc"
-import { WORKER_STATUS } from "@app/workers/protocol"
 import { TRPCError } from "@trpc/server"
-import { and, asc, count, eq, inArray } from "drizzle-orm"
+import { and, count, desc, eq, inArray } from "drizzle-orm"
 import z from "zod"
 
 /**
@@ -14,7 +14,7 @@ import z from "zod"
  */
 export const addressListsRouter = router({
     /**
-     * Retrieves all address lists belonging to the current user.
+     * Retrieve all address lists belonging to the current user.
      * @param ctx The request context.
      * @returns An array of address list objects.
      */
@@ -23,11 +23,11 @@ export const addressListsRouter = router({
             .select()
             .from(scAddressList)
             .where(eq(scAddressList.userId, ctx.session.user.id))
-            .orderBy(asc(scAddressList.createdAt))
+            .orderBy(desc(scAddressList.attempts))
     }),
 
     /**
-     * Retrieves only the attempts counter for each address list belonging to the current user.
+     * Retrieve only the attempt counts for each address list belonging to the current user.
      * @param ctx The request context.
      * @returns An array of objects containing each address list ID and its current attempts count.
      */
@@ -39,7 +39,7 @@ export const addressListsRouter = router({
     }),
 
     /**
-     * Retrieves all currently enabled address lists belonging to the current user.
+     * Retrieve all currently enabled address lists belonging to the current user.
      * @param ctx The request context.
      * @returns An array of enabled address list objects.
      */
@@ -48,11 +48,11 @@ export const addressListsRouter = router({
             .select()
             .from(scAddressList)
             .where(and(eq(scAddressList.userId, ctx.session.user.id), eq(scAddressList.isEnabled, true)))
-            .orderBy(asc(scAddressList.createdAt))
+            .orderBy(desc(scAddressList.attempts))
     }),
 
     /**
-     * Creates a new address list with an initial set of addresses for the current user.
+     * Create a new address list with an initial set of addresses for the current user.
      * @param ctx The request context.
      * @param input The input object containing the address list details.
      * @returns The created address list object.
@@ -72,11 +72,11 @@ export const addressListsRouter = router({
                     .where(eq(scAddressList.userId, ctx.session.user.id)),
                 db
                     .select({
-                        maxAddressListsPerUser: scConfig.maxAddressListsPerUser,
-                        maxAddressesPerList: scConfig.maxAddressesPerList,
+                        maxAddressListsPerUser: scDynamicConfig.maxAddressListsPerUser,
+                        maxAddressesPerList: scDynamicConfig.maxAddressesPerList,
                     })
-                    .from(scConfig)
-                    .where(eq(scConfig.id, CONFIG_ID))
+                    .from(scDynamicConfig)
+                    .where(eq(scDynamicConfig.id, DYNAMIC_CONFIG_ID))
                     .limit(1),
             ])
 
@@ -118,7 +118,7 @@ export const addressListsRouter = router({
                     name: input.name,
                     isEnabled: false,
                     stopOnFirstMatch: false,
-                    attempts: 0n,
+                    attempts: "0",
                     workerStatus: WORKER_STATUS.Idle,
                     userId: ctx.session.user.id,
                 })
@@ -129,7 +129,6 @@ export const addressListsRouter = router({
                     input.addressIds.map(addressId => ({
                         addressListId: addressList.id,
                         addressId,
-                        attempts: 0n,
                     })),
                 )
             }
@@ -138,7 +137,7 @@ export const addressListsRouter = router({
         }),
 
     /**
-     * Retrieves an address list by its ID, including the IDs of all its member addresses.
+     * Retrieve an address list by its ID, including the IDs of all its member addresses.
      * @param ctx The request context.
      * @param input The input object containing the address list ID.
      * @returns The address list object with its member address IDs.
@@ -164,7 +163,7 @@ export const addressListsRouter = router({
     }),
 
     /**
-     * Deletes an address list by its ID.
+     * Delete an address list by its ID.
      * @param ctx The request context.
      * @param input The input object containing the address list ID.
      */
@@ -181,7 +180,7 @@ export const addressListsRouter = router({
     }),
 
     /**
-     * Adds an address to an address list.
+     * Add an address to an address list.
      * @param ctx The request context.
      * @param input The input object containing the address list ID and address ID.
      * @returns The created membership record.
@@ -200,9 +199,9 @@ export const addressListsRouter = router({
                     .from(scPvtAddressListMember)
                     .where(eq(scPvtAddressListMember.addressListId, input.id)),
                 db
-                    .select({ maxAddressesPerList: scConfig.maxAddressesPerList })
-                    .from(scConfig)
-                    .where(eq(scConfig.id, CONFIG_ID))
+                    .select({ maxAddressesPerList: scDynamicConfig.maxAddressesPerList })
+                    .from(scDynamicConfig)
+                    .where(eq(scDynamicConfig.id, DYNAMIC_CONFIG_ID))
                     .limit(1),
             ])
 
@@ -242,7 +241,7 @@ export const addressListsRouter = router({
         }),
 
     /**
-     * Removes an address from an address list.
+     * Remove an address from an address list.
      * @param ctx The request context.
      * @param input The input object containing the address list ID and address ID.
      */
@@ -277,7 +276,33 @@ export const addressListsRouter = router({
         }),
 
     /**
-     * Enables an address list by taking the config's `maxRunningAddressListsPerUser` limitation into account.
+     * Update the "stop on first match" flag for an address list by sending a mutation request to the tRPC API.
+     * @param id The ID of the address list to update.
+     * @param stopOnFirstMatch The new value for the "stop on first match" flag.
+     * @returns The updated address list object returned from the API.
+     */
+    updateStopOnFirstMatch: unlockedProcedure
+        .input(z.object({ id: z.string(), stopOnFirstMatch: z.boolean() }))
+        .mutation(async ({ ctx, input }) => {
+            const [addressList] = await db
+                .select({ id: scAddressList.id, stopOnFirstMatch: scAddressList.stopOnFirstMatch })
+                .from(scAddressList)
+                .where(and(eq(scAddressList.id, input.id), eq(scAddressList.userId, ctx.session.user.id)))
+                .limit(1)
+
+            if (!addressList) throw new TRPCError({ code: "NOT_FOUND" })
+
+            const [updated] = await db
+                .update(scAddressList)
+                .set({ stopOnFirstMatch: input.stopOnFirstMatch })
+                .where(eq(scAddressList.id, input.id))
+                .returning()
+
+            return updated
+        }),
+
+    /**
+     * Enable an address list by taking the config's `maxRunningAddressListsPerUser` limitation into account.
      * @param ctx The request context.
      * @param input The input object containing the address list ID.
      * @returns The updated address list object.
@@ -294,9 +319,9 @@ export const addressListsRouter = router({
                 .from(scAddressList)
                 .where(and(eq(scAddressList.userId, ctx.session.user.id), eq(scAddressList.isEnabled, true))),
             db
-                .select({ maxRunningAddressListsPerUser: scConfig.maxRunningAddressListsPerUser })
-                .from(scConfig)
-                .where(eq(scConfig.id, CONFIG_ID))
+                .select({ maxRunningAddressListsPerUser: scDynamicConfig.maxRunningAddressListsPerUser })
+                .from(scDynamicConfig)
+                .where(eq(scDynamicConfig.id, DYNAMIC_CONFIG_ID))
                 .limit(1),
         ])
 
@@ -327,7 +352,7 @@ export const addressListsRouter = router({
     }),
 
     /**
-     * Disables an address list by its ID.
+     * Disable an address list by its ID.
      * @param ctx The request context.
      * @param input The input object containing the address list ID.
      * @returns The updated address list object.

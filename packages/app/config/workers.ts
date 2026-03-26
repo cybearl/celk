@@ -9,14 +9,6 @@ const WORKERS_CONFIG = {
     dumpsDir: path.join(PRIVATE_ENV.paths.dataDir, "dumps"),
     matchesDir: path.join(PRIVATE_ENV.paths.dataDir, "matches"),
 
-    // Fallback synchronization retry settings when the config
-    // cannot be loaded from the DB
-    syncRetry: {
-        maxRetries: 5,
-        baseDelayMs: 5000, // 5 seconds
-        maxDelayMs: 3_600_000, // 1 hour
-    },
-
     // Heartbeat settings passed to each spawned worker process
     heartbeat: {
         intervalMs: 5000, // Worker sends a heartbeat every 5 seconds

@@ -1,4 +1,4 @@
-import { stringifyWithBigIntSupport } from "@app/workers/lib/json"
+import { stringifyWithBigIntSupport } from "@app/lib/base/utils/json"
 
 /**
  * A set of colored Next.js status indicators for console messages.
@@ -17,7 +17,7 @@ export const loggerIndicators = {
 export type LoggerOptions = {
     /** Overrides the logger's default prefix for this call. */
     prefix?: string
-    /** Additional data to log alongside the message (e.g. an Error object). */
+    /** Additional data to log alongside the message (e.g., an Error object). */
     data?: unknown
 }
 
@@ -35,15 +35,15 @@ export type LoggerInstance = {
 }
 
 /**
- * Creates a logger instance with an optional default prefix, indicators are
+ * Create a logger instance with an optional default prefix, indicators are
  * automatically hidden in browser environments (no ANSI support).
  * @param defaultPrefix An optional prefix prepended to all messages as `[prefix]`.
  */
 function createLogger(defaultPrefix?: string): LoggerInstance {
     /**
      * Emits a log message with the specified indicator and options.
-     * @param indicator The log indicator (e.g. success, error).
-     * @param fn The logging function to call (e.g. console.log).
+     * @param indicator The log indicator (e.g., success, error).
+     * @param fn The logging function to call (e.g., console.log).
      * @param message The log message.
      * @param options Additional logging options.
      */

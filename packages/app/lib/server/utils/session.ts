@@ -29,7 +29,7 @@ export function withSession<P extends Record<string, unknown>>(
             const sessionData = await auth.api.getSession({ headers })
             if (sessionData) session = sessionData
         } catch (error) {
-            logger.warn(`Failed to load session on server-side via the 'withSession' wrapper`, { data: error })
+            logger.warn(`Failed to load session on server-side via the 'withSession' wrapper:`, { data: error })
         }
 
         return gssp(ctx, session)

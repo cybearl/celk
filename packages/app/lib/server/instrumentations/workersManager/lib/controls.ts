@@ -2,13 +2,9 @@ import { type ChildProcessWithoutNullStreams, spawn } from "node:child_process"
 import WORKERS_CONFIG from "@app/config/workers"
 import type { AddressListSelectModel } from "@app/db/schema/addressList"
 import { type LoggerInstance, logger } from "@app/lib/base/utils/logger"
-import { sendMatchAlert } from "@app/lib/server/utils/emails"
-import { encryptPrivateKey } from "@app/lib/server/utils/encryption"
-import { getAddressListDumpFilePath } from "@app/workers/lib/dumps"
-import { generateWorkerLoggerPrefix } from "@app/workers/lib/formats"
-import { parseWithBigIntSupport, stringifyWithBigIntSupport } from "@app/workers/lib/json"
-import { saveMatchLocally } from "@app/workers/lib/matches"
-import { getAddressListWithUser, saveMatchToDb, updateAttemptsCount } from "@app/workers/lib/queries"
+import { getAddressListDumpFilePath } from "@app/lib/server/instrumentations/workersManager/lib/dumps"
+import { generateWorkerLoggerPrefix } from "@app/lib/server/instrumentations/workersManager/lib/formats"
+import { saveMatchLocally } from "@app/lib/server/instrumentations/workersManager/lib/matches"
 import {
     type AnyIncomingWorkerMessage,
     type HeartbeatAckWorkerMessage,
@@ -16,7 +12,15 @@ import {
     type StopWorkerMessage,
     WORKER_MESSAGE_TYPE,
     type WorkerMessage,
-} from "@app/workers/protocol"
+} from "@app/lib/server/instrumentations/workersManager/protocol"
+import { sendMatchAlert } from "@app/lib/server/utils/emails"
+import { encryptPrivateKey } from "@app/lib/server/utils/encryption"
+import {
+    dbDisableAddressList,
+    dbGetAddressListWithUser,
+    dbIncrementAttemptCounts,
+    dbSaveWorkerMatchToDb,
+} from "@app/lib/server/utils/queries"
 
 /**
  * Sends a message to a worker process via its stdin.
@@ -28,9 +32,8 @@ export function sendToWorker(worker: ChildProcessWithoutNullStreams, message: Wo
     if (worker.killed || worker.exitCode !== null) return false
 
     try {
-        // Stringify the message with big integer support and no intent
-        // to prevent invalid fragmentation
-        worker.stdin.write(`${stringifyWithBigIntSupport(message, 0)}\n`)
+        // Stringify the message with no intent to prevent invalid fragmentation
+        worker.stdin.write(`${JSON.stringify(message)}\n`)
 
         return true
     } catch {
@@ -64,9 +67,9 @@ function routeWorkerMessage(
             break
         }
         case WORKER_MESSAGE_TYPE.Report:
-            // Fire-and-forget update of attempts count
-            updateAttemptsCount(message.attempts, message.addressListId).catch(error => {
-                workerLogger.error(`Failed to update attempts count`, { data: error })
+            // Fire-and-forget increment of attempt counts
+            dbIncrementAttemptCounts(message.attempts, message.addressListId).catch(error => {
+                workerLogger.error(`Failed to increment attempt counts:`, { data: error })
             })
 
             break
@@ -76,7 +79,7 @@ function routeWorkerMessage(
             try {
                 encryptedPrivateKey = encryptPrivateKey(message.privateKey)
             } catch (error) {
-                workerLogger.error(`Failed to encrypt private key`, { data: error })
+                workerLogger.error(`Failed to encrypt private key:`, { data: error })
                 break
             }
 
@@ -86,24 +89,24 @@ function routeWorkerMessage(
                     addressListId: message.addressListId,
                     address: message.address,
                     encryptedPrivateKey,
-                    attempts: message.attempts,
+                    totalAttempts: message.totalAttempts,
                     matchedAt: new Date().toISOString(),
                 })
             } catch (error) {
-                workerLogger.error(`Failed to save match locally`, { data: error })
+                workerLogger.error(`Failed to save match locally:`, { data: error })
                 // Continuing as local failure must not block DB/email
             }
 
             // DB persistence
-            saveMatchToDb(message.addressListId, message.address, encryptedPrivateKey).catch(error => {
-                workerLogger.error(`Failed to save match to DB`, { data: error })
+            dbSaveWorkerMatchToDb(message.addressListId, message.address, encryptedPrivateKey).catch(error => {
+                workerLogger.error(`Failed to save match to DB:`, { data: error })
             })
 
             // Email alert
-            getAddressListWithUser(message.addressListId)
+            dbGetAddressListWithUser(message.addressListId)
                 .then(result => {
                     if (!result) {
-                        workerLogger.error(`Address list not found for match alert, skipping email`)
+                        workerLogger.error(`Address list not found for match alert, skipping email.`)
                         return
                     }
 
@@ -111,14 +114,23 @@ function routeWorkerMessage(
                         user: result.user,
                         addressListName: result.addressList.name,
                         address: message.address,
-                        attempts: message.attempts,
+                        totalAttempts: message.totalAttempts,
                     }).catch(error => {
-                        workerLogger.error(`Failed to send match alert email`, { data: error })
+                        workerLogger.error(`Failed to send match alert email:`, { data: error })
                     })
                 })
                 .catch(error => {
-                    workerLogger.error(`Failed to fetch address list owner for match alert`, { data: error })
+                    workerLogger.error(`Failed to fetch address list owner for match alert:`, { data: error })
                 })
+
+            // If "stop of first match" is set, disable the address list in the DB, assuming
+            // that the manager will pull the address list afterwards, see it as disabled and
+            // run the procedure to stop the worker and remove the dump file
+            if (message.stopOnFirstMatch) {
+                dbDisableAddressList(message.addressListId).catch(error => {
+                    workerLogger.error(`Failed to disable address list (via stop on first match):`, { data: error })
+                })
+            }
 
             break
         }
@@ -157,15 +169,15 @@ export function listenToWorker(
             if (line === "") continue
 
             try {
-                const message = parseWithBigIntSupport(line) as AnyIncomingWorkerMessage
+                const message = JSON.parse(line) as AnyIncomingWorkerMessage
 
-                workerLogger.debug(`New message received from ${generateWorkerLoggerPrefix(addressListId)}:`, {
+                workerLogger.debug(`New message received from '${generateWorkerLoggerPrefix(addressListId)}':`, {
                     data: message,
                 })
 
                 routeWorkerMessage(worker, addressListId, message, workerLogger)
             } catch (error) {
-                workerLogger.error(`Failed to parse message`, {
+                workerLogger.error(`Failed to parse message:`, {
                     data: {
                         line,
                         error,
@@ -180,17 +192,17 @@ export function listenToWorker(
         if (stdoutBuffer.trim() === "") return
 
         try {
-            const message = parseWithBigIntSupport(stdoutBuffer) as AnyIncomingWorkerMessage
+            const message = JSON.parse(stdoutBuffer) as AnyIncomingWorkerMessage
             routeWorkerMessage(worker, addressListId, message, workerLogger)
         } catch (error) {
-            workerLogger.error(`Failed to parse final message`, { data: error })
+            workerLogger.error(`Failed to parse final message:`, { data: error })
         }
 
         stdoutBuffer = ""
     })
 
     worker.stdout.on("error", error => {
-        workerLogger.error(`Worker stdout error`, { data: error })
+        workerLogger.error(`Worker stdout error:`, { data: error })
     })
 }
 
@@ -204,17 +216,19 @@ export function spawnWorker(addressList: AddressListSelectModel, reportIntervalM
     const workerLogger = logger.withPrefix(generateWorkerLoggerPrefix(addressList.id))
 
     const worker = spawn(WORKERS_CONFIG.binaryPath, [], { stdio: ["pipe", "pipe", "pipe"] })
-    workerLogger.info(`Spawned worker with PID ${worker.pid} for address list ${addressList.name} (${addressList.id}).`)
+    workerLogger.success(
+        `Spawned worker with PID '${worker.pid}' for address list '${addressList.name}' (${addressList.id}).`,
+    )
 
     // Stream write errors like EPIPE are emitted asynchronously,
     // so we need to listen for the error event on the worker's stdin to prevent
     // uncaught exceptions when trying to write to a dead worker
     worker.stdin.on("error", error => {
-        workerLogger.error(`Worker stdin error`, { data: error })
+        workerLogger.error(`Worker stdin error:`, { data: error })
     })
 
     worker.on("error", error => {
-        workerLogger.error(`Worker error`, { data: error })
+        workerLogger.error(`Worker error:`, { data: error })
     })
 
     const startMessage: StartWorkerMessage = {
@@ -236,7 +250,7 @@ export function spawnWorker(addressList: AddressListSelectModel, reportIntervalM
 
     worker.on("exit", (code, signal) => {
         if (code === 0) workerLogger.success(`Worker exited successfully.`)
-        else workerLogger.error(`Worker exited with ${code ?? signal}`)
+        else workerLogger.error(`Worker exited with '${code ?? signal}'.`)
     })
 
     worker.unref()

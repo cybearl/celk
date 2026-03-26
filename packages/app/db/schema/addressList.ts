@@ -1,7 +1,7 @@
 import scUser from "@app/db/schema/user"
-import { WORKER_STATUS } from "@app/workers/protocol"
+import { WORKER_STATUS } from "@app/lib/server/instrumentations/workersManager/protocol"
 import type { InferInsertModel, InferSelectModel } from "drizzle-orm"
-import { bigint, boolean, pgEnum, pgTable, text, timestamp, unique } from "drizzle-orm/pg-core"
+import { boolean, numeric, pgEnum, pgTable, text, timestamp, unique } from "drizzle-orm/pg-core"
 
 /**
  * The PG enum for worker statuses.
@@ -20,7 +20,7 @@ const scAddressList = pgTable(
 
         name: text("name").notNull(),
         description: text("description"),
-        attempts: bigint({ mode: "bigint" }).notNull(),
+        attempts: numeric("attempts").notNull(),
         workerStatus: PG_WORKER_STATUS("worker_status").notNull(),
         latestDumpId: text("latest_dump_id"),
 
@@ -46,11 +46,10 @@ export type AddressListSelectModel = InferSelectModel<typeof scAddressList>
 export type AddressListInsertModel = InferInsertModel<typeof scAddressList>
 
 /**
- * A JSON-serializable version of the `AddressListSelectModel` for use in `getServerSideProps` props,
- * `BigInt` fields become strings, date fields become ISO strings.
+ * A JSON-serializable version of the `AddressListSelectModel` for use in `getServerSideProps` props:
+ * - Date fields become ISO strings.
  */
-export type SerializedAddressListSelectModel = Omit<AddressListSelectModel, "attempts" | "createdAt" | "updatedAt"> & {
-    attempts: string
+export type SerializedAddressListSelectModel = Omit<AddressListSelectModel, "createdAt" | "updatedAt"> & {
     createdAt: string
     updatedAt: string
 }

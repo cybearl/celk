@@ -5,10 +5,9 @@ import WORKERS_CONFIG from "@app/config/workers"
 import type { AddressSelectModel } from "@app/db/schema/address"
 import type { AddressListSelectModel } from "@app/db/schema/addressList"
 import { logger } from "@app/lib/base/utils/logger"
-import { generateWorkerLoggerPrefix } from "@app/workers/lib/formats"
-import { parseWithBigIntSupport, stringifyWithBigIntSupport } from "@app/workers/lib/json"
-import { getAddressesByAddressListId, saveLatestDumpId } from "@app/workers/lib/queries"
-import type { AddressDump, AddressListDumpMetadata } from "@app/workers/protocol"
+import { generateWorkerLoggerPrefix } from "@app/lib/server/instrumentations/workersManager/lib/formats"
+import type { AddressDump, AddressListDumpMetadata } from "@app/lib/server/instrumentations/workersManager/protocol"
+import { dbGetAddressesByAddressListId, dbSaveLatestDumpId } from "@app/lib/server/utils/queries"
 
 /**
  * Get the path of an address list dump file.
@@ -68,8 +67,9 @@ function generateAddressDumpObject(addressListId: string, addresses: AddressSele
         value: address.value,
         preEncoding: address.preEncoding,
         privateKeyGenerator: address.privateKeyGenerator,
-        privateKeyRangeStart: address.privateKeyRangeStart !== null ? BigInt(address.privateKeyRangeStart) : null,
-        privateKeyRangeEnd: address.privateKeyRangeEnd !== null ? BigInt(address.privateKeyRangeEnd) : null,
+        privateKeyRangeStart: address.privateKeyRangeStart !== null ? address.privateKeyRangeStart : null,
+        privateKeyRangeEnd: address.privateKeyRangeEnd !== null ? address.privateKeyRangeEnd : null,
+        isFound: address.privateKey !== null, // Assuming an address is considered "found" if it has a private key set in the DB
         isDisabled: address.isDisabled,
         addressListId: addressListId,
     }))
@@ -94,9 +94,9 @@ function isDumpUpToDate(addressList: AddressListSelectModel) {
 
     let metadata: AddressListDumpMetadata | undefined
     try {
-        metadata = parseWithBigIntSupport(fs.readFileSync(dumpMetadataFilePath, "utf-8")) as AddressListDumpMetadata
+        metadata = JSON.parse(fs.readFileSync(dumpMetadataFilePath, "utf-8")) as AddressListDumpMetadata
     } catch {
-        logger.error(`Failed to read address list dump metadata`, { data: addressList.id })
+        logger.error(`Failed to read address list dump metadata:`, { data: addressList.id })
         return false
     }
 
@@ -104,7 +104,7 @@ function isDumpUpToDate(addressList: AddressListSelectModel) {
 }
 
 /**
- * Saves the address list dump to a file, with the metadata saved separately (with a `.meta.json` extension)
+ * Save the address list dump to a file, with the metadata saved separately (with a `.meta.json` extension)
  * skips if the dump exists and is already up-to-date.
  * @param addressList The address list to save the dump for.
  */
@@ -112,7 +112,7 @@ export async function saveAddressListDumpFiles(addressList: AddressListSelectMod
     if (isDumpUpToDate(addressList)) return
 
     const workerLogger = logger.withPrefix(generateWorkerLoggerPrefix(addressList.id))
-    const addresses = await getAddressesByAddressListId(addressList.id)
+    const addresses = await dbGetAddressesByAddressListId(addressList.id)
 
     if (!addresses || addresses.length === 0) {
         workerLogger.warn(`No addresses found for dump.`)
@@ -123,7 +123,7 @@ export async function saveAddressListDumpFiles(addressList: AddressListSelectMod
     const dump = generateAddressDumpObject(addressList.id, addresses)
 
     try {
-        await saveLatestDumpId(addressList.id, dumpMetadata.id)
+        await dbSaveLatestDumpId(addressList.id, dumpMetadata.id)
     } catch (error) {
         throw new Error("An error occurred while saving the latest dump ID", { cause: error })
     }
@@ -131,14 +131,14 @@ export async function saveAddressListDumpFiles(addressList: AddressListSelectMod
     fs.mkdirSync(WORKERS_CONFIG.dumpsDir, { recursive: true })
 
     // Writing dump file before metadata to ensure metadata only exists if dump is successful
-    fs.writeFileSync(getAddressListDumpFilePath(addressList.id), stringifyWithBigIntSupport(dump))
-    fs.writeFileSync(getAddressListDumpMetadataFilePath(addressList.id), stringifyWithBigIntSupport(dumpMetadata))
+    fs.writeFileSync(getAddressListDumpFilePath(addressList.id), JSON.stringify(dump))
+    fs.writeFileSync(getAddressListDumpMetadataFilePath(addressList.id), JSON.stringify(dumpMetadata))
 
-    workerLogger.success(`Dump for address list ${addressList.id} has been saved.`)
+    workerLogger.success(`Dump for address list '${addressList.id}' has been saved.`)
 }
 
 /**
- * Deletes the address list dump file for a given address list ID.
+ * Delete the address list dump file for a given address list ID.
  * @param addressListId The ID of the address list to delete the dump for.
  */
 export function deleteAddressListDumpFile(addressListId: string) {
@@ -153,7 +153,7 @@ export function deleteAddressListDumpFile(addressListId: string) {
 }
 
 /**
- * Deletes the metadata file for a given address list ID.
+ * Delete the metadata file for a given address list ID.
  * @param addressListId The ID of the address list to delete the metadata for.
  */
 export function deleteAddressListDumpMetadataFile(addressListId: string) {

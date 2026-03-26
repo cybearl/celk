@@ -1,5 +1,5 @@
 /**
- * Returns the invert of a hex color string (e.g. "#aabbcc" -> "#554433"),
+ * Returns the invert of a hex color string (e.g., "#aabbcc" -> "#554433"),
  * for address closest-match overlay.
  * @param hexColor The hex color string to invert.
  * @returns The inverted hex color string.
@@ -36,4 +36,23 @@ export function applyHexColorOpacity(hexColor: string, opacity: number): string 
         .padStart(2, "0")
 
     return `#${strippedHex}${alpha}`
+}
+
+/**
+ * Formats a date into a more human-readable format (`MM/DD/YYYY HH:MM:SS AM/PM`)
+ * @param date The date to format.
+ * @returns The formatted date string.
+ */
+export function formatDate(date: Date): string {
+    const options: Intl.DateTimeFormatOptions = {
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+        hour12: true,
+    }
+
+    return date.toLocaleString(undefined, options)
 }

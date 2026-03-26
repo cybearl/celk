@@ -1,3 +1,4 @@
+import { PUBLIC_ENV } from "@app/config/env"
 import { checkEnvironmentVariables } from "@app/lib/base/utils/env"
 
 /**
@@ -6,11 +7,14 @@ import { checkEnvironmentVariables } from "@app/lib/base/utils/env"
 export async function register() {
     checkEnvironmentVariables()
 
-    if (process.env.NEXT_RUNTIME === "nodejs") {
+    if (PUBLIC_ENV.nextRuntime === "nodejs") {
         const { seedDefaultAdminUser } = await import("@app/lib/server/utils/users")
         await seedDefaultAdminUser()
 
-        const { workersManager } = await import("@app/workers/manager")
-        await workersManager.start()
+        const { balanceChecker } = await import("@app/lib/server/instrumentations/balanceChecker")
+        balanceChecker.start()
+
+        //const { workersManager } = await import("@app/lib/server/instrumentations/workersManager")
+        //await workersManager.start()
     }
 }

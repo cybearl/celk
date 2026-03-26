@@ -78,7 +78,7 @@ $ yarn app dev
   # Build
   $ cmake --build --preset release
 
-  # Install to wherever "CELK_WORKER_BINARY" points (e.g. /usr/local/bin)
+  # Install to wherever "CELK_WORKER_BINARY" points (e.g., /usr/local/bin)
   $ cmake --install build --prefix /usr/local/bin
   # Binary ends up at /usr/local/bin/worker
 

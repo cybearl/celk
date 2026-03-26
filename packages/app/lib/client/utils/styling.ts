@@ -14,7 +14,7 @@ export function cn(...inputs: ClassValue[]) {
 
 /**
  * Converts a CSS delay string to a number in milliseconds.
- * @param delay The CSS delay string to convert (e.g. "1s", "500ms" or a number directly (in ms)).
+ * @param delay The CSS delay string to convert (e.g., "1s", "500ms" or a number directly (in ms)).
  * @returns The delay in milliseconds.
  */
 export function convertCssDelayToMs(delay: CSSDelay): number {

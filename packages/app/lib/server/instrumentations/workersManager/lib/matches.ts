@@ -1,8 +1,7 @@
 import fs from "node:fs"
 import path from "node:path"
 import WORKERS_CONFIG from "@app/config/workers"
-import { stringifyWithBigIntSupport } from "@app/workers/lib/json"
-import type { AddressMatch } from "@app/workers/protocol"
+import type { AddressMatch } from "@app/lib/server/instrumentations/workersManager/protocol"
 
 /**
  * Gets the file path for a match file for a specific address list.
@@ -21,5 +20,5 @@ export function getMatchFilePath(addressListId: string): string {
  */
 export function saveMatchLocally(match: AddressMatch): void {
     fs.mkdirSync(WORKERS_CONFIG.matchesDir, { recursive: true })
-    fs.writeFileSync(getMatchFilePath(match.addressListId), stringifyWithBigIntSupport(match))
+    fs.writeFileSync(getMatchFilePath(match.addressListId), JSON.stringify(match))
 }

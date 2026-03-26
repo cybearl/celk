@@ -16,7 +16,7 @@ struct MatchState {
     std::mutex stateMutex;
     std::string address;
     std::string privateKey;
-    uint64_t attempts { 0 };
+    uint64_t totalAttempts { 0 };
 };
 
 int main() {
@@ -129,12 +129,12 @@ int main() {
 
             // Use the match state to store the total number of attempts
             std::lock_guard<std::mutex> lock(matchState.stateMutex);
-            matchState.attempts += drainedAttempts;
+            matchState.totalAttempts += drainedAttempts;
 
             WorkerReportMessage message;
             message.type = WorkerMessageType::Report;
             message.addressListId = startMessage.addressListId;
-            message.attempts = std::to_string(drainedAttempts) + "n";
+            message.attempts = std::to_string(drainedAttempts);
 
             std::string line = serializeJson(nlohmann::json(message));
             ioWrite(line);
@@ -151,7 +151,8 @@ int main() {
             message.addressListId = startMessage.addressListId;
             message.address = "0x1234";
             message.privateKey = "0x1234";
-            message.attempts = std::to_string(matchState.attempts) + "n";
+            message.totalAttempts = std::to_string(matchState.totalAttempts);
+            message.stopOnFirstMatch = startMessage.stopOnFirstMatch;
 
             std::string line = serializeJson(nlohmann::json(message));
             ioWrite(line);

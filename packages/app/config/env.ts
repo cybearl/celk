@@ -4,6 +4,7 @@
 export const REQUIRED_ENV_VARS = {
     public: [
         "NODE_ENV",
+        "NEXT_RUNTIME",
         "NEXT_PUBLIC_LOG_LEVEL",
         "NEXT_PUBLIC_APP_URL",
         "NEXT_PUBLIC_CGAS_MARKER",
@@ -21,9 +22,6 @@ export const REQUIRED_ENV_VARS = {
         "SMTP_PORT",
         "SMTP_USER",
         "SMTP_PASSWORD",
-        "ETHEREUM_RPC_URL",
-        "POLYGON_RPC_URL",
-        "BITCOIN_RPC_URL",
         "ADDRESS_LIST_DUMP_VERSION",
         "PRIVATE_KEYS_ENCRYPTION_SECRET",
         "WORKER_BIN_PATH",
@@ -37,6 +35,7 @@ export const REQUIRED_ENV_VARS = {
 export const PUBLIC_ENV = {
     version: process.env.VERSION as string,
     nodeEnv: process.env.NODE_ENV as "development" | "production" | "test",
+    nextRuntime: process.env.NEXT_RUNTIME as "nodejs" | "edge",
     appUrl: process.env.NEXT_PUBLIC_APP_URL as string,
     cgasMarker: process.env.NEXT_PUBLIC_CGAS_MARKER as string,
     appStatus: process.env.NEXT_PUBLIC_APP_STATUS as "enabled" | "disabled" | "in-maintenance" | "in-development",
@@ -62,11 +61,6 @@ export const PRIVATE_ENV = {
         user: process.env.SMTP_USER as string | undefined,
         password: process.env.SMTP_PASSWORD as string | undefined,
     },
-    rpcs: {
-        ethereum: process.env.ETHEREUM_RPC_URL as string | undefined,
-        polygon: process.env.POLYGON_RPC_URL as string | undefined,
-        bitcoin: process.env.BITCOIN_RPC_URL as string | undefined,
-    },
     addressListDumpVersion: process.env.ADDRESS_LIST_DUMP_VERSION ? Number(process.env.ADDRESS_LIST_DUMP_VERSION) : 1,
     privateKeysEncryptionSecret: process.env.PRIVATE_KEYS_ENCRYPTION_SECRET as string,
     paths: {
@@ -79,6 +73,7 @@ export const PRIVATE_ENV = {
  * Trick the compiler into inlining the values for checking.
  */
 export const ENV_RUNTIME_VALUES: Record<string, string | undefined> = {
+    NEXT_RUNTIME: process.env.NEXT_RUNTIME,
     PORT: process.env.PORT,
     NODE_ENV: process.env.NODE_ENV,
     NEXT_PUBLIC_LOG_LEVEL: process.env.NEXT_PUBLIC_LOG_LEVEL,
@@ -96,9 +91,6 @@ export const ENV_RUNTIME_VALUES: Record<string, string | undefined> = {
     SMTP_PORT: process.env.SMTP_PORT,
     SMTP_USER: process.env.SMTP_USER,
     SMTP_PASSWORD: process.env.SMTP_PASSWORD,
-    ETHEREUM_RPC_URL: process.env.ETHEREUM_RPC_URL,
-    POLYGON_RPC_URL: process.env.POLYGON_RPC_URL,
-    BITCOIN_RPC_URL: process.env.BITCOIN_RPC_URL,
     ADDRESS_LIST_DUMP_VERSION: process.env.ADDRESS_LIST_DUMP_VERSION,
     PRIVATE_KEYS_ENCRYPTION_SECRET: process.env.PRIVATE_KEYS_ENCRYPTION_SECRET,
     WORKER_BIN_PATH: process.env.WORKER_BIN_PATH,

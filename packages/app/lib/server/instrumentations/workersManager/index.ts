@@ -1,51 +1,51 @@
 import type { ChildProcessWithoutNullStreams } from "node:child_process"
 import fs from "node:fs"
-import WORKERS_CONFIG from "@app/config/workers"
+import DYNAMIC_CONFIG from "@app/config/dynamicConfig"
+import { PUBLIC_ENV } from "@app/config/env"
 import type { AddressListSelectModel } from "@app/db/schema/addressList"
-import type { ConfigSelectModel } from "@app/db/schema/config"
+import type { DynamicConfigSelectModel } from "@app/db/schema/dynamicConfig"
 import { logger } from "@app/lib/base/utils/logger"
-import { sendSyncFailureAlert } from "@app/lib/server/utils/emails"
-import { spawnWorker, stopWorker } from "@app/workers/lib/controls"
+import { spawnWorker, stopWorker } from "@app/lib/server/instrumentations/workersManager/lib/controls"
 import {
     deleteAddressListDumpFile,
     deleteAddressListDumpMetadataFile,
     getAddressListDumpFilePath,
     getAddressListIdsFromDumpFiles,
     saveAddressListDumpFiles,
-} from "@app/workers/lib/dumps"
-import { getAppConfig, getEnabledAddressLists } from "@app/workers/lib/queries"
-import { getRetryDelay } from "@app/workers/lib/time"
+} from "@app/lib/server/instrumentations/workersManager/lib/dumps"
+import { sendWorkersManagerSyncFailureAlert } from "@app/lib/server/utils/emails"
+import { dbGetDynamicConfig, dbGetEnabledAddressLists } from "@app/lib/server/utils/queries"
+import { getWorkersManagerRetryDelay } from "@app/lib/server/utils/time"
 
 class WorkersManager {
-    private _isSyncing: boolean
-    private _syncRetryCount: number
-    private _hasSyncAlertBeenSent: boolean
-
     /**
-     * The logger for the synchronization process, uses the first 8 chars
-     * to keep log lines aligned with worker logs that use the first 8
-     * chars of the address list ID as prefix.
+     * The logger for the workers manager, aligned with the worker logger
+     * that uses the format `<W-XXXXXXXX>`.
      */
-    private readonly _syncLogger = logger.withPrefix("W-SYNCHRON")
+    private readonly _workersManagerLogger = logger.withPrefix("W-SYNCHRON")
 
-    private _config: ConfigSelectModel | null
+    private _dynamicConfig: DynamicConfigSelectModel | null
     private _enabledAddressLists: AddressListSelectModel[] | null
     private _pollTimeout: ReturnType<typeof setTimeout> | null
     private _workers: Map<string, ChildProcessWithoutNullStreams>
 
-    constructor() {
-        this._isSyncing = false
-        this._syncRetryCount = 0
-        this._hasSyncAlertBeenSent = false
+    private _isSyncing: boolean
+    private _syncRetryCount: number
+    private _hasSyncAlertBeenSent: boolean
 
-        this._config = null
+    constructor() {
+        this._dynamicConfig = null
         this._enabledAddressLists = null
         this._pollTimeout = null
         this._workers = new Map()
+
+        this._isSyncing = false
+        this._syncRetryCount = 0
+        this._hasSyncAlertBeenSent = false
     }
 
     /**
-     * Clears the timeout for the worker polling.
+     * Clear the timeout for the worker polling.
      */
     private _clearTimeout(): void {
         if (this._pollTimeout) clearTimeout(this._pollTimeout)
@@ -53,17 +53,20 @@ class WorkersManager {
     }
 
     /**
-     * Retrieves all required data in parallel during synchronization.
+     * Retrieve all required data in parallel during synchronization.
      */
     private async _fetchRequiredData(): Promise<void> {
-        const [config, enabledAddressLists] = await Promise.all([getAppConfig(), getEnabledAddressLists()])
-        this._config = config
+        const [dynamicConfig, enabledAddressLists] = await Promise.all([
+            dbGetDynamicConfig(),
+            dbGetEnabledAddressLists(),
+        ])
+
+        this._dynamicConfig = dynamicConfig
         this._enabledAddressLists = enabledAddressLists
     }
 
     /**
-     * Synchronizes the worker state with the latest config and address lists.
-     * @returns A promise that resolves when the synchronization is complete.
+     * Synchronize the worker state with the latest config and address lists.
      */
     private async _sync(): Promise<void> {
         if (this._isSyncing) return
@@ -72,8 +75,8 @@ class WorkersManager {
         try {
             await this._fetchRequiredData()
 
-            if (!this._config) {
-                throw new Error("An error occurred while fetching the application config.")
+            if (!this._dynamicConfig) {
+                throw new Error("An error occurred while fetching the dynamic application config.")
             }
 
             if (!this._enabledAddressLists) {
@@ -119,7 +122,7 @@ class WorkersManager {
                 // Only spawn if a dump exists on disk (list may have no addresses)
                 if (!fs.existsSync(getAddressListDumpFilePath(enabledAddressList.id))) continue
 
-                const worker = spawnWorker(enabledAddressList, this._config.workerReportIntervalMs)
+                const worker = spawnWorker(enabledAddressList, this._dynamicConfig.workerReportIntervalMs)
                 this._workers.set(enabledAddressList.id, worker)
 
                 // Clean up the map entry when the worker exits, unless it was already replaced
@@ -135,29 +138,30 @@ class WorkersManager {
             this._hasSyncAlertBeenSent = false
 
             // Loop for next sync
-            this._pollTimeout = setTimeout(() => this._sync(), this._config.workerPollIntervalMs)
+            this._pollTimeout = setTimeout(() => this._sync(), this._dynamicConfig.workersManagerPollIntervalMs)
             this._isSyncing = false
         } catch (error) {
             this._syncRetryCount++
 
-            const maxRetries = this._config?.maxSyncRetries ?? WORKERS_CONFIG.syncRetry.maxRetries
+            const maxRetries =
+                this._dynamicConfig?.maxWorkersManagerSyncRetries ?? DYNAMIC_CONFIG.maxWorkersManagerSyncRetries
 
-            this._syncLogger.error(
+            this._workersManagerLogger.error(
                 `An error occurred while fetching data during sync (attempt ${this._syncRetryCount})`,
                 { data: error },
             )
 
             if (this._syncRetryCount >= maxRetries && !this._hasSyncAlertBeenSent) {
                 try {
-                    await sendSyncFailureAlert(this._syncRetryCount, error)
+                    await sendWorkersManagerSyncFailureAlert(this._syncRetryCount, error)
                     this._hasSyncAlertBeenSent = true
                 } catch (error) {
-                    this._syncLogger.error(`Failed to send sync failure alert`, { data: error })
+                    this._workersManagerLogger.error(`Failed to send sync failure alert`, { data: error })
                 }
             }
 
-            const retryDelay = getRetryDelay(this._config, this._syncRetryCount)
-            this._syncLogger.info(`Retrying sync in ${retryDelay}ms...`)
+            const retryDelay = getWorkersManagerRetryDelay(this._dynamicConfig, this._syncRetryCount)
+            this._workersManagerLogger.info(`Retrying sync in ${retryDelay.toLocaleString("en-US")}ms...`)
 
             this._isSyncing = false
             this._clearTimeout()
@@ -169,11 +173,12 @@ class WorkersManager {
      * Starting procedure for the workers manager.
      */
     async start(): Promise<void> {
+        this._workersManagerLogger.info(`Starting workers manager...`)
         await this._sync()
     }
 
     /**
-     * Stops the workers manager and all running workers.
+     * Stop the workers manager and all running workers.
      */
     stop(): void {
         this._clearTimeout()
@@ -193,4 +198,4 @@ const globalWorkersManager = global as unknown as { workersManager: WorkersManag
 export const workersManager = globalWorkersManager.workersManager ?? new WorkersManager()
 
 // Writing back to the global variable
-if (process.env.NODE_ENV !== "production") globalWorkersManager.workersManager = workersManager
+if (PUBLIC_ENV.nodeEnv !== "production") globalWorkersManager.workersManager = workersManager

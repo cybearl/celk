@@ -1,8 +1,12 @@
 import { PRIVATE_ENV } from "@app/config/env"
-import scAddress, { ADDRESS_NETWORK, ADDRESS_TYPE, type AddressInsertModel } from "@app/db/schema/address"
+import scAddress, {
+    ADDRESS_NETWORK,
+    ADDRESS_TYPE,
+    type AddressInsertModel,
+    WORKER_PRIVATE_KEY_GENERATOR,
+} from "@app/db/schema/address"
 import { convertBytesToHexAddress, decodeBitcoinAddress } from "@app/lib/base/utils/addresses"
 import { db } from "@app/lib/server/connectors/db"
-import { WORKER_PRIVATE_KEY_GENERATOR } from "@app/workers/protocol"
 
 /**
  * Seed base addresses into the database.
@@ -161,7 +165,7 @@ export default async function seedAddresses() {
             addressesToSeed.map(address => ({
                 ...address,
                 closestMatch: 0,
-                attempts: 0n,
+                attempts: "0",
                 privateKeyRangeStart: address.privateKeyRangeStart?.toString(),
                 privateKeyRangeEnd: address.privateKeyRangeEnd?.toString(),
                 userId: defaultAdminUser.id,

@@ -1,4 +1,4 @@
-import { PRIVATE_ENV } from "@app/config/env"
+import { PRIVATE_ENV, PUBLIC_ENV } from "@app/config/env"
 import { createTransport, type Transporter } from "nodemailer"
 
 // Using a global variable to prevent multiple instances of the SMTP transporter
@@ -21,6 +21,6 @@ const smtpTransporter =
     })
 
 // Writing back to the global variable
-if (process.env.NODE_ENV !== "production") globalSmtpTransporter = smtpTransporter
+if (PUBLIC_ENV.nodeEnv !== "production") globalSmtpTransporter = smtpTransporter
 
 export default smtpTransporter

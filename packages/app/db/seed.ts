@@ -37,7 +37,7 @@ async function main() {
     await dbClient.end()
 }
 
-main().catch(err => {
-    logger.error(`An error occurred while trying to seed the database: ${err.message}`)
+main().catch(error => {
+    logger.error("An error occurred while trying to seed the database:", { data: error })
     process.exit(1)
 })

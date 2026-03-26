@@ -20,6 +20,6 @@ async function main() {
 }
 
 main().catch(error => {
-    logger.error(`An error occurred while trying to migrate the database`, { data: error })
+    logger.error(`An error occurred while trying to migrate the database:`, { data: error })
     process.exit(1)
 })

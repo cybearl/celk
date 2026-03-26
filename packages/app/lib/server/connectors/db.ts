@@ -1,3 +1,4 @@
+import { PRIVATE_ENV, PUBLIC_ENV } from "@app/config/env"
 import schema from "@app/db/schema"
 import { drizzle } from "drizzle-orm/node-postgres"
 import { Pool } from "pg"
@@ -11,13 +12,13 @@ const globalDbClient = global as unknown as { client: Pool | undefined }
 export const dbClient =
     globalDbClient.client ??
     new Pool({
-        connectionString: process.env.DATABASE_URL,
+        connectionString: PRIVATE_ENV.databaseUrl,
         ssl: {
             rejectUnauthorized: false,
         },
     })
 
 // Writing back to the global variable
-if (process.env.NODE_ENV !== "production") globalDbClient.client = dbClient
+if (PUBLIC_ENV.nodeEnv !== "production") globalDbClient.client = dbClient
 
 export const db = drizzle(dbClient, { schema })
