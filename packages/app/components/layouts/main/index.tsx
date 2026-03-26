@@ -42,7 +42,7 @@ export default function MainLayout({ topRightSection, bottomLeftSection, childre
         }
     }, [session])
 
-    // Redirect locked users away from forbidden pages (e.g. via direct URL)
+    // Redirect locked users away from forbidden pages (e.g., via direct URL)
     // biome-ignore lint/correctness/useExhaustiveDependencies: Only needs session and currentPage
     useEffect(() => {
         if (session?.user.isLocked && LOCKED_FORBIDDEN_PAGES.includes(currentPage)) {

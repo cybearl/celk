@@ -1,14 +1,14 @@
 import { useSessionContext } from "@app/components/contexts/Session"
 import { Button } from "@app/components/ui/Button"
 import toast from "@app/components/ui/Toast"
-import { authClient } from "@app/lib/client/connectors/auth-client"
+import { authClient } from "@app/lib/client/connectors/authClient"
 import { useCallback } from "react"
 
 export default function SettingsPage() {
     const { refetchSession } = useSessionContext()
 
     /**
-     * Handles the sign-out process.
+     * Handle the sign-out process.
      */
     const handleSignOut = useCallback(async () => {
         await authClient.signOut()

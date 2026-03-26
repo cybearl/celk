@@ -88,7 +88,7 @@ export default function AuthDialog() {
     }, [mode])
 
     /**
-     * Handles dialog open state changes, deferring the mode/state reset until after
+     * Handle dialog open state changes, deferring the mode/state reset until after
      * the close animation finishes (200ms) to avoid a sign-in flash during close.
      * @param isOpen Whether the dialog is open or not.
      */

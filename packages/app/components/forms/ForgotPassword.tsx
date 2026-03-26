@@ -1,6 +1,6 @@
 import { Field, FieldError, FieldGroup, FieldLabel } from "@app/components/ui/Field"
 import { Input } from "@app/components/ui/Input"
-import { authClient } from "@app/lib/client/connectors/auth-client"
+import { authClient } from "@app/lib/client/connectors/authClient"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { type ReactNode, useCallback } from "react"
 import { Controller, useForm } from "react-hook-form"
@@ -26,7 +26,7 @@ export default function ForgotPasswordForm({ trigger, onSuccess }: ForgotPasswor
     })
 
     /**
-     * Handles the submission of the forgot password form.
+     * Handle the submission of the forgot password form.
      * @param data The form data containing the email address for which to request a password reset.
      */
     const handleSubmit = useCallback(

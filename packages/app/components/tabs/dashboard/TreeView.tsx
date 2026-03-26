@@ -231,7 +231,7 @@ export default function TreeViewDashboardTab({ addresses }: TreeViewDashboardTab
     useEffect(() => draw(), [draw])
 
     /**
-     * Handles highlighting an entry when its legend item is clicked.
+     * Handle highlighting an entry when its legend item is clicked.
      * @param index The index of the entry to highlight, or null to clear highlighting.
      */
     const handleHighlightEntry = (index: number | null) => {
@@ -273,7 +273,7 @@ export default function TreeViewDashboardTab({ addresses }: TreeViewDashboardTab
             </div>
 
             {entries.length > 0 && (
-                <div className="flex flex-wrap gap-x-5 gap-y-1.5">
+                <div className="flex flex-wrap gap-1">
                     <Button
                         variant="outline"
                         className="size-8 border-border"

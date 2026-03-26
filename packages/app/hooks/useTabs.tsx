@@ -35,7 +35,7 @@ export default function useTabs<T extends Record<string, string>>(
     const [currentTab, setCurrentTab] = useState(initialTab)
 
     /**
-     * Handles tab changes by updating the URL search parameters.
+     * Handle tab changes by updating the URL search parameters.
      */
     const handleTabChange = useCallback(
         (tab: T[keyof T]) => {

@@ -1,6 +1,6 @@
 import { Field, FieldError, FieldGroup, FieldLabel } from "@app/components/ui/Field"
 import { Input } from "@app/components/ui/Input"
-import { authClient } from "@app/lib/client/connectors/auth-client"
+import { authClient } from "@app/lib/client/connectors/authClient"
 import { CyCONSTANTS } from "@cybearl/cypack"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { type ReactNode, useCallback } from "react"
@@ -44,7 +44,7 @@ export default function ResetPasswordForm({ trigger, token, onSuccess }: ResetPa
     })
 
     /**
-     * Handles the submission of the reset password form, using the
+     * Handle the submission of the reset password form, using the
      * provided token to reset the user's password.
      * @param data The form data containing the new password and its confirmation.
      */

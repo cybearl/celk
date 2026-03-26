@@ -1,18 +1,20 @@
 import { Popover, PopoverContent, PopoverTrigger } from "@app/components/ui/Popover"
+import type { ReactNode } from "react"
 
 type TruncatedDescriptionProps = {
-    description: string | null | undefined
+    children?: ReactNode
+    customContent?: ReactNode
 }
 
-export default function TruncatedDescription({ description }: TruncatedDescriptionProps) {
-    if (!description) return <span className="text-muted-foreground">N/A</span>
+export default function TruncatedDescription({ children, customContent }: TruncatedDescriptionProps) {
+    if (!children) return <span className="text-muted-foreground">N/A</span>
 
     return (
         <Popover>
             <PopoverTrigger className="max-w-48 truncate cursor-pointer underline decoration-dotted underline-offset-2">
-                {description}
+                {children}
             </PopoverTrigger>
-            <PopoverContent className="">{description}</PopoverContent>
+            <PopoverContent className="w-fit">{customContent ?? children}</PopoverContent>
         </Popover>
     )
 }

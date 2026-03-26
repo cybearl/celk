@@ -1,6 +1,6 @@
 import { Button } from "@app/components/ui/Button"
 import GENERAL_CONFIG from "@app/config/general"
-import { authClient } from "@app/lib/client/connectors/auth-client"
+import { authClient } from "@app/lib/client/connectors/authClient"
 import { useCallback, useEffect, useState } from "react"
 
 type ForgotPasswordEmailSentConfirmationProps = {
@@ -22,7 +22,7 @@ export default function ForgotPasswordEmailSentConfirmation({
     }, [cooldown])
 
     /**
-     * Handles resending the password reset email.
+     * Handle resending the password reset email.
      */
     const handleResend = useCallback(async () => {
         if (!email || cooldown > 0 || isResending) return

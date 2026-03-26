@@ -1,6 +1,6 @@
 import { Field, FieldError, FieldGroup, FieldLabel } from "@app/components/ui/Field"
 import { Input } from "@app/components/ui/Input"
-import { authClient } from "@app/lib/client/connectors/auth-client"
+import { authClient } from "@app/lib/client/connectors/authClient"
 import { CyCONSTANTS } from "@cybearl/cypack"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { type ReactNode, useCallback } from "react"
@@ -59,7 +59,7 @@ export default function SignUpForm({ trigger, onSuccess }: SignUpFormProps) {
     })
 
     /**
-     * Handles the submission of the sign-up form.
+     * Handle the submission of the sign-up form.
      * @param data The data from the form, validated against the schema.
      */
     const handleSubmit = useCallback(

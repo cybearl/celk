@@ -4,7 +4,12 @@ import { Input } from "@app/components/ui/Input"
 import { InputWithPrefix } from "@app/components/ui/InputWithPrefix"
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@app/components/ui/Select"
 import { TextArea } from "@app/components/ui/TextArea"
-import { ADDRESS_NETWORK, ADDRESS_TYPE } from "@app/db/schema/address"
+import {
+    ADDRESS_NETWORK,
+    ADDRESS_TYPE,
+    WORKER_PRIVATE_KEY_GENERATOR,
+    WORKER_PRIVATE_KEY_GENERATOR_SUPPORTS_RANGE,
+} from "@app/db/schema/address"
 import {
     getAddressPrefix,
     getCompatibleAddressTypes,
@@ -13,7 +18,6 @@ import {
     getPrivateKeyGeneratorLabel,
     isValidCryptoAddress,
 } from "@app/lib/base/utils/addresses"
-import { GENERATOR_SUPPORTS_RANGE, WORKER_PRIVATE_KEY_GENERATOR } from "@app/workers/protocol"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { type ReactNode, useCallback, useEffect, useMemo } from "react"
 import { Controller, useForm } from "react-hook-form"
@@ -91,21 +95,21 @@ export default function AddAddressForm({ trigger, onSubmit, onSuccess }: AddAddr
     // If a range is entered and the current generator doesn't support ranges, switch to PCG64
     useEffect(() => {
         const hasRange = privateKeyRangeStart || privateKeyRangeEnd
-        if (hasRange && !GENERATOR_SUPPORTS_RANGE[privateKeyGenerator]) {
+        if (hasRange && !WORKER_PRIVATE_KEY_GENERATOR_SUPPORTS_RANGE[privateKeyGenerator]) {
             form.setValue("privateKeyGenerator", WORKER_PRIVATE_KEY_GENERATOR.PCG64)
         }
     }, [privateKeyRangeStart, privateKeyRangeEnd, privateKeyGenerator, form])
 
     // If the generator switches to one that doesn't support ranges, clear range fields
     useEffect(() => {
-        if (!GENERATOR_SUPPORTS_RANGE[privateKeyGenerator]) {
+        if (!WORKER_PRIVATE_KEY_GENERATOR_SUPPORTS_RANGE[privateKeyGenerator]) {
             form.setValue("privateKeyRangeStart", "")
             form.setValue("privateKeyRangeEnd", "")
         }
     }, [privateKeyGenerator, form])
 
     /**
-     * Handles the submission of the add address form.
+     * Handle the submission of the add address form.
      * @param data The form data containing the address details to be added.
      */
     const handleSubmit = useCallback(
@@ -292,7 +296,10 @@ export default function AddAddressForm({ trigger, onSubmit, onSuccess }: AddAddr
                                             <SelectItem
                                                 key={generator}
                                                 value={generator}
-                                                disabled={!!hasRange && !GENERATOR_SUPPORTS_RANGE[generator]}
+                                                disabled={
+                                                    !!hasRange &&
+                                                    !WORKER_PRIVATE_KEY_GENERATOR_SUPPORTS_RANGE[generator]
+                                                }
                                             >
                                                 {getPrivateKeyGeneratorLabel(generator)}
                                             </SelectItem>
@@ -316,7 +323,7 @@ export default function AddAddressForm({ trigger, onSubmit, onSuccess }: AddAddr
                                 aria-invalid={fieldState.invalid}
                                 id={field.name}
                                 placeholder="400000..."
-                                disabled={!GENERATOR_SUPPORTS_RANGE[privateKeyGenerator]}
+                                disabled={!WORKER_PRIVATE_KEY_GENERATOR_SUPPORTS_RANGE[privateKeyGenerator]}
                                 {...field}
                             />
                             {fieldState.invalid && <FieldError errors={[fieldState.error!]} />}
@@ -335,7 +342,7 @@ export default function AddAddressForm({ trigger, onSubmit, onSuccess }: AddAddr
                                 aria-invalid={fieldState.invalid}
                                 id={field.name}
                                 placeholder="7fffff..."
-                                disabled={!GENERATOR_SUPPORTS_RANGE[privateKeyGenerator]}
+                                disabled={!WORKER_PRIVATE_KEY_GENERATOR_SUPPORTS_RANGE[privateKeyGenerator]}
                                 {...field}
                             />
                             {fieldState.invalid && <FieldError errors={[fieldState.error!]} />}

@@ -7,25 +7,31 @@ import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, Tabl
 import toast from "@app/components/ui/Toast"
 import TruncatedDescription from "@app/components/ui/TruncatedDescription"
 import type { AddressSelectModel } from "@app/db/schema/address"
-import type { ConfigSelectModel } from "@app/db/schema/config"
+import type { DynamicConfigSelectModel } from "@app/db/schema/dynamicConfig"
 import {
     getAddressExplorerUrl,
     getFormattedAddressNetwork,
     getFormattedAddressType,
     getPrivateKeyGeneratorLabel,
 } from "@app/lib/base/utils/addresses"
-import { numericStringToScientific } from "@app/lib/base/utils/bigint"
+import { formatDate } from "@app/lib/base/utils/miscellaneous"
+import {
+    numericStringToFormatted,
+    numericStringToMetricFormatted,
+    numericStringToScientific,
+} from "@app/lib/base/utils/numerics"
+import { formatAddressBalance, formatRawAddressBalance } from "@app/lib/base/utils/web3"
 import { deleteAddressById } from "@app/queries/addresses"
 import dedent from "dedent"
 import { LinkIcon, TrashIcon } from "lucide-react"
 import { useCallback, useMemo } from "react"
 
 type AddressesTableProps = {
-    config: ConfigSelectModel | null
+    dynamicConfig: DynamicConfigSelectModel | null
     addresses?: AddressSelectModel[] | null
 }
 
-export default function AddressesTable({ config, addresses }: AddressesTableProps) {
+export default function AddressesTable({ dynamicConfig, addresses }: AddressesTableProps) {
     const addressExplorerUrlsMap = useMemo(() => {
         const map: Record<string, string | null> = {}
 
@@ -38,7 +44,7 @@ export default function AddressesTable({ config, addresses }: AddressesTableProp
     }, [addresses])
 
     /**
-     * Handles the deletion of an address by its ID.
+     * Handle the deletion of an address by its ID.
      * @param id The ID of the address to delete.
      */
     const handleDeleteAddress = useCallback(async (id: string) => {
@@ -55,7 +61,7 @@ export default function AddressesTable({ config, addresses }: AddressesTableProp
             <TableCaption className="pb-4">
                 <p className="text-sm text-muted-foreground">
                     &gt;{" "}
-                    {`Registered: ${addresses?.length ?? 0}${config?.maxAddressesPerUser ? ` / ${config.maxAddressesPerUser}` : ""}`}
+                    {`Registered: ${(addresses?.length ?? 0).toLocaleString("en-US")}${dynamicConfig?.maxAddressesPerUser ? ` / ${dynamicConfig.maxAddressesPerUser.toLocaleString("en-US")}` : ""}`}
                 </p>
             </TableCaption>
 
@@ -68,7 +74,6 @@ export default function AddressesTable({ config, addresses }: AddressesTableProp
                     <TableHead>Network</TableHead>
                     <TableHead>Type</TableHead>
                     <TableHead>Value</TableHead>
-                    <TableHead>Pre-encoding</TableHead>
                     <TableHead className="text-right">Balance</TableHead>
                     <TableHead className="text-right">Attempts</TableHead>
                     <TableHead className="text-right">Actions</TableHead>
@@ -80,7 +85,7 @@ export default function AddressesTable({ config, addresses }: AddressesTableProp
                     <TableRow key={address.id}>
                         <TableCell className="font-medium">{address.name}</TableCell>
                         <TableCell>
-                            <TruncatedDescription description={address.description} />
+                            <TruncatedDescription>{address.description ?? undefined}</TruncatedDescription>
                         </TableCell>
                         <TableCell>{getPrivateKeyGeneratorLabel(address.privateKeyGenerator)}</TableCell>
                         <TableCell>
@@ -116,21 +121,41 @@ export default function AddressesTable({ config, addresses }: AddressesTableProp
                                 />
                             }
                         </TableCell>
-                        <TableCell>
-                            {address.preEncoding ? (
-                                <ConcatenatedAddress
-                                    address={address.preEncoding}
-                                    successCopyMessage="Pre-encoding copied to clipboard!"
-                                />
+                        <TableCell className="text-right">
+                            {address.balance ? (
+                                <TruncatedDescription
+                                    customContent={
+                                        <ul className="list-disc pl-5">
+                                            <li>
+                                                Last checked at{" "}
+                                                <Flash
+                                                    value={
+                                                        address.balanceCheckedAt
+                                                            ? formatDate(address.balanceCheckedAt)
+                                                            : "N/A"
+                                                    }
+                                                />
+                                            </li>
+                                            <li>
+                                                Raw balance: <Flash value={formatRawAddressBalance(address)} />
+                                            </li>
+                                        </ul>
+                                    }
+                                >
+                                    <Flash value={formatAddressBalance(address)} />
+                                </TruncatedDescription>
                             ) : (
-                                "N/A"
+                                <span className="text-muted-foreground">N/A</span>
                             )}
                         </TableCell>
                         <TableCell className="text-right">
-                            <Flash value={address.balance ? (address.balance ?? 0n).toLocaleString("en-US") : "N/A"} />
-                        </TableCell>
-                        <TableCell className="text-right">
-                            <Flash value={address.attempts.toLocaleString("en-US")} />
+                            <TruncatedDescription
+                                customContent={
+                                    <Flash value={`${numericStringToFormatted(address.attempts)} attempts`} />
+                                }
+                            >
+                                <Flash value={numericStringToMetricFormatted(address.attempts)} />
+                            </TruncatedDescription>
                         </TableCell>
                         <TableCell className="text-right flex justify-end gap-2">
                             {addressExplorerUrlsMap[address.id] && (

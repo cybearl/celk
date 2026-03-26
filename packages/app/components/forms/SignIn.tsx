@@ -1,7 +1,7 @@
 import { useSessionContext } from "@app/components/contexts/Session"
 import { Field, FieldError, FieldGroup, FieldLabel } from "@app/components/ui/Field"
 import { Input } from "@app/components/ui/Input"
-import { authClient } from "@app/lib/client/connectors/auth-client"
+import { authClient } from "@app/lib/client/connectors/authClient"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { type ReactNode, useCallback } from "react"
 import { Controller, useForm } from "react-hook-form"
@@ -32,7 +32,7 @@ export default function SignInForm({ trigger, onSuccess, onEmailNotVerified }: S
     })
 
     /**
-     * Handles the submission of the sign-in form, allowing users to sign in
+     * Handle the submission of the sign-in form, allowing users to sign in
      * with either their email or username.
      * @param data The form data containing the identifier (email or username) and password.
      */

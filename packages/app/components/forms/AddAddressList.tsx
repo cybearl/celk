@@ -3,7 +3,7 @@ import { Field, FieldError, FieldGroup, FieldLabel } from "@app/components/ui/Fi
 import { Input } from "@app/components/ui/Input"
 import { TextArea } from "@app/components/ui/TextArea"
 import type { AddressSelectModel } from "@app/db/schema/address"
-import type { ConfigSelectModel } from "@app/db/schema/config"
+import type { DynamicConfigSelectModel } from "@app/db/schema/dynamicConfig"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { type ReactNode, useCallback } from "react"
 import { Controller, useForm } from "react-hook-form"
@@ -18,7 +18,7 @@ const addAddressListFormSchema = z.object({
 export type AddAddressListFormData = z.infer<typeof addAddressListFormSchema>
 
 type AddAddressListFormProps = {
-    config: ConfigSelectModel | null
+    dynamicConfig: DynamicConfigSelectModel | null
     addresses: AddressSelectModel[] | null
     trigger: (isSubmitting: boolean) => ReactNode
     onSubmit: (data: AddAddressListFormData) => Promise<{ error?: { message: string } }>
@@ -26,7 +26,7 @@ type AddAddressListFormProps = {
 }
 
 export default function AddAddressListForm({
-    config,
+    dynamicConfig,
     addresses,
     trigger,
     onSubmit,
@@ -42,7 +42,7 @@ export default function AddAddressListForm({
     })
 
     /**
-     * Handles the submission of the add address list form.
+     * Handle the submission of the add address list form.
      * @param data The form data containing the name of the address list and the selected address IDs.
      */
     const handleSubmit = useCallback(
@@ -101,7 +101,7 @@ export default function AddAddressListForm({
                             <FieldLabel>Addresses</FieldLabel>
 
                             <AddressListEntries
-                                config={config}
+                                dynamicConfig={dynamicConfig}
                                 addresses={addresses}
                                 value={field.value}
                                 onChange={field.onChange}

@@ -71,7 +71,7 @@ App.getInitialProps = async (appContext: NextAppContext) => {
             const sessionData = await auth.api.getSession({ headers })
             if (sessionData) initialSession = sessionData
         } catch (error) {
-            logger.warn(`Failed to load session on server-side`, { data: error })
+            logger.warn(`Failed to load session on server-side:`, { data: error })
         }
     }
 

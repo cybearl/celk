@@ -13,7 +13,7 @@ export async function updateUserInfo(data: Parameters<typeof trpcClient.users.up
 }
 
 /**
- * Deletes the current user's account by sending a mutation request to the tRPC API.
+ * Delete the current user's account by sending a mutation request to the tRPC API.
  */
 export async function deleteUserAccount() {
     await trpcClient.users.deleteAccount.mutate()

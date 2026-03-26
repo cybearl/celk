@@ -1,26 +1,26 @@
 import { Button } from "@app/components/ui/Button"
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "@app/components/ui/Select"
 import type { AddressSelectModel } from "@app/db/schema/address"
-import type { ConfigSelectModel } from "@app/db/schema/config"
+import type { DynamicConfigSelectModel } from "@app/db/schema/dynamicConfig"
 import { getFormattedAddressNetwork, getFormattedAddressType } from "@app/lib/base/utils/addresses"
 import { TrashIcon } from "lucide-react"
 import { useCallback, useState } from "react"
 
 type AddressListEntriesProps = {
-    config: ConfigSelectModel | null
+    dynamicConfig: DynamicConfigSelectModel | null
     addresses: AddressSelectModel[] | null
     value: string[]
     onChange: (ids: string[]) => void
 }
 
-export default function AddressListEntries({ config, addresses, value, onChange }: AddressListEntriesProps) {
+export default function AddressListEntries({ dynamicConfig, addresses, value, onChange }: AddressListEntriesProps) {
     const [pendingId, setPendingId] = useState<string>("")
 
     const availableAddresses = addresses?.filter(a => !value.includes(a.id)) ?? []
     const selectedAddresses = addresses?.filter(a => value.includes(a.id)) ?? []
 
     /**
-     * Adds the currently selected pending address ID to the list of selected IDs.
+     * Add the currently selected pending address ID to the list of selected IDs.
      */
     const handleAdd = useCallback(() => {
         if (!pendingId) return
@@ -30,7 +30,7 @@ export default function AddressListEntries({ config, addresses, value, onChange 
     }, [pendingId, value, onChange])
 
     /**
-     * Removes an address ID from the list of selected IDs.
+     * Remove an address ID from the list of selected IDs.
      * @param id The ID of the address to remove.
      */
     const handleRemove = useCallback((id: string) => onChange(value.filter(v => v !== id)), [value, onChange])
@@ -93,10 +93,12 @@ export default function AddressListEntries({ config, addresses, value, onChange 
                     ))}
 
                     <p className="text-muted-foreground text-xs">
-                        {config !== null && addresses !== null
-                            ? `${selectedAddresses.length} ${
-                                  config.maxAddressesPerList !== undefined ? ` / ${config.maxAddressesPerList}` : ""
-                              } address${config.maxAddressesPerList !== undefined || selectedAddresses.length > 1 ? "es" : ""} allowed.`
+                        {dynamicConfig !== null && addresses !== null
+                            ? `${selectedAddresses.length.toLocaleString("en-US")} ${
+                                  dynamicConfig.maxAddressesPerList !== undefined
+                                      ? ` / ${dynamicConfig.maxAddressesPerList.toLocaleString("en-US")}`
+                                      : ""
+                              } address${dynamicConfig.maxAddressesPerList !== undefined || selectedAddresses.length > 1 ? "es" : ""} allowed.`
                             : null}
                     </p>
                 </div>

@@ -11,7 +11,7 @@ import {
 } from "@app/components/ui/Dialog"
 import toast from "@app/components/ui/Toast"
 import type { AddressSelectModel } from "@app/db/schema/address"
-import type { ConfigSelectModel } from "@app/db/schema/config"
+import type { DynamicConfigSelectModel } from "@app/db/schema/dynamicConfig"
 import { createAddress } from "@app/queries/addresses"
 import { DialogTrigger } from "@radix-ui/react-dialog"
 import { TRPCClientError } from "@trpc/client"
@@ -19,25 +19,25 @@ import { PlusIcon } from "lucide-react"
 import { useCallback, useState } from "react"
 
 type AddAddressDialogProps = {
-    config: ConfigSelectModel | null
+    dynamicConfig: DynamicConfigSelectModel | null
     addresses: AddressSelectModel[] | null
     onSuccess?: () => void
 }
 
-export default function AddAddressDialog({ config, addresses, onSuccess }: AddAddressDialogProps) {
+export default function AddAddressDialog({ dynamicConfig, addresses, onSuccess }: AddAddressDialogProps) {
     const { session } = useSessionContext()
 
     const [isOpen, setIsOpen] = useState(false)
 
     /**
-     * Handles the change of the dialog open state.
+     * Handle the change of the dialog open state.
      */
     const handleOpenChange = useCallback((isOpen: boolean) => {
         setIsOpen(isOpen)
     }, [])
 
     /**
-     * Handles the submission of the add address form.
+     * Handle the submission of the add address form.
      * @param data The form data containing the new address information to be added.
      */
     const handleAddAddress = useCallback(
@@ -84,7 +84,7 @@ export default function AddAddressDialog({ config, addresses, onSuccess }: AddAd
     )
 
     /**
-     * Handles the success of adding an address.
+     * Handle the success of adding an address.
      */
     const handleSuccess = useCallback(() => {
         handleOpenChange(false)
@@ -117,7 +117,11 @@ export default function AddAddressDialog({ config, addresses, onSuccess }: AddAd
             <DialogTrigger asChild>
                 <Button
                     size="sm"
-                    disabled={addresses !== null && config !== null && addresses.length >= config.maxAddressesPerUser}
+                    disabled={
+                        addresses !== null &&
+                        dynamicConfig !== null &&
+                        addresses.length >= dynamicConfig.maxAddressesPerUser
+                    }
                 >
                     <PlusIcon />
                     Add Address

@@ -1,5 +1,5 @@
-import { cn } from "@app/lib/client/utils/styling"
 import { logger } from "@app/lib/base/utils/logger"
+import { cn } from "@app/lib/client/utils/styling"
 import { Slot } from "@radix-ui/react-slot"
 import { cva, type VariantProps } from "class-variance-authority"
 import { Loader2Icon } from "lucide-react"
@@ -50,7 +50,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         const Comp = asChild ? Slot : "button"
 
         /**
-         * Handles the `onClick` event with support for async functions.
+         * Handle the `onClick` event with support for async functions.
          * @param event The click event object.
          */
         const handleClick = async (event: React.MouseEvent<HTMLButtonElement>) => {
@@ -61,7 +61,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
             try {
                 await onClick(event)
             } catch (error) {
-                logger.error(`An error occurred on the 'Button' component`, { data: error })
+                logger.error("An error occurred on the 'Button' component:", { data: error })
             }
 
             setIsLoadingInternally(false)

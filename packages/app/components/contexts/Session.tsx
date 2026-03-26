@@ -1,6 +1,6 @@
-//import { authClient } from "@app/lib/client/connectors/auth-client"
+//import { authClient } from "@app/lib/client/connectors/authClient"
 import toast from "@app/components/ui/Toast"
-import { authClient } from "@app/lib/client/connectors/auth-client"
+import { authClient } from "@app/lib/client/connectors/authClient"
 import type { Session } from "@app/types/auth"
 import { useSearchParams } from "next/navigation"
 import { useRouter } from "next/router"

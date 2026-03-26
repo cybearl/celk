@@ -10,7 +10,7 @@ import {
 } from "@app/components/ui/Dialog"
 import type { AddressSelectModel } from "@app/db/schema/address"
 import type { AddressListSelectModel } from "@app/db/schema/addressList"
-import type { ConfigSelectModel } from "@app/db/schema/config"
+import type { DynamicConfigSelectModel } from "@app/db/schema/dynamicConfig"
 import { createAddressList } from "@app/queries/addressLists"
 import { DialogTrigger } from "@radix-ui/react-dialog"
 import { TRPCClientError } from "@trpc/client"
@@ -18,14 +18,14 @@ import { ScrollIcon } from "lucide-react"
 import { useCallback, useState } from "react"
 
 type AddAddressListDialogProps = {
-    config: ConfigSelectModel | null
+    dynamicConfig: DynamicConfigSelectModel | null
     addresses: AddressSelectModel[] | null
     addressLists: AddressListSelectModel[] | null
     onSuccess?: () => void
 }
 
 export default function AddAddressListDialog({
-    config,
+    dynamicConfig,
     addresses,
     addressLists,
     onSuccess,
@@ -33,14 +33,14 @@ export default function AddAddressListDialog({
     const [isOpen, setIsOpen] = useState(false)
 
     /**
-     * Handles the change of the dialog open state.
+     * Handle the change of the dialog open state.
      */
     const handleOpenChange = useCallback((isOpen: boolean) => {
         setIsOpen(isOpen)
     }, [])
 
     /**
-     * Handles the submission of the add address list form.
+     * Handle the submission of the add address list form.
      * @param data The form data containing the name of the address list and the
      * selected address IDs to be added to the new list.
      */
@@ -90,7 +90,7 @@ export default function AddAddressListDialog({
                 </DialogHeader>
 
                 <AddAddressListForm
-                    config={config}
+                    dynamicConfig={dynamicConfig}
                     addresses={addresses}
                     trigger={isSubmitting => (
                         <DialogFooter>

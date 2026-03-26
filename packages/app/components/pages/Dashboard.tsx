@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@app/components/ui/Tabs"
 import type { AddressSelectModel, SerializedAddressSelectModel } from "@app/db/schema/address"
 import type { AddressListSelectModel, SerializedAddressListSelectModel } from "@app/db/schema/addressList"
-import type { ConfigSelectModel } from "@app/db/schema/config"
+import type { DynamicConfigSelectModel } from "@app/db/schema/dynamicConfig"
 import { useAddresses } from "@app/hooks/api/useAddresses"
 import { useAddressLists } from "@app/hooks/api/useAddressLists"
 import useTabs from "@app/hooks/useTabs"
@@ -23,12 +23,12 @@ export enum DASHBOARD_TAB {
 }
 
 type DashboardPageProps = {
-    config: ConfigSelectModel | null
+    dynamicConfig: DynamicConfigSelectModel | null
     initialAddresses: SerializedAddressSelectModel[]
     initialAddressLists: SerializedAddressListSelectModel[]
 }
 
-export default function DashboardPage({ config, initialAddresses, initialAddressLists }: DashboardPageProps) {
+export default function DashboardPage({ dynamicConfig, initialAddresses, initialAddressLists }: DashboardPageProps) {
     const { session } = useSessionContext()
 
     const { data: addresses } = useAddresses(initialAddresses as unknown as AddressSelectModel[])
@@ -109,11 +109,15 @@ export default function DashboardPage({ config, initialAddresses, initialAddress
                 </div>
 
                 <TabsContent value={DASHBOARD_TAB.ADDRESSES} className="sm:mt-4">
-                    <AddressesDashboardTab config={config} addresses={addresses} />
+                    <AddressesDashboardTab dynamicConfig={dynamicConfig} addresses={addresses} />
                 </TabsContent>
 
                 <TabsContent value={DASHBOARD_TAB.ADDRESS_LISTS} className="sm:mt-4">
-                    <AddressListsDashboardTab config={config} addresses={addresses} addressLists={addressLists} />
+                    <AddressListsDashboardTab
+                        dynamicConfig={dynamicConfig}
+                        addresses={addresses}
+                        addressLists={addressLists}
+                    />
                 </TabsContent>
 
                 <TabsContent value={DASHBOARD_TAB.TREE_VIEW} className="sm:mt-4">

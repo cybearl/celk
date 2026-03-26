@@ -6,45 +6,78 @@ import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, Tabl
 import toast from "@app/components/ui/Toast"
 import TruncatedDescription from "@app/components/ui/TruncatedDescription"
 import type { AddressListSelectModel } from "@app/db/schema/addressList"
-import type { ConfigSelectModel } from "@app/db/schema/config"
-import { deleteAddressListById, disableAddressList, enableAddressList } from "@app/queries/addressLists"
+import type { DynamicConfigSelectModel } from "@app/db/schema/dynamicConfig"
+import { numericStringToFormatted, numericStringToMetricFormatted } from "@app/lib/base/utils/numerics"
+import {
+    deleteAddressListById,
+    disableAddressList,
+    enableAddressList,
+    updateAddressListStopOnFirstMatch,
+} from "@app/queries/addressLists"
 import dedent from "dedent"
 import { TrashIcon } from "lucide-react"
-import { useCallback, useEffect, useRef, useState } from "react"
+import { useCallback, useMemo, useState } from "react"
 
 type AddressListsTableProps = {
-    config: ConfigSelectModel | null
+    dynamicConfig: DynamicConfigSelectModel | null
     addressLists?: AddressListSelectModel[] | null
 }
 
-export default function AddressListsTable({ config, addressLists }: AddressListsTableProps) {
-    const [enabledAddressListIds, setEnabledAddressListIds] = useState<string[]>([])
-    const pendingToggleIds = useRef<Set<string>>(new Set())
+export default function AddressListsTable({ dynamicConfig, addressLists }: AddressListsTableProps) {
+    // A local state for optimistic updates
+    const [localAddressLists, setLocalAddressLists] = useState<AddressListSelectModel[]>(addressLists ?? [])
 
-    // Keeps in sync the local list of enabled address list IDs,
-    // but preserves in-flight optimistic updates to prevent flickering
-    useEffect(() => {
-        setEnabledAddressListIds(prev => {
-            const serverIds = new Set(addressLists?.filter(list => list.isEnabled).map(list => list.id) ?? [])
+    const enabledAddressListIds = useMemo(
+        () => new Set(localAddressLists.filter(list => list.isEnabled).map(list => list.id)),
+        [localAddressLists],
+    )
 
-            for (const id of pendingToggleIds.current) {
-                if (prev.includes(id)) serverIds.add(id)
-                else serverIds.delete(id)
-            }
-
-            return [...serverIds]
-        })
-    }, [addressLists])
+    const stopOnFirstMatchAddressListIds = useMemo(
+        () => new Set(localAddressLists.filter(list => list.stopOnFirstMatch).map(list => list.id)),
+        [localAddressLists],
+    )
 
     /**
-     * Handles enabling or disabling an address list by its ID.
+     * A helper to set a specific address list as enabled or disabled.
+     * @param id The ID of the address list to update.
+     * @param isEnabled The new enabled state of the address list.
+     */
+    const setAddressListEnabled = useCallback((id: string, isEnabled: boolean) => {
+        setLocalAddressLists(prev => {
+            const next = [...prev]
+
+            const index = next.findIndex(list => list.id === id)
+            if (index !== -1) next[index] = { ...next[index], isEnabled }
+
+            return next
+        })
+    }, [])
+
+    /**
+     * A helper to set the "stop on first match" setting of an address list.
+     * @param id The ID of the address list to update.
+     * @param stopOnFirstMatch The new "stop on first match" setting of the address list.
+     */
+    const setAddressListStopOnFirstMatch = useCallback((id: string, stopOnFirstMatch: boolean) => {
+        setLocalAddressLists(prev => {
+            const next = [...prev]
+
+            const index = next.findIndex(list => list.id === id)
+            if (index !== -1) next[index] = { ...next[index], stopOnFirstMatch }
+
+            return next
+        })
+    }, [])
+
+    /**
+     * Handle enabling or disabling an address list by its ID.
      * @param id The ID of the address list to update.
      * @param isEnabled The new enabled state of the address list.
      */
     const handleToggleAddressList = useCallback(
-        (id: string, isEnabled: boolean | "indeterminate") => {
+        (id: string, isEnabled: boolean) => {
             if (isEnabled === true) {
-                if (config?.maxRunningAddressListsPerUser === undefined) {
+                if (dynamicConfig?.maxRunningAddressListsPerUser === undefined) {
                     toast.error(
                         "Cannot enable address list: max running address lists per user is not configured, try again or check the settings.",
                     )
@@ -52,44 +85,52 @@ export default function AddressListsTable({ config, addressLists }: AddressLists
                     return
                 }
 
-                if (enabledAddressListIds.length >= config.maxRunningAddressListsPerUser) {
+                if (enabledAddressListIds.size >= dynamicConfig.maxRunningAddressListsPerUser) {
                     toast.error(
-                        `You can only enable up to ${config.maxRunningAddressListsPerUser} address lists at a time.`,
+                        `You can only enable up to ${dynamicConfig.maxRunningAddressListsPerUser.toLocaleString("en-US")} address lists at a time.`,
                     )
 
                     return
                 }
 
-                pendingToggleIds.current.add(id)
+                setAddressListEnabled(id, true)
 
-                setEnabledAddressListIds(prev => [...prev, id])
-                enableAddressList(id)
-                    .catch(() => {
-                        toast.error("An error occurred while trying to enable the address list, please try again.")
-                        setEnabledAddressListIds(prev => prev.filter(listId => listId !== id))
-                    })
-                    .finally(() => {
-                        pendingToggleIds.current.delete(id)
-                    })
+                enableAddressList(id).catch(() => {
+                    toast.error("An error occurred while trying to enable the address list, please try again.")
+                    setAddressListEnabled(id, false)
+                })
             } else if (isEnabled === false) {
-                pendingToggleIds.current.add(id)
+                setAddressListEnabled(id, false)
 
-                setEnabledAddressListIds(prev => prev.filter(listId => listId !== id))
-                disableAddressList(id)
-                    .catch(() => {
-                        toast.error("An error occurred while trying to disable the address list, please try again.")
-                        setEnabledAddressListIds(prev => [...prev, id])
-                    })
-                    .finally(() => {
-                        pendingToggleIds.current.delete(id)
-                    })
+                disableAddressList(id).catch(() => {
+                    toast.error("An error occurred while trying to disable the address list, please try again.")
+                    setAddressListEnabled(id, true)
+                })
             }
         },
-        [config?.maxRunningAddressListsPerUser, enabledAddressListIds],
+        [dynamicConfig?.maxRunningAddressListsPerUser, enabledAddressListIds, setAddressListEnabled],
     )
 
     /**
-     * Handles the deletion of an address list by its ID.
+     * Handle toggling the "stop on first match" setting of an address list by its ID.
+     * @param id The ID of the address list to update.
+     * @param stopOnFirstMatch The new "stop on first match" setting of the address list.
+     */
+    const handleToggleStopOnFirstMatch = useCallback(
+        async (id: string, stopOnFirstMatch: boolean) => {
+            setAddressListStopOnFirstMatch(id, stopOnFirstMatch)
+
+            try {
+                await updateAddressListStopOnFirstMatch(id, stopOnFirstMatch)
+            } catch {
+                toast.error("An error occurred while trying to update the address list, please try again.")
+            }
+        },
+        [setAddressListStopOnFirstMatch],
+    )
+
+    /**
+     * Handle the deletion of an address list by its ID.
      * @param id The ID of the address list to delete.
      */
     const handleDeleteAddressList = useCallback(async (id: string) => {
@@ -106,11 +147,11 @@ export default function AddressListsTable({ config, addressLists }: AddressLists
             <TableCaption className="pb-4 space-y-1 italic">
                 <p className="text-sm text-muted-foreground">
                     &gt;{" "}
-                    {`Registered: ${addressLists?.length ?? 0}${config?.maxAddressListsPerUser ? ` / ${config.maxAddressListsPerUser}` : ""}`}
+                    {`Registered: ${(addressLists?.length ?? 0).toLocaleString("en-US")}${dynamicConfig?.maxAddressListsPerUser ? ` / ${dynamicConfig.maxAddressListsPerUser.toLocaleString("en-US")}` : ""}`}
                 </p>
                 <p className="text-sm text-muted-foreground">
                     &gt;{" "}
-                    {`Running: ${enabledAddressListIds.length}${config?.maxRunningAddressListsPerUser ? ` / ${config.maxRunningAddressListsPerUser}` : ""}`}
+                    {`Running: ${enabledAddressListIds.size.toLocaleString("en-US")}${dynamicConfig?.maxRunningAddressListsPerUser ? ` / ${dynamicConfig.maxRunningAddressListsPerUser.toLocaleString("en-US")}` : ""}`}
                 </p>
             </TableCaption>
 
@@ -120,6 +161,7 @@ export default function AddressListsTable({ config, addressLists }: AddressLists
                     <TableHead>Description</TableHead>
                     <TableHead className="text-right">Attempts</TableHead>
                     <TableHead className="text-right">Enabled</TableHead>
+                    <TableHead className="text-right">Stop on First Match</TableHead>
                     <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
             </TableHeader>
@@ -129,22 +171,40 @@ export default function AddressListsTable({ config, addressLists }: AddressLists
                     <TableRow key={addressList.id}>
                         <TableCell className="font-medium">{addressList.name}</TableCell>
                         <TableCell>
-                            <TruncatedDescription description={addressList.description} />
+                            <TruncatedDescription>{addressList.description}</TruncatedDescription>
                         </TableCell>
                         <TableCell className="text-right">
-                            <Flash value={addressList.attempts.toLocaleString("en-US")} />
+                            <TruncatedDescription
+                                customContent={
+                                    <Flash value={`${numericStringToFormatted(addressList.attempts)} attempts`} />
+                                }
+                            >
+                                <Flash value={numericStringToMetricFormatted(addressList.attempts)} />
+                            </TruncatedDescription>
                         </TableCell>
                         <TableCell className="text-right">
                             <Checkbox
                                 className="mt-px ml-auto mr-3"
                                 size="sm"
-                                checked={enabledAddressListIds.includes(addressList.id)}
+                                checked={enabledAddressListIds.has(addressList.id)}
                                 disabled={
-                                    !enabledAddressListIds.includes(addressList.id) &&
-                                    config?.maxRunningAddressListsPerUser !== undefined &&
-                                    enabledAddressListIds.length >= config.maxRunningAddressListsPerUser
+                                    !enabledAddressListIds.has(addressList.id) &&
+                                    dynamicConfig?.maxRunningAddressListsPerUser !== undefined &&
+                                    enabledAddressListIds.size >= dynamicConfig.maxRunningAddressListsPerUser
                                 }
-                                onCheckedChange={isChecked => handleToggleAddressList(addressList.id, isChecked)}
+                                onCheckedChange={isChecked =>
+                                    handleToggleAddressList(addressList.id, Boolean(isChecked))
+                                }
+                            />
+                        </TableCell>
+                        <TableCell className="text-right">
+                            <Checkbox
+                                className="mt-px ml-auto mr-3"
+                                size="sm"
+                                checked={stopOnFirstMatchAddressListIds.has(addressList.id)}
+                                onCheckedChange={isChecked =>
+                                    handleToggleStopOnFirstMatch(addressList.id, Boolean(isChecked))
+                                }
                             />
                         </TableCell>
                         <TableCell className="text-right">

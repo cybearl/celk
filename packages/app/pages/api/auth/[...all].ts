@@ -2,7 +2,7 @@ import auth from "@app/lib/auth"
 import { toNodeHandler } from "better-auth/node"
 
 /**
- * Handles all authentication-related API routes with Better Auth.
+ * Handle all authentication-related API routes with Better Auth.
  */
 export default toNodeHandler(auth.handler)
 

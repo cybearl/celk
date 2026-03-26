@@ -9,9 +9,10 @@ import { PUBLIC_ENV } from "@app/config/env"
 import { MAIN_LAYOUT_PAGE } from "@app/config/pages"
 import type { SerializedAddressSelectModel } from "@app/db/schema/address"
 import type { SerializedAddressListSelectModel } from "@app/db/schema/addressList"
-import type { ConfigSelectModel, SerializedConfigSelectModel } from "@app/db/schema/config"
+import type { DynamicConfigSelectModel, SerializedDynamicConfigSelectModel } from "@app/db/schema/dynamicConfig"
 import { useAttemptsSync } from "@app/hooks/api/useAttemptsSync"
-import { useConfig } from "@app/hooks/api/useConfig"
+import { useBalancesSync } from "@app/hooks/api/useBalancesSync"
+import { useDynamicConfig } from "@app/hooks/api/useDynamicConfig"
 import { appRouter } from "@app/lib/server/trpc/routers/_app"
 import { withSession } from "@app/lib/server/utils/session"
 import type { NextApiRequest, NextApiResponse } from "next"
@@ -20,7 +21,7 @@ import type { NextApiRequest, NextApiResponse } from "next"
  * The props for the homepage component, passed from the server-side via `getServerSideProps`.
  */
 type HomepageProps = {
-    initialConfig: SerializedConfigSelectModel | null
+    initialDynamicConfig: SerializedDynamicConfigSelectModel | null
     initialAddresses: SerializedAddressSelectModel[]
     initialAddressLists: SerializedAddressListSelectModel[]
 }
@@ -30,7 +31,7 @@ type HomepageProps = {
  * the page is rendered.
  */
 export const getServerSideProps = withSession<HomepageProps>(async (ctx, session) => {
-    let initialConfig: SerializedConfigSelectModel | null = null
+    let initialDynamicConfig: SerializedDynamicConfigSelectModel | null = null
     let initialAddresses: SerializedAddressSelectModel[] = []
     let initialAddressLists: SerializedAddressListSelectModel[] = []
 
@@ -41,19 +42,16 @@ export const getServerSideProps = withSession<HomepageProps>(async (ctx, session
             res: ctx.res as unknown as NextApiResponse,
         })
 
-        const configRow = await caller.config.get()
-        initialConfig = {
-            ...configRow,
-            attempts: configRow.attempts.toString(),
-            updatedAt: configRow.updatedAt.toISOString(),
+        const dynamicConfigRow = await caller.dynamicConfig.get()
+        initialDynamicConfig = {
+            ...dynamicConfigRow,
+            updatedAt: dynamicConfigRow.updatedAt.toISOString(),
         }
 
         const addressRows = await caller.addresses.getAll()
 
         initialAddresses = addressRows.map(row => ({
             ...row,
-            balance: row.balance?.toString() ?? null,
-            attempts: row.attempts.toString(),
             createdAt: row.createdAt.toISOString(),
             updatedAt: row.updatedAt.toISOString(),
             balanceCheckedAt: row.balanceCheckedAt?.toISOString() ?? null,
@@ -63,7 +61,6 @@ export const getServerSideProps = withSession<HomepageProps>(async (ctx, session
 
         initialAddressLists = addressListRows.map(row => ({
             ...row,
-            attempts: row.attempts.toString(),
             createdAt: row.createdAt.toISOString(),
             updatedAt: row.updatedAt.toISOString(),
         }))
@@ -71,26 +68,29 @@ export const getServerSideProps = withSession<HomepageProps>(async (ctx, session
 
     return {
         props: {
-            initialConfig,
+            initialDynamicConfig,
             initialAddresses,
             initialAddressLists,
         },
     }
 })
 
-export default function Homepage({ initialConfig, initialAddresses, initialAddressLists }: HomepageProps) {
-    const { data: config } = useConfig(initialConfig as unknown as ConfigSelectModel | null)
+export default function Homepage({ initialDynamicConfig, initialAddresses, initialAddressLists }: HomepageProps) {
+    const { data: dynamicConfig } = useDynamicConfig(initialDynamicConfig as unknown as DynamicConfigSelectModel | null)
     const { session } = useSessionContext()
 
-    // Sync the attempts counters for the config, addresses, and address lists
+    // Sync the address balances
+    useBalancesSync(session && dynamicConfig ? dynamicConfig.balanceCheckerDelayMs : null)
+
+    // Sync the attempt counts for the config, addresses, and address lists
     // at a regular interval defined in the config
-    useAttemptsSync(session && config ? config.workerReportIntervalMs : null)
+    useAttemptsSync(session && dynamicConfig ? dynamicConfig.workerReportIntervalMs : null)
 
     return (
         <MainLayout
             topRightSection={
                 <p className="text-foreground font-medium px-4">
-                    <Flash value={(config?.attempts ?? 0n).toLocaleString("en-US")} />
+                    <Flash value={(dynamicConfig?.attempts ?? 0n).toLocaleString("en-US")} />
                 </p>
             }
             bottomLeftSection={
@@ -106,7 +106,7 @@ export default function Homepage({ initialConfig, initialAddresses, initialAddre
                     <>
                         <TabsContent value={MAIN_LAYOUT_PAGE.DASHBOARD} className="w-full h-full">
                             <DashboardPage
-                                config={config}
+                                dynamicConfig={dynamicConfig}
                                 initialAddresses={initialAddresses}
                                 initialAddressLists={initialAddressLists}
                             />
