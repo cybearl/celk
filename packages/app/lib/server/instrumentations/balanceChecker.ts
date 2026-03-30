@@ -2,6 +2,7 @@ import DYNAMIC_CONFIG from "@app/config/dynamicConfig"
 import { PUBLIC_ENV } from "@app/config/env"
 import scAddress, { ADDRESS_NETWORK, type AddressSelectModel } from "@app/db/schema/address"
 import type { DynamicConfigSelectModel } from "@app/db/schema/dynamicConfig"
+import scUserOptions, { type UserOptionsSelectModel } from "@app/db/schema/userOptions"
 import { logger } from "@app/lib/base/utils/logger"
 import { db } from "@app/lib/server/connectors/db"
 import { sendBalanceCheckerFailureAlert } from "@app/lib/server/utils/emails"
@@ -102,17 +103,38 @@ class BalanceChecker {
     }
 
     /**
-     * Update the balance of the current address in the database.
+     * Fetch the user options for the user owning a specific address.
+     * @param address The address to fetch user options for.
+     * @returns The user options for the specified address or null if not found.
+     */
+    private async _fetchUserOptions(address: AddressSelectModel): Promise<UserOptionsSelectModel | null> {
+        const [userOptions] = await db
+            .select()
+            .from(scUserOptions)
+            .where(eq(scUserOptions.userId, address.userId))
+            .limit(1)
+
+        return userOptions || null
+    }
+
+    /**
+     * Update the balance of an address in the database.
      * @param address The address to update.
      * @param balance The balance to update in the database (as a numeric).
+     * @param disableAddress Whether to disable the address too.
      */
-    private async _updateBalanceInDatabase(address: AddressSelectModel, balance: string): Promise<void> {
+    private async _updateBalanceInDatabase(
+        address: AddressSelectModel,
+        balance: string,
+        disableAddress: boolean,
+    ): Promise<void> {
         if (!address) return
 
         await db
             .update(scAddress)
             .set({
                 balance,
+                isDisabled: disableAddress,
                 balanceCheckedAt: new Date(),
             })
             .where(eq(scAddress.id, address.id))
@@ -144,7 +166,16 @@ class BalanceChecker {
                 if (balance === null) {
                     this._balanceCheckerLogger.info(`No balance found for address '${nextAddress.id}', skipping...`)
                 } else {
-                    await this._updateBalanceInDatabase(nextAddress, balance)
+                    const userOptions = await this._fetchUserOptions(nextAddress)
+
+                    // Automatically disable zero balance addresses for users that
+                    // have the "autoDisableZeroBalance" option enabled
+                    let disableAddress = false
+                    if (userOptions?.autoDisableZeroBalance && balance === "0") {
+                        disableAddress = true
+                    }
+
+                    await this._updateBalanceInDatabase(nextAddress, balance, disableAddress)
                 }
             } else {
                 this._balanceCheckerLogger.info(`No addresses found to check balance for, skipping...`)
