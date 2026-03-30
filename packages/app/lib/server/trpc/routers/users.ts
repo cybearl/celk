@@ -1,5 +1,6 @@
 import scRoles from "@app/db/schema/role"
 import scUser from "@app/db/schema/user"
+import scUserOptions from "@app/db/schema/userOptions"
 import scUserRoles from "@app/db/schema/userRoles"
 import { normalizeUsername } from "@app/lib/base/utils/auth"
 import { db } from "@app/lib/server/connectors/db"
@@ -50,6 +51,51 @@ export const usersRouter = router({
                 .returning()
 
             return updated
+        }),
+
+    /**
+     * Retrieve the current user's options.
+     * @param ctx The request context.
+     * @returns The user options object, or null if not yet created.
+     */
+    getUserOptions: unlockedProcedure.query(async ({ ctx }) => {
+        const [userOptions] = await db
+            .select()
+            .from(scUserOptions)
+            .where(eq(scUserOptions.userId, ctx.session.user.id))
+            .limit(1)
+
+        return userOptions ?? null
+    }),
+
+    /**
+     * Upsert the current user's options.
+     * @param ctx The request context.
+     * @param input The input object containing the options to update.
+     * @returns The updated user options object.
+     */
+    updateUserOptions: unlockedProcedure
+        .input(
+            z.object({
+                autoDisableZeroBalance: z.boolean(),
+            }),
+        )
+        .mutation(async ({ ctx, input }) => {
+            const [userOptions] = await db
+                .insert(scUserOptions)
+                .values({
+                    userId: ctx.session.user.id,
+                    autoDisableZeroBalance: input.autoDisableZeroBalance,
+                })
+                .onConflictDoUpdate({
+                    target: scUserOptions.userId,
+                    set: {
+                        autoDisableZeroBalance: input.autoDisableZeroBalance,
+                    },
+                })
+                .returning()
+
+            return userOptions
         }),
 
     /**

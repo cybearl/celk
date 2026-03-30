@@ -3,6 +3,7 @@ import scAddressList from "@app/db/schema/addressList"
 import scPvtAddressListMember from "@app/db/schema/addressListMember"
 import scDynamicConfig, { DYNAMIC_CONFIG_ID } from "@app/db/schema/dynamicConfig"
 import scUser from "@app/db/schema/user"
+import scUserOptions from "@app/db/schema/userOptions"
 import { db } from "@app/lib/server/connectors/db"
 import { and, asc, eq, inArray, sql } from "drizzle-orm"
 
@@ -32,14 +33,19 @@ export async function dbGetEnabledAddressLists() {
 /**
  * Retrieve all addresses from a specific address list.
  * @param addressListId The ID of the address list to retrieve addresses from.
+ * @param includeDisabled Whether to include disabled addresses in the results (optional, defaults to false).
  * @returns An array of addresses from the specified address list.
  */
-export async function dbGetAddressesByAddressListId(addressListId: string) {
+export async function dbGetAddressesByAddressListId(addressListId: string, includeDisabled = false) {
     const rows = await db
         .select({ address: scAddress })
         .from(scAddress)
         .innerJoin(scPvtAddressListMember, eq(scPvtAddressListMember.addressId, scAddress.id))
-        .where(eq(scPvtAddressListMember.addressListId, addressListId))
+        .where(
+            includeDisabled
+                ? eq(scPvtAddressListMember.addressListId, addressListId)
+                : and(eq(scPvtAddressListMember.addressListId, addressListId), eq(scAddress.isDisabled, false)),
+        )
 
     return rows.map(r => r.address)
 }
@@ -134,4 +140,16 @@ export async function dbSaveWorkerMatchToDb(addressListId: string, address: stri
  */
 export async function dbDisableAddressList(addressListId: string) {
     await db.update(scAddressList).set({ isEnabled: false }).where(eq(scAddressList.id, addressListId)).execute()
+}
+
+/**
+ * Retrieve user options for a set of user IDs, returned as a map keyed by userId.
+ * Users with no options row are omitted from the map.
+ * @param userIds The user IDs to look up.
+ * @returns A map of userId -> user options row.
+ */
+export async function dbGetUserOptionsByUserIds(userIds: string[]) {
+    if (userIds.length === 0) return new Map<string, typeof scUserOptions.$inferSelect>()
+    const rows = await db.select().from(scUserOptions).where(inArray(scUserOptions.userId, userIds))
+    return new Map(rows.map(row => [row.userId, row]))
 }

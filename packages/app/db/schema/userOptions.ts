@@ -10,9 +10,6 @@ const scUserOptions = pgTable("user_options", {
         .primaryKey()
         .$defaultFn(() => crypto.randomUUID()),
 
-    // Worker behavior
-    restartUntilAllFound: boolean("restart_until_all_found").notNull(),
-
     // Automatic address disabling rules
     autoDisableZeroBalance: boolean("auto_disable_zero_balance").notNull(),
 
