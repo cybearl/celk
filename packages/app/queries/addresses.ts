@@ -58,6 +58,16 @@ export async function getAddressById(id: string) {
 }
 
 /**
+ * Update the `isDisabled` flag for an address by sending a mutation request to the tRPC API.
+ * @param id The ID of the address to update.
+ * @param isDisabled The new value for the `isDisabled` flag.
+ * @returns The updated address returned from the API.
+ */
+export async function updateAddressIsDisabled(id: string, isDisabled: boolean) {
+    return await trpcClient.addresses.updateIsDisabled.mutate({ id, isDisabled })
+}
+
+/**
  * Delete an address by its ID by sending a mutation request to the tRPC API.
  * @param id The ID of the address to delete.
  */

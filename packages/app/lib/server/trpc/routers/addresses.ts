@@ -205,6 +205,26 @@ export const addressesRouter = router({
     }),
 
     /**
+     * Update the `isDisabled` flag for an address.
+     * @param id The ID of the address to update.
+     * @param isDisabled The new value for the `isDisabled` flag.
+     * @returns The updated address object.
+     */
+    updateIsDisabled: unlockedProcedure
+        .input(z.object({ id: z.string(), isDisabled: z.boolean() }))
+        .mutation(async ({ ctx, input }) => {
+            const [address] = await db
+                .update(scAddress)
+                .set({ isDisabled: input.isDisabled })
+                .where(and(eq(scAddress.id, input.id), eq(scAddress.userId, ctx.session.user.id)))
+                .returning()
+
+            if (!address) throw new TRPCError({ code: "NOT_FOUND" })
+
+            return address
+        }),
+
+    /**
      * Delete an address by its ID.
      * @param ctx The request context.
      * @param input The input object containing the address ID.
