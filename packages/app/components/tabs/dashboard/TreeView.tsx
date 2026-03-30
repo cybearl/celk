@@ -258,7 +258,7 @@ export default function TreeViewDashboardTab({ addresses }: TreeViewDashboardTab
         <div className="relative flex flex-col gap-4 h-0 min-h-full">
             <TreeViewControls zoom={zoom} setZoom={setZoom} />
 
-            <div ref={canvasContainerRef} className="h-[90%] border bg-black/30 pb-0">
+            <div ref={canvasContainerRef} className="h-[90%] border border-border bg-black/30 pb-0">
                 <Scrollbar>
                     <canvas
                         ref={canvasRef}

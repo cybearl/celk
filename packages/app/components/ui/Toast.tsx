@@ -20,7 +20,7 @@ function Toast({ icon, backgroundColor, title, description }: ToastProps) {
             <div className="relative w-full flex items-center justify-center gap-4">
                 <DynamicIcon name={icon} className="size-0 min-w-6 min-h-6" />
                 <p className="text-base text-foreground">{title}</p>
-                {description && <p className="mt-1 text-sm text-muted-foreground">{description}</p>}
+                {description && <p className="text-sm text-muted-foreground">{description}</p>}
             </div>
         </div>
     )

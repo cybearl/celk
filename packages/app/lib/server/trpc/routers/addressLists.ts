@@ -276,10 +276,10 @@ export const addressListsRouter = router({
         }),
 
     /**
-     * Update the "stop on first match" flag for an address list by sending a mutation request to the tRPC API.
+     * Update the `stopOnFirstMatch` flag for an address list.
      * @param id The ID of the address list to update.
-     * @param stopOnFirstMatch The new value for the "stop on first match" flag.
-     * @returns The updated address list object returned from the API.
+     * @param stopOnFirstMatch The new value for the `stopOnFirstMatch` flag.
+     * @returns The updated address list object.
      */
     updateStopOnFirstMatch: unlockedProcedure
         .input(z.object({ id: z.string(), stopOnFirstMatch: z.boolean() }))
@@ -303,6 +303,9 @@ export const addressListsRouter = router({
 
     /**
      * Enable an address list by taking the config's `maxRunningAddressListsPerUser` limitation into account.
+     *
+     * Note: Automatically disables the addresses with a balance of 0 if a user has the
+     * `autoDisableZeroBalance` option enabled.
      * @param ctx The request context.
      * @param input The input object containing the address list ID.
      * @returns The updated address list object.

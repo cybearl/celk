@@ -78,9 +78,9 @@ export async function removeAddressFromList(id: string, addressId: string) {
 }
 
 /**
- * Update the "stop on first match" flag for an address list by sending a mutation request to the tRPC API.
+ * Update the `stopOnFirstMatch` flag for an address list by sending a mutation request to the tRPC API.
  * @param id The ID of the address list to update.
- * @param stopOnFirstMatch The new value for the "stop on first match" flag.
+ * @param stopOnFirstMatch The new value for the `stopOnFirstMatch` flag.
  * @returns The updated address list object returned from the API.
  */
 export async function updateAddressListStopOnFirstMatch(id: string, stopOnFirstMatch: boolean) {

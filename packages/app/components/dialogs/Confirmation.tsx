@@ -32,6 +32,14 @@ export default function ConfirmationDialog({
     const [isOpen, setIsOpen] = useState(false)
 
     /**
+     * Closes the dialog and runs the `onConfirm` callback if provided.
+     */
+    const handleConfirm = useCallback(() => {
+        setIsOpen(false)
+        onConfirm?.()
+    }, [onConfirm])
+
+    /**
      * Closes the dialog and runs the `onCancel` callback if provided.
      */
     const handleCancel = useCallback(() => {
@@ -50,7 +58,7 @@ export default function ConfirmationDialog({
                     <Button variant="outline" onClick={handleCancel}>
                         {cancelButtonText}
                     </Button>
-                    <Button onClick={onConfirm}>{confirmButtonText}</Button>
+                    <Button onClick={handleConfirm}>{confirmButtonText}</Button>
                 </DialogFooter>
             </DialogContent>
 

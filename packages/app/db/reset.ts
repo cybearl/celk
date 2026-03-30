@@ -15,7 +15,7 @@ if (!process.env.DATABASE_URL) throw new Error("Missing required environment var
 async function main() {
     const readline = createInterface({ input: process.stdin, output: process.stdout })
     await new Promise<void>((resolve, reject) => {
-        readline.question("This will permanently delete ALL data. Type 'yes' to confirm: ", answer => {
+        readline.question("This will permanently delete ALL data, type 'yes' to confirm: ", answer => {
             readline.close()
             if (answer.trim().toLowerCase() === "yes") resolve()
             else reject(new Error("Reset cancelled."))

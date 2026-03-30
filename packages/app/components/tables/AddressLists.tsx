@@ -27,11 +27,17 @@ export default function AddressListsTable({ dynamicConfig, addressLists }: Addre
     // A local state for optimistic updates
     const [localAddressLists, setLocalAddressLists] = useState<AddressListSelectModel[]>(addressLists ?? [])
 
+    /**
+     * Contain the IDs of all enabled address lists.
+     */
     const enabledAddressListIds = useMemo(
         () => new Set(localAddressLists.filter(list => list.isEnabled).map(list => list.id)),
         [localAddressLists],
     )
 
+    /**
+     * Contain the IDs of all address lists that stop on the first match.
+     */
     const stopOnFirstMatchAddressListIds = useMemo(
         () => new Set(localAddressLists.filter(list => list.stopOnFirstMatch).map(list => list.id)),
         [localAddressLists],
@@ -54,9 +60,9 @@ export default function AddressListsTable({ dynamicConfig, addressLists }: Addre
     }, [])
 
     /**
-     * A helper to set the "stop on first match" setting of an address list.
+     * A helper to set the `stopOnFirstMatch` setting of an address list.
      * @param id The ID of the address list to update.
-     * @param stopOnFirstMatch The new "stop on first match" setting of the address list.
+     * @param stopOnFirstMatch The new `stopOnFirstMatch` setting of the address list.
      */
     const setAddressListStopOnFirstMatch = useCallback((id: string, stopOnFirstMatch: boolean) => {
         setLocalAddressLists(prev => {
@@ -74,7 +80,7 @@ export default function AddressListsTable({ dynamicConfig, addressLists }: Addre
      * @param id The ID of the address list to update.
      * @param isEnabled The new enabled state of the address list.
      */
-    const handleToggleAddressList = useCallback(
+    const handleIsEnabledUpdate = useCallback(
         (id: string, isEnabled: boolean) => {
             if (isEnabled === true) {
                 if (dynamicConfig?.maxRunningAddressListsPerUser === undefined) {
@@ -112,11 +118,11 @@ export default function AddressListsTable({ dynamicConfig, addressLists }: Addre
     )
 
     /**
-     * Handle toggling the "stop on first match" setting of an address list by its ID.
+     * Handle toggling the `stopOnFirstMatch` setting of an address list by its ID.
      * @param id The ID of the address list to update.
-     * @param stopOnFirstMatch The new "stop on first match" setting of the address list.
+     * @param stopOnFirstMatch The new `stopOnFirstMatch` setting of the address list.
      */
-    const handleToggleStopOnFirstMatch = useCallback(
+    const handleStopOnFirstMatchUpdate = useCallback(
         async (id: string, stopOnFirstMatch: boolean) => {
             setAddressListStopOnFirstMatch(id, stopOnFirstMatch)
 
@@ -124,6 +130,7 @@ export default function AddressListsTable({ dynamicConfig, addressLists }: Addre
                 await updateAddressListStopOnFirstMatch(id, stopOnFirstMatch)
             } catch {
                 toast.error("An error occurred while trying to update the address list, please try again.")
+                setAddressListStopOnFirstMatch(id, !stopOnFirstMatch)
             }
         },
         [setAddressListStopOnFirstMatch],
@@ -192,9 +199,7 @@ export default function AddressListsTable({ dynamicConfig, addressLists }: Addre
                                     dynamicConfig?.maxRunningAddressListsPerUser !== undefined &&
                                     enabledAddressListIds.size >= dynamicConfig.maxRunningAddressListsPerUser
                                 }
-                                onCheckedChange={isChecked =>
-                                    handleToggleAddressList(addressList.id, Boolean(isChecked))
-                                }
+                                onCheckedChange={isChecked => handleIsEnabledUpdate(addressList.id, Boolean(isChecked))}
                             />
                         </TableCell>
                         <TableCell className="text-right">
@@ -203,7 +208,7 @@ export default function AddressListsTable({ dynamicConfig, addressLists }: Addre
                                 size="sm"
                                 checked={stopOnFirstMatchAddressListIds.has(addressList.id)}
                                 onCheckedChange={isChecked =>
-                                    handleToggleStopOnFirstMatch(addressList.id, Boolean(isChecked))
+                                    handleStopOnFirstMatchUpdate(addressList.id, Boolean(isChecked))
                                 }
                             />
                         </TableCell>
