@@ -13,12 +13,12 @@ struct SequentialPrivateKeyGenerator : IPrivateKeyGenerator {
     uint256_t endRange;
 
     SequentialPrivateKeyGenerator(
-        uint256_t initialStartRange = 1, uint256_t initialEndRange = SECP256K1_ORDER - 1, uint256_t initialStepSize = 1)
-        : stepSize(initialStepSize)
-        , counter(initialStartRange)
-        , endRange(initialEndRange) {
+        uint256_t _startRange = 1, uint256_t _endRange = SECP256K1_ORDER - 1, uint256_t _stepSize = 1)
+        : stepSize(_stepSize)
+        , counter(_startRange)
+        , endRange(_endRange) {
         // Validate the range beforehand
-        if (initialStartRange < 1 || initialEndRange > SECP256K1_ORDER - 1) {
+        if (_startRange < 1 || _endRange > SECP256K1_ORDER - 1) {
             throw std::invalid_argument("Range must be within [1, SECP256K1_ORDER - 1]");
         }
     }

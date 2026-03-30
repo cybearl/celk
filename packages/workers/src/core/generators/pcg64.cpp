@@ -16,15 +16,13 @@ struct PcgRangePrivateKeyGenerator : IPrivateKeyGenerator {
     uint256_t rangeSize;
 
     // streamId: pass the thread index for non-overlapping streams
-    PcgRangePrivateKeyGenerator(uint64_t seed,
-        uint64_t streamId = 0,
-        uint256_t initialStartRange = 1,
-        uint256_t initialEndRange = SECP256K1_ORDER - 1)
-        : rng(seed, streamId)
-        , startRange(initialStartRange)
-        , rangeSize(initialEndRange - initialStartRange + 1) {
+    PcgRangePrivateKeyGenerator(
+        uint64_t _seed, uint64_t _streamId = 0, uint256_t _startRange = 1, uint256_t _endRange = SECP256K1_ORDER - 1)
+        : rng(_seed, _streamId)
+        , startRange(_startRange)
+        , rangeSize(_endRange - _startRange + 1) {
         // Validate the range beforehand
-        if (startRange < 1 || initialEndRange > SECP256K1_ORDER - 1) {
+        if (startRange < 1 || _endRange > SECP256K1_ORDER - 1) {
             throw std::invalid_argument("Range must be within [1, SECP256K1_ORDER - 1]");
         }
     }
