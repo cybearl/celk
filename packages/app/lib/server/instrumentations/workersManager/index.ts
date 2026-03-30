@@ -4,6 +4,7 @@ import DYNAMIC_CONFIG from "@app/config/dynamicConfig"
 import { PUBLIC_ENV } from "@app/config/env"
 import type { AddressListSelectModel } from "@app/db/schema/addressList"
 import type { DynamicConfigSelectModel } from "@app/db/schema/dynamicConfig"
+import type { UserOptionsSelectModel } from "@app/db/schema/userOptions"
 import { logger } from "@app/lib/base/utils/logger"
 import { spawnWorker, stopWorker } from "@app/lib/server/instrumentations/workersManager/lib/controls"
 import {
@@ -14,7 +15,7 @@ import {
     saveAddressListDumpFiles,
 } from "@app/lib/server/instrumentations/workersManager/lib/dumps"
 import { sendWorkersManagerSyncFailureAlert } from "@app/lib/server/utils/emails"
-import { dbGetDynamicConfig, dbGetEnabledAddressLists } from "@app/lib/server/utils/queries"
+import { dbGetDynamicConfig, dbGetEnabledAddressLists, dbGetUserOptionsByUserIds } from "@app/lib/server/utils/queries"
 import { getWorkersManagerRetryDelay } from "@app/lib/server/utils/time"
 
 class WorkersManager {
@@ -26,6 +27,7 @@ class WorkersManager {
 
     private _dynamicConfig: DynamicConfigSelectModel | null
     private _enabledAddressLists: AddressListSelectModel[] | null
+    private _userOptionsMap: Map<string, UserOptionsSelectModel>
     private _pollTimeout: ReturnType<typeof setTimeout> | null
     private _workers: Map<string, ChildProcessWithoutNullStreams>
 
@@ -36,6 +38,7 @@ class WorkersManager {
     constructor() {
         this._dynamicConfig = null
         this._enabledAddressLists = null
+        this._userOptionsMap = new Map()
         this._pollTimeout = null
         this._workers = new Map()
 
@@ -63,6 +66,9 @@ class WorkersManager {
 
         this._dynamicConfig = dynamicConfig
         this._enabledAddressLists = enabledAddressLists
+
+        const userIds = [...new Set(enabledAddressLists.map(list => list.userId))]
+        this._userOptionsMap = await dbGetUserOptionsByUserIds(userIds)
     }
 
     /**
@@ -122,7 +128,9 @@ class WorkersManager {
                 // Only spawn if a dump exists on disk (list may have no addresses)
                 if (!fs.existsSync(getAddressListDumpFilePath(enabledAddressList.id))) continue
 
-                const worker = spawnWorker(enabledAddressList, this._dynamicConfig.workerReportIntervalMs)
+                const userOptions = this._userOptionsMap.get(enabledAddressList.userId) ?? null
+
+                const worker = spawnWorker(enabledAddressList, this._dynamicConfig.workerReportIntervalMs, userOptions)
                 this._workers.set(enabledAddressList.id, worker)
 
                 // Clean up the map entry when the worker exits, unless it was already replaced

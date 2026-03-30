@@ -1,6 +1,7 @@
 #pragma once
 
 #include "address.hpp"
+#include "userOptions.hpp"
 #include "utils/json.hpp"
 #include <nlohmann/json.hpp>
 #include <optional>
@@ -68,6 +69,7 @@ struct StartWorkerMessage : WorkerMessage {
     int heartbeatIntervalMs;
     int heartbeatTimeoutMs;
     bool stopOnFirstMatch;
+    UserOptions userOptions;
     std::string addressesDumpFilePath;
 };
 
@@ -78,6 +80,7 @@ NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(StartWorkerMessage,
     heartbeatIntervalMs,
     heartbeatTimeoutMs,
     stopOnFirstMatch,
+    userOptions,
     addressesDumpFilePath)
 
 /**
@@ -163,8 +166,6 @@ struct AddressDump {
     WorkerPrivateKeyGenerator privateKeyGenerator;
     std::optional<std::string> privateKeyRangeStart;
     std::optional<std::string> privateKeyRangeEnd;
-    bool isFound; // A virtual flag indicating if the address was found by checking if the private key is set in the DB
-    bool isDisabled;
     std::string addressListId;
 };
 
@@ -178,6 +179,4 @@ NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(AddressDump,
     privateKeyGenerator,
     privateKeyRangeStart,
     privateKeyRangeEnd,
-    isFound,
-    isDisabled,
     addressListId)

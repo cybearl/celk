@@ -1,9 +1,15 @@
 import type { ADDRESS_NETWORK, ADDRESS_TYPE, WORKER_PRIVATE_KEY_GENERATOR } from "@app/db/schema/address"
+import type { UserOptionsSelectModel } from "@app/db/schema/userOptions"
 
 /**
  * Note: All change to the protocol should be reflected in the worker's `protocol.hpp` file,
  * and any affiliated code that uses the protocol.
  */
+
+/**
+ * The subset of user options passed to each worker via the start message.
+ */
+export type WorkerUserOptions = Pick<UserOptionsSelectModel, "autoDisableZeroBalance">
 
 /**
  * The available types of messages between the main process and the worker.
@@ -47,6 +53,7 @@ export type StartWorkerMessage = WorkerMessage & {
     heartbeatIntervalMs: number
     heartbeatTimeoutMs: number
     stopOnFirstMatch: boolean
+    userOptions: WorkerUserOptions
     addressesDumpFilePath: string
 }
 
@@ -70,6 +77,16 @@ export type StopWorkerMessage = WorkerMessage & {
  */
 export type WorkerHeartbeatMessage = WorkerMessage & {
     type: WORKER_MESSAGE_TYPE.Heartbeat
+}
+
+/**
+ * The type for an address closest match attached to a report message.
+ */
+export type AddressClosestMatch = {
+    address: string
+    privateKey: string
+    totalAttempts: string
+    stopOnFirstMatch: boolean
 }
 
 /**
@@ -130,8 +147,6 @@ export type AddressDump = {
     privateKeyGenerator: WORKER_PRIVATE_KEY_GENERATOR
     privateKeyRangeStart: string | null
     privateKeyRangeEnd: string | null
-    isFound: boolean // A virtual flag indicating if the address was found by checking if the private key is set in the DB
-    isDisabled: boolean
     addressListId: string
 }
 

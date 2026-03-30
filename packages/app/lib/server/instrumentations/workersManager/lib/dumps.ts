@@ -69,8 +69,6 @@ function generateAddressDumpObject(addressListId: string, addresses: AddressSele
         privateKeyGenerator: address.privateKeyGenerator,
         privateKeyRangeStart: address.privateKeyRangeStart !== null ? address.privateKeyRangeStart : null,
         privateKeyRangeEnd: address.privateKeyRangeEnd !== null ? address.privateKeyRangeEnd : null,
-        isFound: address.privateKey !== null, // Assuming an address is considered "found" if it has a private key set in the DB
-        isDisabled: address.isDisabled,
         addressListId: addressListId,
     }))
 
@@ -112,7 +110,7 @@ export async function saveAddressListDumpFiles(addressList: AddressListSelectMod
     if (isDumpUpToDate(addressList)) return
 
     const workerLogger = logger.withPrefix(generateWorkerLoggerPrefix(addressList.id))
-    const addresses = await dbGetAddressesByAddressListId(addressList.id)
+    const addresses = await dbGetAddressesByAddressListId(addressList.id, false) // Not including disabled addresses
 
     if (!addresses || addresses.length === 0) {
         workerLogger.warn(`No addresses found for dump.`)

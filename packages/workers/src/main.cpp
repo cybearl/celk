@@ -89,6 +89,8 @@ int main() {
                     case WorkerMessageType::Stop:
                         stopFlag.store(true, std::memory_order_relaxed);
                         break;
+                    default:
+                        break;
                 }
             } catch (const std::exception& error) {
                 sendError(std::string("Failed to parse message from manager: ") + error.what());

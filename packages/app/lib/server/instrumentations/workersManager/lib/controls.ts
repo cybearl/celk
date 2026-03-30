@@ -1,6 +1,7 @@
 import { type ChildProcessWithoutNullStreams, spawn } from "node:child_process"
 import WORKERS_CONFIG from "@app/config/workers"
 import type { AddressListSelectModel } from "@app/db/schema/addressList"
+import type { UserOptionsSelectModel } from "@app/db/schema/userOptions"
 import { type LoggerInstance, logger } from "@app/lib/base/utils/logger"
 import { getAddressListDumpFilePath } from "@app/lib/server/instrumentations/workersManager/lib/dumps"
 import { generateWorkerLoggerPrefix } from "@app/lib/server/instrumentations/workersManager/lib/formats"
@@ -210,9 +211,14 @@ export function listenToWorker(
  * Spawns a new worker process for the given address list.
  * @param addressList The address list to be processed by the worker.
  * @param reportIntervalMs The report interval of the worker in milliseconds, i.e. how often it sends progress updates.
+ * @param userOptions The options of the address list owner, or null if not yet set.
  * @returns The spawned child process representing the worker.
  */
-export function spawnWorker(addressList: AddressListSelectModel, reportIntervalMs: number) {
+export function spawnWorker(
+    addressList: AddressListSelectModel,
+    reportIntervalMs: number,
+    userOptions: UserOptionsSelectModel | null,
+) {
     const workerLogger = logger.withPrefix(generateWorkerLoggerPrefix(addressList.id))
 
     const worker = spawn(WORKERS_CONFIG.binaryPath, [], { stdio: ["pipe", "pipe", "pipe"] })
@@ -237,7 +243,10 @@ export function spawnWorker(addressList: AddressListSelectModel, reportIntervalM
         reportIntervalMs: reportIntervalMs,
         heartbeatIntervalMs: WORKERS_CONFIG.heartbeat.intervalMs,
         heartbeatTimeoutMs: WORKERS_CONFIG.heartbeat.timeoutMs,
-        stopOnFirstMatch: false,
+        stopOnFirstMatch: addressList.stopOnFirstMatch,
+        userOptions: {
+            autoDisableZeroBalance: userOptions?.autoDisableZeroBalance ?? false,
+        },
         addressesDumpFilePath: getAddressListDumpFilePath(addressList.id),
     }
 
