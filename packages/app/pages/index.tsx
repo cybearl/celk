@@ -10,6 +10,7 @@ import { MAIN_LAYOUT_PAGE } from "@app/config/pages"
 import type { SerializedAddressSelectModel } from "@app/db/schema/address"
 import type { SerializedAddressListSelectModel } from "@app/db/schema/addressList"
 import type { DynamicConfigSelectModel, SerializedDynamicConfigSelectModel } from "@app/db/schema/dynamicConfig"
+import type { UserOptionsSelectModel } from "@app/db/schema/userOptions"
 import { useAttemptsSync } from "@app/hooks/api/useAttemptsSync"
 import { useBalancesSync } from "@app/hooks/api/useBalancesSync"
 import { useDynamicConfig } from "@app/hooks/api/useDynamicConfig"
@@ -24,6 +25,7 @@ type HomepageProps = {
     initialDynamicConfig: SerializedDynamicConfigSelectModel | null
     initialAddresses: SerializedAddressSelectModel[]
     initialAddressLists: SerializedAddressListSelectModel[]
+    initialUserOptions: UserOptionsSelectModel | null
 }
 
 /**
@@ -34,6 +36,7 @@ export const getServerSideProps = withSession<HomepageProps>(async (ctx, session
     let initialDynamicConfig: SerializedDynamicConfigSelectModel | null = null
     let initialAddresses: SerializedAddressSelectModel[] = []
     let initialAddressLists: SerializedAddressListSelectModel[] = []
+    let initialUserOptions: UserOptionsSelectModel | null = null
 
     if (session) {
         const caller = appRouter.createCaller({
@@ -42,13 +45,17 @@ export const getServerSideProps = withSession<HomepageProps>(async (ctx, session
             res: ctx.res as unknown as NextApiResponse,
         })
 
-        const dynamicConfigRow = await caller.dynamicConfig.get()
+        const [dynamicConfigRow, addressRows, addressListRows, userOptionsRow] = await Promise.all([
+            caller.dynamicConfig.get(),
+            caller.addresses.getAll(),
+            caller.addressLists.getAll(),
+            caller.users.getUserOptions(),
+        ])
+
         initialDynamicConfig = {
             ...dynamicConfigRow,
             updatedAt: dynamicConfigRow.updatedAt.toISOString(),
         }
-
-        const addressRows = await caller.addresses.getAll()
 
         initialAddresses = addressRows.map(row => ({
             ...row,
@@ -57,13 +64,13 @@ export const getServerSideProps = withSession<HomepageProps>(async (ctx, session
             balanceCheckedAt: row.balanceCheckedAt?.toISOString() ?? null,
         }))
 
-        const addressListRows = await caller.addressLists.getAll()
-
         initialAddressLists = addressListRows.map(row => ({
             ...row,
             createdAt: row.createdAt.toISOString(),
             updatedAt: row.updatedAt.toISOString(),
         }))
+
+        initialUserOptions = userOptionsRow
     }
 
     return {
@@ -71,11 +78,17 @@ export const getServerSideProps = withSession<HomepageProps>(async (ctx, session
             initialDynamicConfig,
             initialAddresses,
             initialAddressLists,
+            initialUserOptions,
         },
     }
 })
 
-export default function Homepage({ initialDynamicConfig, initialAddresses, initialAddressLists }: HomepageProps) {
+export default function Homepage({
+    initialDynamicConfig,
+    initialAddresses,
+    initialAddressLists,
+    initialUserOptions,
+}: HomepageProps) {
     const { data: dynamicConfig } = useDynamicConfig(initialDynamicConfig as unknown as DynamicConfigSelectModel | null)
     const { session } = useSessionContext()
 
@@ -98,8 +111,10 @@ export default function Homepage({ initialDynamicConfig, initialAddresses, initi
             }
         >
             <Scrollbar className="px-4">
-                <TabsContent value={MAIN_LAYOUT_PAGE.HOME} className="w-full h-full">
-                    HOME
+                <TabsContent value={MAIN_LAYOUT_PAGE.HOME} className="w-full h-full flex jc items-center">
+                    <div className="w-full flex justify-center items-center">
+                        <h1>H O M E</h1>
+                    </div>
                 </TabsContent>
 
                 {session ? (
@@ -114,7 +129,7 @@ export default function Homepage({ initialDynamicConfig, initialAddresses, initi
 
                         {!session.user.isLocked && (
                             <TabsContent value={MAIN_LAYOUT_PAGE.SETTINGS} className="w-full h-full">
-                                <SettingsPage />
+                                <SettingsPage initialUserOptions={initialUserOptions} />
                             </TabsContent>
                         )}
                     </>
@@ -122,8 +137,10 @@ export default function Homepage({ initialDynamicConfig, initialAddresses, initi
                     <></>
                 )}
 
-                <TabsContent value={MAIN_LAYOUT_PAGE.ABOUT} className="w-full h-full">
-                    ABOUT
+                <TabsContent value={MAIN_LAYOUT_PAGE.ABOUT} className="w-full h-full flex jc items-center">
+                    <div className="w-full flex justify-center items-center">
+                        <h1>A B O U T</h1>
+                    </div>
                 </TabsContent>
             </Scrollbar>
         </MainLayout>
