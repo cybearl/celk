@@ -1,13 +1,13 @@
 import { ADDRESS_NETWORK, type AddressSelectModel } from "@app/db/schema/address"
 
 /**
- * Convert a numeric representing an Eth-based value in `wei` to a human-readable format in `ether`.
- * @param weiValue The wei value to convert (as a numeric).
+ * Convert a numeric representing an Eth-based value in `GWei` to a human-readable format in `ether`.
+ * @param gWeiValue The GWei value to convert (as a numeric).
  * @param decimalPlaces The number of decimal places to include in the formatted output (optional, defaults to 2).
  * @returns The converted ether value as a string.
  */
-export function formatWeiToEther(weiValue: string, decimalPlaces = 2): string {
-    const etherValue = parseFloat(weiValue) / 1e18
+export function formatGWeiToEther(gWeiValue: string, decimalPlaces = 2): string {
+    const etherValue = parseFloat(gWeiValue) / 1e9
     return etherValue.toLocaleString("en-US", {
         minimumFractionDigits: decimalPlaces,
         maximumFractionDigits: decimalPlaces,
@@ -29,7 +29,7 @@ export function formatSatoshisToBitcoin(satoshiValue: string, decimalPlaces = 2)
 }
 
 /**
- * Get the raw unit of the balance of an address based on its network (wei/satoshis).
+ * Get the raw unit of the balance of an address based on its network (GWei/satoshis).
  * @param address The address to get the balance unit for.
  * @returns The raw unit of the balance as a string.
  */
@@ -38,7 +38,7 @@ export function getRawAddressBalanceUnit(address: AddressSelectModel): string {
         case ADDRESS_NETWORK.ETHEREUM:
         case ADDRESS_NETWORK.BSC:
         case ADDRESS_NETWORK.POLYGON:
-            return "Wei"
+            return "GWei"
         case ADDRESS_NETWORK.BITCOIN:
             return "Satoshi(s)"
         default:
@@ -67,7 +67,7 @@ export function getAddressBalanceUnit(address: AddressSelectModel): string {
 }
 
 /**
- * Formats the raw balance of an address (wei/satoshis).
+ * Formats the raw balance of an address (GWei/satoshis).
  * @param address The address to format the balance for.
  * @returns The formatted raw balance as a string.
  */
@@ -90,6 +90,8 @@ export function formatRawAddressBalance(address: AddressSelectModel): string {
 
 /**
  * Takes in an address, and returns a formatted version of its balance depending on its network.
+ *
+ * Note: For Ethereum and similar networks, the balance is passed in GWei.
  * @param address The address to format the balance for.
  * @returns The formatted balance as a string.
  */
@@ -102,7 +104,7 @@ export function formatAddressBalance(address: AddressSelectModel): string {
         case ADDRESS_NETWORK.ETHEREUM:
         case ADDRESS_NETWORK.BSC:
         case ADDRESS_NETWORK.POLYGON:
-            return formatWeiToEther(address.balance) + unit
+            return formatGWeiToEther(address.balance) + unit
         case ADDRESS_NETWORK.BITCOIN:
             return formatSatoshisToBitcoin(address.balance) + unit
         default:

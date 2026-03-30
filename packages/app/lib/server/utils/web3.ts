@@ -4,7 +4,7 @@ import type { LoggerInstance } from "@app/lib/base/utils/logger"
 import { jsonRpcProviders } from "@app/lib/server/connectors/web3"
 
 /**
- * Fetch the balance **in wei** of any Ethereum-compatible address based on its network.
+ * Fetch the balance **in GWei** of any Ethereum-compatible address based on its network.
  * @param address The address to fetch the balance for.
  * @param logger The Web3-related logger.
  * @returns The balance (as a numeric) of the address or null if the call fails
@@ -19,7 +19,7 @@ export async function getEthCompatibleAddressBalance(address: AddressSelectModel
 
     try {
         const balance = await provider.getBalance(address.value)
-        return balance.toString()
+        return (balance / 1_000_000_000n).toString()
     } catch (error) {
         logger.error(`An error occurred while fetching Ethereum-compatible address balance for '${address.value}':`, {
             data: error,
