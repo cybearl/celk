@@ -1,6 +1,7 @@
 import { useSessionContext } from "@app/components/contexts/Session"
 import AddressesDashboardTab from "@app/components/tabs/dashboard/Addresses"
 import AddressListsDashboardTab from "@app/components/tabs/dashboard/AddressLists"
+import AdminPanelDashboardTab from "@app/components/tabs/dashboard/AdminPanel"
 import TreeViewDashboardTab from "@app/components/tabs/dashboard/TreeView"
 import { Button } from "@app/components/ui/Button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@app/components/ui/Select"
@@ -17,9 +18,9 @@ import useTabs from "@app/hooks/useTabs"
  */
 export enum DASHBOARD_TAB {
     ADDRESSES = "addresses",
-    ADDRESS_LISTS = "address_lists",
-    TREE_VIEW = "tree_view",
-    ADMIN_PANEL = "admin_panel",
+    ADDRESS_LISTS = "address-lists",
+    TREE_VIEW = "tree-view",
+    ADMIN_PANEL = "admin-panel",
 }
 
 type DashboardPageProps = {
@@ -123,6 +124,12 @@ export default function DashboardPage({ dynamicConfig, initialAddresses, initial
                 <TabsContent value={DASHBOARD_TAB.TREE_VIEW} className="sm:mt-4">
                     <TreeViewDashboardTab addresses={addresses} />
                 </TabsContent>
+
+                {session?.isAdmin && (
+                    <TabsContent value={DASHBOARD_TAB.ADMIN_PANEL} className="sm:mt-4">
+                        <AdminPanelDashboardTab dynamicConfig={dynamicConfig} />
+                    </TabsContent>
+                )}
             </Tabs>
         </div>
     )

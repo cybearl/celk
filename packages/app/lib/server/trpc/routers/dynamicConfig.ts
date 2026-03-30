@@ -55,10 +55,20 @@ export const dynamicConfigRouter = router({
     update: adminProcedure
         .input(
             z.object({
+                lockNewUsers: z.boolean(),
                 maxAddressesPerUser: z.number().int().positive(),
                 maxAddressListsPerUser: z.number().int().positive(),
                 maxAddressesPerList: z.number().int().positive(),
-                balanceRefreshDelayMs: z.number().int().positive(),
+                maxRunningAddressListsPerUser: z.number().int().positive(),
+                balanceCheckerDelayMs: z.number().int().positive(),
+                maxBalanceCheckerRetries: z.number().int().positive(),
+                balanceCheckerRetryBaseDelayMs: z.number().int().positive(),
+                balanceCheckerRetryMaxDelayMs: z.number().int().positive(),
+                workersManagerPollIntervalMs: z.number().int().positive(),
+                maxWorkersManagerSyncRetries: z.number().int().positive(),
+                workersManagerSyncRetryBaseDelayMs: z.number().int().positive(),
+                workersManagerSyncRetryMaxDelayMs: z.number().int().positive(),
+                workerReportIntervalMs: z.number().int().positive(),
             }),
         )
         .mutation(async ({ input }) => {
