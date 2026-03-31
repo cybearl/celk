@@ -10,8 +10,8 @@ const scUserOptions = pgTable("user_options", {
         .primaryKey()
         .$defaultFn(() => crypto.randomUUID()),
 
-    // Automatic address disabling rules
     autoDisableZeroBalance: boolean("auto_disable_zero_balance").notNull(),
+    mixGenerators: boolean("mix_generators").notNull(),
 
     // Relationships
     userId: text("user_id")

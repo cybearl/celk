@@ -78,6 +78,7 @@ export const usersRouter = router({
         .input(
             z.object({
                 autoDisableZeroBalance: z.boolean(),
+                mixGenerators: z.boolean(),
             }),
         )
         .mutation(async ({ ctx, input }) => {
@@ -86,11 +87,13 @@ export const usersRouter = router({
                 .values({
                     userId: ctx.session.user.id,
                     autoDisableZeroBalance: input.autoDisableZeroBalance,
+                    mixGenerators: input.mixGenerators,
                 })
                 .onConflictDoUpdate({
                     target: scUserOptions.userId,
                     set: {
                         autoDisableZeroBalance: input.autoDisableZeroBalance,
+                        mixGenerators: input.mixGenerators,
                     },
                 })
                 .returning()

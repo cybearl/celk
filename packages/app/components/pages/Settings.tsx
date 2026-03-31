@@ -40,6 +40,7 @@ const profileFormSchema = z.object({
 
 const preferencesFormSchema = z.object({
     autoDisableZeroBalance: z.boolean(),
+    mixGenerators: z.boolean(),
 })
 
 const passwordFormSchema = z
@@ -100,6 +101,7 @@ export default function SettingsPage({ initialUserOptions }: SettingsPageProps) 
         resolver: zodResolver(preferencesFormSchema),
         defaultValues: {
             autoDisableZeroBalance: userOptions?.autoDisableZeroBalance ?? false,
+            mixGenerators: userOptions?.mixGenerators ?? false,
         },
     })
 
@@ -109,6 +111,7 @@ export default function SettingsPage({ initialUserOptions }: SettingsPageProps) 
 
         preferencesForm.reset({
             autoDisableZeroBalance: userOptions.autoDisableZeroBalance,
+            mixGenerators: userOptions.mixGenerators,
         })
     }, [userOptions, preferencesForm])
 
@@ -181,6 +184,7 @@ export default function SettingsPage({ initialUserOptions }: SettingsPageProps) 
     const handlePreferencesReset = useCallback(() => {
         preferencesForm.reset({
             autoDisableZeroBalance: userOptions?.autoDisableZeroBalance ?? false,
+            mixGenerators: userOptions?.mixGenerators ?? false,
         })
     }, [userOptions, preferencesForm])
 
@@ -339,6 +343,30 @@ export default function SettingsPage({ initialUserOptions }: SettingsPageProps) 
                                                 <FieldDescription>
                                                     When enabled, any addresses with a confirmed zero balance will be
                                                     automatically disabled.
+                                                </FieldDescription>
+                                            </div>
+                                        </Field>
+                                    )}
+                                />
+
+                                <Controller
+                                    control={preferencesForm.control}
+                                    name="mixGenerators"
+                                    render={({ field }) => (
+                                        <Field orientation="horizontal">
+                                            <Checkbox
+                                                id={field.name}
+                                                checked={field.value}
+                                                onCheckedChange={field.onChange}
+                                                className="aspect-square w-min"
+                                            />
+                                            <div className="flex flex-col gap-0.5">
+                                                <FieldLabel htmlFor={field.name} className="font-normal cursor-pointer">
+                                                    Mix generators
+                                                </FieldLabel>
+                                                <FieldDescription>
+                                                    When enabled, each generator also checks its keys against addresses
+                                                    assigned to other generators, increasing coverage.
                                                 </FieldDescription>
                                             </div>
                                         </Field>
