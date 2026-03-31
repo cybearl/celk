@@ -1,7 +1,9 @@
 #include <cstdint>
 
 /**
- * The base interface for private key generators.
+ * Defines the interface for private key generation, implementations of this interface will
+ * provide the logic to generate private keys, which will then be used for address derivation
+ * and matching.
  */
 struct IPrivateKeyGenerator {
     /**

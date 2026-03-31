@@ -7,6 +7,7 @@
  */
 struct UserOptions {
     bool autoDisableZeroBalance;
+    bool mixGenerators;
 };
 
-NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(UserOptions, autoDisableZeroBalance)
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(UserOptions, autoDisableZeroBalance, mixGenerators)
