@@ -8,7 +8,7 @@ export async function register() {
     checkEnvironmentVariables()
 
     if (PUBLIC_ENV.nextRuntime === "nodejs") {
-        const { seedDefaultAdminUser } = await import("@app/lib/server/utils/users")
+        const { seedDefaultAdminUser } = await import("@app/lib/server/instrumentations/defaultAdminSeeder")
         await seedDefaultAdminUser()
 
         const { balanceChecker } = await import("@app/lib/server/instrumentations/balanceChecker")

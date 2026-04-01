@@ -40,7 +40,13 @@ struct SequentialPrivateKeyGenerator : IPrivateKeyGenerator {
             (uint64_t)value.lower().lower(),
         };
 
-        std::memcpy(privateKey, parts, 32);
+        // Copy the 4 uint64s into the private key array while swapping the byte
+        // order of each uint64 to match the expected big-endian format
+        // (secp256k1 uses big-endian)
+        for (int i = 0; i < 4; i++) {
+            uint64_t be = __builtin_bswap64(parts[i]);
+            std::memcpy(privateKey + i * 8, &be, 8);
+        }
 
         return true;
     }

@@ -14,5 +14,5 @@ PointerAlignment: Left
 # Modern C++ / "Prettier" style wrapping
 BinPackArguments: false
 BinPackParameters: false
-AllowShortFunctionsOnASingleLine: Inline
+AllowShortFunctionsOnASingleLine: Empty
 IndentCaseLabels: true

@@ -44,7 +44,13 @@ export async function seedDefaultAdminUser() {
 
     if (response) {
         // Automatically verifies the email address and unlocks the default admin user
-        await db.update(scUser).set({ isEmailVerified: true, isLocked: false }).where(eq(scUser.id, response.user.id))
+        await db
+            .update(scUser)
+            .set({
+                isEmailVerified: true,
+                isLocked: false,
+            })
+            .where(eq(scUser.id, response.user.id))
     }
 
     return response

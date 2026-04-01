@@ -10,13 +10,12 @@
  * @brief Uses PCG64 to generate a private-key (4 uint64 merged into a uint256) within
  * a specified range.
  */
-struct PcgRangePrivateKeyGenerator : IPrivateKeyGenerator {
+struct PCG64PrivateKeyGenerator : IPrivateKeyGenerator {
     pcg64 rng;
     uint256_t startRange;
     uint256_t rangeSize;
 
-    // streamId: pass the thread index for non-overlapping streams
-    PcgRangePrivateKeyGenerator(
+    PCG64PrivateKeyGenerator(
         uint64_t _seed, uint64_t _streamId = 0, uint256_t _startRange = 1, uint256_t _endRange = SECP256K1_ORDER - 1)
         : rng(_seed, _streamId)
         , startRange(_startRange)
@@ -49,7 +48,13 @@ struct PcgRangePrivateKeyGenerator : IPrivateKeyGenerator {
             (uint64_t)clampedValue.lower().lower(),
         };
 
-        std::memcpy(privateKey, parts, 32);
+        // Copy the 4 uint64s into the private key array while swapping the byte
+        // order of each uint64 to match the expected big-endian format
+        // (secp256k1 uses big-endian)
+        for (int i = 0; i < 4; i++) {
+            uint64_t be = __builtin_bswap64(parts[i]);
+            std::memcpy(privateKey + i * 8, &be, 8);
+        }
 
         return true;
     }
