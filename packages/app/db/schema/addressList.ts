@@ -1,12 +1,6 @@
 import scUser from "@app/db/schema/user"
-import { WORKER_STATUS } from "@app/lib/server/instrumentations/workersManager/protocol"
 import type { InferInsertModel, InferSelectModel } from "drizzle-orm"
-import { boolean, numeric, pgEnum, pgTable, text, timestamp, unique } from "drizzle-orm/pg-core"
-
-/**
- * The PG enum for worker statuses.
- */
-export const PG_WORKER_STATUS = pgEnum("address_list_worker_status", WORKER_STATUS)
+import { boolean, numeric, pgTable, text, timestamp, unique } from "drizzle-orm/pg-core"
 
 /**
  * The schema for address lists.
@@ -21,7 +15,6 @@ const scAddressList = pgTable(
         name: text("name").notNull(),
         description: text("description"),
         attempts: numeric("attempts").notNull(),
-        workerStatus: PG_WORKER_STATUS("worker_status").notNull(),
         latestDumpId: text("latest_dump_id"),
 
         // Flags

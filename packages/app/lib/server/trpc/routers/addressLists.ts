@@ -3,7 +3,6 @@ import scAddressList from "@app/db/schema/addressList"
 import scPvtAddressListMember from "@app/db/schema/addressListMember"
 import scDynamicConfig, { DYNAMIC_CONFIG_ID } from "@app/db/schema/dynamicConfig"
 import { db } from "@app/lib/server/connectors/db"
-import { WORKER_STATUS } from "@app/lib/server/instrumentations/workersManager/protocol"
 import { router, unlockedProcedure } from "@app/lib/server/trpc/trpc"
 import { TRPCError } from "@trpc/server"
 import { and, count, desc, eq, inArray } from "drizzle-orm"
@@ -119,7 +118,6 @@ export const addressListsRouter = router({
                     isEnabled: false,
                     stopOnFirstMatch: false,
                     attempts: "0",
-                    workerStatus: WORKER_STATUS.Idle,
                     userId: ctx.session.user.id,
                 })
                 .returning()

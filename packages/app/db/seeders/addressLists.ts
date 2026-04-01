@@ -2,7 +2,6 @@ import { PRIVATE_ENV } from "@app/config/env"
 import scAddressList, { type AddressListInsertModel } from "@app/db/schema/addressList"
 import scPvtAddressListMember from "@app/db/schema/addressListMember"
 import { db } from "@app/lib/server/connectors/db"
-import { WORKER_STATUS } from "@app/lib/server/instrumentations/workersManager/protocol"
 import dedent from "dedent"
 
 /**
@@ -61,7 +60,6 @@ export default async function seedAddressLists() {
             .values({
                 ...addressListData,
                 attempts: "0",
-                workerStatus: WORKER_STATUS.Idle,
                 userId: defaultAdminUser.id,
             })
             .returning()
