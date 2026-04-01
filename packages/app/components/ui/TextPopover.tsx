@@ -14,7 +14,7 @@ export default function TextPopover({ children, customContent }: TextPopoverProp
             <PopoverTrigger className="max-w-48 truncate cursor-pointer underline decoration-dotted underline-offset-2">
                 {children}
             </PopoverTrigger>
-            <PopoverContent className="w-fit">{customContent ?? children}</PopoverContent>
+            <PopoverContent className="w-fit max-w-sm">{customContent ?? children}</PopoverContent>
         </Popover>
     )
 }
