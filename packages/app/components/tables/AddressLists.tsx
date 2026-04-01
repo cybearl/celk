@@ -3,8 +3,8 @@ import { Button } from "@app/components/ui/Button"
 import { Checkbox } from "@app/components/ui/Checkbox"
 import Flash from "@app/components/ui/Flash"
 import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from "@app/components/ui/Table"
+import TextPopover from "@app/components/ui/TextPopover"
 import toast from "@app/components/ui/Toast"
-import TruncatedDescription from "@app/components/ui/TruncatedDescription"
 import type { AddressListSelectModel } from "@app/db/schema/addressList"
 import type { DynamicConfigSelectModel } from "@app/db/schema/dynamicConfig"
 import { numericStringToFormatted, numericStringToMetricFormatted } from "@app/lib/base/utils/numerics"
@@ -178,16 +178,16 @@ export default function AddressListsTable({ dynamicConfig, addressLists }: Addre
                     <TableRow key={addressList.id}>
                         <TableCell className="font-medium">{addressList.name}</TableCell>
                         <TableCell>
-                            <TruncatedDescription>{addressList.description}</TruncatedDescription>
+                            <TextPopover>{addressList.description}</TextPopover>
                         </TableCell>
                         <TableCell className="text-right">
-                            <TruncatedDescription
+                            <TextPopover
                                 customContent={
                                     <Flash value={`${numericStringToFormatted(addressList.attempts)} attempts`} />
                                 }
                             >
                                 <Flash value={numericStringToMetricFormatted(addressList.attempts)} />
-                            </TruncatedDescription>
+                            </TextPopover>
                         </TableCell>
                         <TableCell className="text-right">
                             <Checkbox

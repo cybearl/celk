@@ -5,8 +5,8 @@ import { Checkbox } from "@app/components/ui/Checkbox"
 import Flash from "@app/components/ui/Flash"
 import ScientificNotation from "@app/components/ui/ScientificNotation"
 import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from "@app/components/ui/Table"
+import TextPopover from "@app/components/ui/TextPopover"
 import toast from "@app/components/ui/Toast"
-import TruncatedDescription from "@app/components/ui/TruncatedDescription"
 import type { AddressSelectModel } from "@app/db/schema/address"
 import type { DynamicConfigSelectModel } from "@app/db/schema/dynamicConfig"
 import {
@@ -136,7 +136,7 @@ export default function AddressesTable({ dynamicConfig, addresses }: AddressesTa
                     <TableRow key={address.id}>
                         <TableCell className="font-medium">{address.name}</TableCell>
                         <TableCell>
-                            <TruncatedDescription>{address.description ?? undefined}</TruncatedDescription>
+                            <TextPopover>{address.description ?? undefined}</TextPopover>
                         </TableCell>
                         <TableCell>{getPrivateKeyGeneratorLabel(address.privateKeyGenerator)}</TableCell>
                         <TableCell>
@@ -174,7 +174,7 @@ export default function AddressesTable({ dynamicConfig, addresses }: AddressesTa
                         </TableCell>
                         <TableCell className="text-right">
                             {address.balance ? (
-                                <TruncatedDescription
+                                <TextPopover
                                     customContent={
                                         <ul className="list-disc pl-5">
                                             <li>
@@ -194,19 +194,19 @@ export default function AddressesTable({ dynamicConfig, addresses }: AddressesTa
                                     }
                                 >
                                     <Flash value={formatAddressBalance(address)} />
-                                </TruncatedDescription>
+                                </TextPopover>
                             ) : (
                                 <span className="text-muted-foreground">N/A</span>
                             )}
                         </TableCell>
                         <TableCell className="text-right">
-                            <TruncatedDescription
+                            <TextPopover
                                 customContent={
                                     <Flash value={`${numericStringToFormatted(address.attempts)} attempts`} />
                                 }
                             >
                                 <Flash value={numericStringToMetricFormatted(address.attempts)} />
-                            </TruncatedDescription>
+                            </TextPopover>
                         </TableCell>
                         <TableCell className="text-right">
                             <Checkbox
