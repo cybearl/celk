@@ -162,18 +162,40 @@ at roughly 1/N of the normal scan rate."
 
 ## Step 5: Multi-Generator Engine (`src/core/engine.hpp + engine.cpp`)
 
-### Key internal structure
+### Key internal structures
 
-```
+```cpp
+struct TargetAddress {
+    std::string id;                  // AddressDump.id — key in closestMatches map
+    AddressType type;                // determines which deriver to use
+    std::vector<uint8_t> rawBytes;   // pre-decoded comparison bytes (preEncoding, or hex value for ETH)
+    std::string value;               // original address string, copied for match reporting
+};
+
 struct GeneratorGroup {
     std::unique_ptr<IPrivateKeyGenerator> generator;
-    std::vector<TargetAddress*> targets;   // addresses assigned to this generator
+    std::vector<TargetAddress*> targets;   // pointers into the engine's flat TargetAddress list
 };
 ```
 
+`TargetAddress` copies the fields it needs from `AddressDump` at construction time — no
+back-pointer. This avoids dangling-pointer risk if the `addressDumps` vector is ever reallocated.
+
 ### Constructor
 
-1. Pre-process each `AddressDump` → `TargetAddress` (hex-decode raw comparison bytes)
+1. Pre-process each `AddressDump` → `TargetAddress` by hex-decoding the comparison bytes:
+
+   | Address type | Source field       | Transform                        | `rawBytes` size |
+   |--------------|--------------------|----------------------------------|-----------------|
+   | Ethereum     | `dump.value`       | strip `"0x"`, hex-decode         | 20 bytes        |
+   | BTC P2PKH    | `dump.preEncoding` | hex-decode                       | 20 bytes        |
+   | BTC P2WPKH   | `dump.preEncoding` | hex-decode                       | 20 bytes        |
+   | BTC P2SH     | `dump.preEncoding` | hex-decode                       | 20 bytes        |
+   | BTC P2TR     | `dump.preEncoding` | hex-decode                       | 32 bytes        |
+
+   All BTC types use `preEncoding` (the app stores pre-decoded bytes there at insertion time).
+   Ethereum has no `preEncoding` — the checksummed hex address in `value` is the source.
+
 2. Group targets by `(privateKeyGenerator, rangeStart, rangeEnd)` → N `GeneratorGroup`s
 3. Instantiate one deriver per unique `AddressType` across all groups (shared)
 4. Allocate one `uint8_t derivedBuf[32]` (reused every iteration, never heap-allocated in loop)
@@ -181,7 +203,8 @@ struct GeneratorGroup {
 ### `run()` method
 
 ```
-closestMatch = 0   (atomic int, shared with main thread for reporting)
+closestMatches: AddressClosestMatches   (mutex-protected map, shared with main thread for reporting)
+closestMatchesMutex: std::mutex
 
 loop until stopFlag:
     for each group in generatorGroups:
@@ -199,17 +222,35 @@ loop until stopFlag:
             for each target in targets where target.type == type:
                 matched = count leading equal bytes between derivedBuf and target.rawBytes
 
-                if matched > closestMatch: closestMatch = matched
+                // Per-address closest match tracking
+                lock closestMatchesMutex
+                current = closestMatches[target.id]   // default-constructs to empty vector
+                if matched > current.size():
+                    closestMatches[target.id] = derivedBuf[0..matched]
+                unlock
 
                 if matched == n:   // full match
                     lock matchState
-                    matchState.address    = target.dump->value
+                    matchState.address    = target.value
                     matchState.privateKey = hexEncode(privateKey)
                     matchState.isFound    = true
                     if stopOnFirstMatch: stopFlag = true
 
     if all groups exhausted: break
 ```
+
+**Why per-address, not a single global max:** `closestMatches` is an `AddressClosestMatches`
+(`unordered_map<string, vector<uint8_t>>`), mapping each address ID to the best matching prefix
+bytes seen so far. This lets the manager update the `closestMatch` DB column independently per
+address rather than applying a single aggregate value to all of them.
+
+**What the vector stores:** the actual leading bytes from `derivedBuf` that matched (not just a
+count). The count is `v.size()`. Storing bytes gives the manager more information if needed, and
+deriving the count is trivial.
+
+**Locking strategy:** the mutex is held only for the brief compare-and-update of one map entry.
+The main thread holds the same mutex when snapshotting the map for a report message. Contention
+is low because reports are infrequent compared to the inner loop frequency.
 
 **Why shared derivers:** all groups reuse the same deriver instances — a single secp256k1
 context per deriver type, not per generator. This avoids multiplying context allocations.
@@ -221,17 +262,25 @@ regardless of how many targets are checked for that key.
 
 ## Step 6: Protocol Extension (`src/protocol.hpp`)
 
-Add `closestMatch` to `WorkerReportMessage`:
+Add `closestMatches` to `WorkerReportMessage`:
 
 ```cpp
+using AddressClosestMatches = std::unordered_map<std::string, std::vector<uint8_t>>;
+
 struct WorkerReportMessage : WorkerMessage {
     std::string attempts;
-    int closestMatch;   // highest byte prefix match seen so far, across all targets
+    AddressClosestMatches closestMatches;   // per-address: ID -> best matching prefix bytes
 };
+
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(WorkerReportMessage, type, addressListId, attempts, closestMatches)
 ```
 
-Update `NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE` and mirror in TypeScript `protocol.ts`.
-The manager uses this to update the `closestMatch` DB column for the relevant addresses.
+Note: the `NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE` macro currently in `protocol.hpp` is **missing
+`closestMatches`** — add it.
+
+Mirror in TypeScript `protocol.ts` as `Record<string, number[]>`. The manager uses this to
+update the `closestMatch` DB column for each address: `closestMatches[id].length` gives the
+byte-count to store.
 
 ---
 
@@ -250,8 +299,23 @@ std::thread workerThread([&]() {
 });
 ```
 
-The `closestMatch` value from the engine is read by the main thread each report cycle
-(via an atomic member on the engine, or stored inside `matchState`).
+When building the report, the main thread snapshots the engine's `closestMatches` map under
+`closestMatchesMutex`:
+
+```cpp
+WorkerReportMessage message;
+message.type = WorkerMessageType::Report;
+message.addressListId = startMessage.addressListId;
+message.attempts = std::to_string(drainedAttempts);
+
+{
+    std::lock_guard<std::mutex> lock(engine.closestMatchesMutex);
+    message.closestMatches = engine.closestMatches;   // snapshot
+}
+```
+
+The engine continues accumulating matches between reports — the map is never reset, so each
+report always reflects the all-time best per address.
 
 ---
 

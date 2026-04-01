@@ -1,6 +1,7 @@
 #include "core/dump.hpp"
 #include "core/io.hpp"
 #include "protocol.hpp"
+#include "types.hpp"
 #include "utils/json.hpp"
 #include <atomic>
 #include <chrono>
@@ -9,15 +10,6 @@
 #include <queue>
 #include <string>
 #include <thread>
-
-struct MatchState {
-    std::atomic<bool> isFound { false };
-
-    std::mutex stateMutex;
-    std::string address;
-    std::string privateKey;
-    uint64_t totalAttempts { 0 };
-};
 
 int main() {
     std::string startLine;
