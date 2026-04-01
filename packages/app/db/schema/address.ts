@@ -34,10 +34,9 @@ export enum ADDRESS_NETWORK {
 export const PG_ADDRESS_NETWORK = pgEnum("address_network", ADDRESS_NETWORK)
 
 /**
- * The different private key generators available for workers to use
- * when generating private keys to check against the target addresses.
+ * The different private key generators available for an address.
  */
-export enum WORKER_PRIVATE_KEY_GENERATOR {
+export enum ADDRESS_PRIVATE_KEY_GENERATOR {
     RandBytes = "rand-bytes",
     PCG64 = "pcg64", // Supports ranges, defaults to it when start and end ranges are provided
     Sequential = "sequential", // Supports ranges
@@ -46,15 +45,15 @@ export enum WORKER_PRIVATE_KEY_GENERATOR {
 /**
  * The PG enum for private key generators.
  */
-export const PG_WORKER_PRIVATE_KEY_GENERATOR = pgEnum("address_private_key_generator", WORKER_PRIVATE_KEY_GENERATOR)
+export const PG_ADDRESS_PRIVATE_KEY_GENERATOR = pgEnum("address_private_key_generator", ADDRESS_PRIVATE_KEY_GENERATOR)
 
 /**
  * Whether each worker private key generator supports range bounds.
  */
-export const WORKER_PRIVATE_KEY_GENERATOR_SUPPORTS_RANGE: Record<WORKER_PRIVATE_KEY_GENERATOR, boolean> = {
-    [WORKER_PRIVATE_KEY_GENERATOR.RandBytes]: false,
-    [WORKER_PRIVATE_KEY_GENERATOR.PCG64]: true,
-    [WORKER_PRIVATE_KEY_GENERATOR.Sequential]: true,
+export const ADDRESS_PRIVATE_KEY_GENERATOR_SUPPORTS_RANGE: Record<ADDRESS_PRIVATE_KEY_GENERATOR, boolean> = {
+    [ADDRESS_PRIVATE_KEY_GENERATOR.RandBytes]: false,
+    [ADDRESS_PRIVATE_KEY_GENERATOR.PCG64]: true,
+    [ADDRESS_PRIVATE_KEY_GENERATOR.Sequential]: true,
 }
 
 /**
@@ -78,7 +77,7 @@ const scAddress = pgTable(
         attempts: numeric("attempts").notNull(),
 
         // Private key and optional ranges for its generation
-        privateKeyGenerator: PG_WORKER_PRIVATE_KEY_GENERATOR("private_key_generator").notNull(),
+        privateKeyGenerator: PG_ADDRESS_PRIVATE_KEY_GENERATOR("private_key_generator").notNull(),
         privateKey: text("private_key"),
         privateKeyRangeStart: numeric("private_key_range_start"),
         privateKeyRangeEnd: numeric("private_key_range_end"),

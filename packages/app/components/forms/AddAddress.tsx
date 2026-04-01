@@ -6,9 +6,9 @@ import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectVa
 import { TextArea } from "@app/components/ui/TextArea"
 import {
     ADDRESS_NETWORK,
+    ADDRESS_PRIVATE_KEY_GENERATOR,
+    ADDRESS_PRIVATE_KEY_GENERATOR_SUPPORTS_RANGE,
     ADDRESS_TYPE,
-    WORKER_PRIVATE_KEY_GENERATOR,
-    WORKER_PRIVATE_KEY_GENERATOR_SUPPORTS_RANGE,
 } from "@app/db/schema/address"
 import {
     getAddressPrefix,
@@ -31,7 +31,7 @@ const addAddressFormSchema = z
         network: z.enum(ADDRESS_NETWORK),
         value: z.string().min(1, "Address value is required."),
         bypassChecksum: z.boolean().optional(),
-        privateKeyGenerator: z.enum(WORKER_PRIVATE_KEY_GENERATOR),
+        privateKeyGenerator: z.enum(ADDRESS_PRIVATE_KEY_GENERATOR),
         privateKeyRangeStart: z
             .string()
             .regex(/^[0-9a-fA-F]*$/, "Must be a hex value")
@@ -67,7 +67,7 @@ export default function AddAddressForm({ trigger, onSubmit, onSuccess }: AddAddr
             name: "",
             description: "",
             value: "",
-            privateKeyGenerator: WORKER_PRIVATE_KEY_GENERATOR.RandBytes,
+            privateKeyGenerator: ADDRESS_PRIVATE_KEY_GENERATOR.RandBytes,
             privateKeyRangeStart: "",
             privateKeyRangeEnd: "",
         },
@@ -95,14 +95,14 @@ export default function AddAddressForm({ trigger, onSubmit, onSuccess }: AddAddr
     // If a range is entered and the current generator doesn't support ranges, switch to PCG64
     useEffect(() => {
         const hasRange = privateKeyRangeStart || privateKeyRangeEnd
-        if (hasRange && !WORKER_PRIVATE_KEY_GENERATOR_SUPPORTS_RANGE[privateKeyGenerator]) {
-            form.setValue("privateKeyGenerator", WORKER_PRIVATE_KEY_GENERATOR.PCG64)
+        if (hasRange && !ADDRESS_PRIVATE_KEY_GENERATOR_SUPPORTS_RANGE[privateKeyGenerator]) {
+            form.setValue("privateKeyGenerator", ADDRESS_PRIVATE_KEY_GENERATOR.PCG64)
         }
     }, [privateKeyRangeStart, privateKeyRangeEnd, privateKeyGenerator, form])
 
     // If the generator switches to one that doesn't support ranges, clear range fields
     useEffect(() => {
-        if (!WORKER_PRIVATE_KEY_GENERATOR_SUPPORTS_RANGE[privateKeyGenerator]) {
+        if (!ADDRESS_PRIVATE_KEY_GENERATOR_SUPPORTS_RANGE[privateKeyGenerator]) {
             form.setValue("privateKeyRangeStart", "")
             form.setValue("privateKeyRangeEnd", "")
         }
@@ -292,13 +292,13 @@ export default function AddAddressForm({ trigger, onSubmit, onSuccess }: AddAddr
                                 </SelectTrigger>
                                 <SelectContent>
                                     <SelectGroup>
-                                        {Object.values(WORKER_PRIVATE_KEY_GENERATOR).map(generator => (
+                                        {Object.values(ADDRESS_PRIVATE_KEY_GENERATOR).map(generator => (
                                             <SelectItem
                                                 key={generator}
                                                 value={generator}
                                                 disabled={
                                                     !!hasRange &&
-                                                    !WORKER_PRIVATE_KEY_GENERATOR_SUPPORTS_RANGE[generator]
+                                                    !ADDRESS_PRIVATE_KEY_GENERATOR_SUPPORTS_RANGE[generator]
                                                 }
                                             >
                                                 {getPrivateKeyGeneratorLabel(generator)}
@@ -323,7 +323,7 @@ export default function AddAddressForm({ trigger, onSubmit, onSuccess }: AddAddr
                                 aria-invalid={fieldState.invalid}
                                 id={field.name}
                                 placeholder="400000..."
-                                disabled={!WORKER_PRIVATE_KEY_GENERATOR_SUPPORTS_RANGE[privateKeyGenerator]}
+                                disabled={!ADDRESS_PRIVATE_KEY_GENERATOR_SUPPORTS_RANGE[privateKeyGenerator]}
                                 {...field}
                             />
                             {fieldState.invalid && <FieldError errors={[fieldState.error!]} />}
@@ -342,7 +342,7 @@ export default function AddAddressForm({ trigger, onSubmit, onSuccess }: AddAddr
                                 aria-invalid={fieldState.invalid}
                                 id={field.name}
                                 placeholder="7fffff..."
-                                disabled={!WORKER_PRIVATE_KEY_GENERATOR_SUPPORTS_RANGE[privateKeyGenerator]}
+                                disabled={!ADDRESS_PRIVATE_KEY_GENERATOR_SUPPORTS_RANGE[privateKeyGenerator]}
                                 {...field}
                             />
                             {fieldState.invalid && <FieldError errors={[fieldState.error!]} />}

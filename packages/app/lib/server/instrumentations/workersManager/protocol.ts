@@ -1,4 +1,4 @@
-import type { ADDRESS_NETWORK, ADDRESS_TYPE, WORKER_PRIVATE_KEY_GENERATOR } from "@app/db/schema/address"
+import type { ADDRESS_NETWORK, ADDRESS_PRIVATE_KEY_GENERATOR, ADDRESS_TYPE } from "@app/db/schema/address"
 import type { UserOptionsSelectModel } from "@app/db/schema/userOptions"
 
 /**
@@ -25,15 +25,6 @@ export enum WORKER_MESSAGE_TYPE {
     Report = "report",
     Match = "match",
     Error = "error",
-}
-
-/**
- * The status of a worker attached to an address list.
- */
-export enum WORKER_STATUS {
-    Idle = "idle",
-    Running = "running",
-    Failed = "failed",
 }
 
 /**
@@ -80,14 +71,10 @@ export type WorkerHeartbeatMessage = WorkerMessage & {
 }
 
 /**
- * The type for an address closest match attached to a report message.
+ * The type for closest matches attached to addresses inside a report message
+ * sent from the worker to the main process.
  */
-export type AddressClosestMatch = {
-    address: string
-    privateKey: string
-    totalAttempts: string
-    stopOnFirstMatch: boolean
-}
+export type AddressClosestMatches = { [addressId: string]: number[] }
 
 /**
  * The type for a report message sent from the worker to the main process,
@@ -96,6 +83,7 @@ export type AddressClosestMatch = {
 export type WorkerReportMessage = WorkerMessage & {
     type: WORKER_MESSAGE_TYPE.Report
     attempts: string
+    closestMatches: AddressClosestMatches
 }
 
 /**
@@ -144,7 +132,7 @@ export type AddressDump = {
     type: ADDRESS_TYPE
     value: string
     preEncoding: string | null
-    privateKeyGenerator: WORKER_PRIVATE_KEY_GENERATOR
+    privateKeyGenerator: ADDRESS_PRIVATE_KEY_GENERATOR
     privateKeyRangeStart: string | null
     privateKeyRangeEnd: string | null
     addressListId: string
@@ -152,6 +140,9 @@ export type AddressDump = {
 
 /**
  * A local representation of a match found by the worker (local save).
+ *
+ * Note: Not synced with the worker's `protocol.hpp` file, as it's only used for
+ * local saves and not for communication between the worker and the main process.
  */
 export type AddressMatch = {
     addressListId: string

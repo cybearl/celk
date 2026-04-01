@@ -1,8 +1,8 @@
 import scAddress, {
     ADDRESS_NETWORK,
+    ADDRESS_PRIVATE_KEY_GENERATOR,
+    ADDRESS_PRIVATE_KEY_GENERATOR_SUPPORTS_RANGE,
     ADDRESS_TYPE,
-    WORKER_PRIVATE_KEY_GENERATOR,
-    WORKER_PRIVATE_KEY_GENERATOR_SUPPORTS_RANGE,
 } from "@app/db/schema/address"
 import scAddressList from "@app/db/schema/addressList"
 import scPvtAddressListMember from "@app/db/schema/addressListMember"
@@ -101,8 +101,8 @@ export const addressesRouter = router({
                 value: z.string().min(1),
                 bypassChecksum: z.boolean().optional(),
                 privateKeyGenerator: z
-                    .enum(WORKER_PRIVATE_KEY_GENERATOR)
-                    .default(WORKER_PRIVATE_KEY_GENERATOR.RandBytes),
+                    .enum(ADDRESS_PRIVATE_KEY_GENERATOR)
+                    .default(ADDRESS_PRIVATE_KEY_GENERATOR.RandBytes),
                 privateKeyRangeStart: z
                     .string()
                     .regex(/^[0-9a-fA-F]+$/)
@@ -147,7 +147,7 @@ export const addressesRouter = router({
             }
 
             const hasRange = input.privateKeyRangeStart || input.privateKeyRangeEnd
-            if (hasRange && !WORKER_PRIVATE_KEY_GENERATOR_SUPPORTS_RANGE[input.privateKeyGenerator]) {
+            if (hasRange && !ADDRESS_PRIVATE_KEY_GENERATOR_SUPPORTS_RANGE[input.privateKeyGenerator]) {
                 throw new TRPCError({
                     code: "BAD_REQUEST",
                     message: "Selected generator does not support private key ranges.",

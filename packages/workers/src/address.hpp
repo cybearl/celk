@@ -41,3 +41,17 @@ NLOHMANN_JSON_SERIALIZE_ENUM(AddressNetwork,
         { AddressNetwork::Ethereum, "ethereum" },
         { AddressNetwork::Polygon, "polygon" },
     })
+
+/**
+ * @brief The different private key generators available for an address.
+ */
+enum class AddressPrivateKeyGenerator {
+    RandBytes,
+    PCG64,
+    Sequential,
+};
+
+NLOHMANN_JSON_SERIALIZE_ENUM(AddressPrivateKeyGenerator,
+    { { AddressPrivateKeyGenerator::RandBytes, "rand-bytes" },
+        { AddressPrivateKeyGenerator::PCG64, "pcg64" },
+        { AddressPrivateKeyGenerator::Sequential, "sequential" } })

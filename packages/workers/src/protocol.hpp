@@ -39,21 +39,6 @@ NLOHMANN_JSON_SERIALIZE_ENUM(WorkerMessageType,
         { WorkerMessageType::Error, "error" } })
 
 /**
- * @brief The different private key generators available for workers to use
- * when generating private keys to check against the target addresses.
- */
-enum class WorkerPrivateKeyGenerator {
-    RandBytes,
-    PCG64,
-    Sequential,
-};
-
-NLOHMANN_JSON_SERIALIZE_ENUM(WorkerPrivateKeyGenerator,
-    { { WorkerPrivateKeyGenerator::RandBytes, "randBytes" },
-        { WorkerPrivateKeyGenerator::PCG64, "pcg64" },
-        { WorkerPrivateKeyGenerator::Sequential, "sequential" } })
-
-/**
  * The base struct for all messages sent between the main process and the worker.
  */
 struct WorkerMessage {
@@ -106,14 +91,21 @@ struct WorkerHeartbeatMessage : WorkerMessage { };
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(WorkerHeartbeatMessage, type, addressListId)
 
 /**
+ * @brief The struct for closest matches attached to addresses inside a report message,
+ * sent from the worker to the main process.
+ */
+using AddressClosestMatches = std::unordered_map<std::string, std::vector<uint8_t>>;
+
+/**
  * @brief The struct for a report message sent from the worker to the main process,
  * with the number of attempts being from the last report message sent.
  */
 struct WorkerReportMessage : WorkerMessage {
     std::string attempts;
+    AddressClosestMatches closestMatches;
 };
 
-NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(WorkerReportMessage, type, addressListId, attempts)
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(WorkerReportMessage, type, addressListId, attempts, closestMatches)
 
 /**
  * @brief The struct for a match message sent from the worker to the main process.
@@ -163,7 +155,7 @@ struct AddressDump {
     AddressType type;
     std::string value;
     std::optional<std::string> preEncoding;
-    WorkerPrivateKeyGenerator privateKeyGenerator;
+    AddressPrivateKeyGenerator privateKeyGenerator;
     std::optional<std::string> privateKeyRangeStart;
     std::optional<std::string> privateKeyRangeEnd;
     std::string addressListId;
