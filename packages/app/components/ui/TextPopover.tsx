@@ -1,12 +1,12 @@
 import { Popover, PopoverContent, PopoverTrigger } from "@app/components/ui/Popover"
 import type { ReactNode } from "react"
 
-type TruncatedDescriptionProps = {
+type TextPopoverProps = {
     children?: ReactNode
     customContent?: ReactNode
 }
 
-export default function TruncatedDescription({ children, customContent }: TruncatedDescriptionProps) {
+export default function TextPopover({ children, customContent }: TextPopoverProps) {
     if (!children) return <span className="text-muted-foreground">N/A</span>
 
     return (
