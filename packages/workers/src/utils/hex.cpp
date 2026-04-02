@@ -23,3 +23,17 @@ std::vector<uint8_t> hexStringToVector(const std::string& hexString) {
         return result;
     }
 }
+
+std::string vectorToHexString(const std::vector<uint8_t>& byteArray) {
+    static const char* HEX = "0123456789abcdef";
+
+    std::string hexString;
+    hexString.reserve(byteArray.size() * 2);
+
+    for (uint8_t byte : byteArray) {
+        hexString.push_back(HEX[byte >> 4]);
+        hexString.push_back(HEX[byte & 0x0F]);
+    }
+
+    return hexString;
+}

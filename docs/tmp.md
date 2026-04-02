@@ -166,24 +166,32 @@ at roughly 1/N of the normal scan rate."
 
 ```cpp
 struct TargetAddress {
-    std::string id;                  // AddressDump.id — key in closestMatches map
-    AddressType type;                // determines which deriver to use
-    std::vector<uint8_t> rawBytes;   // pre-decoded comparison bytes (preEncoding, or hex value for ETH)
-    std::string value;               // original address string, copied for match reporting
+    std::string id;                          // AddressDump.id — key in closestMatches map
+    AddressType type;                        // determines which deriver to use
+    std::vector<uint8_t> rawBytes;           // pre-decoded comparison bytes (preEncoding, or hex value for ETH)
+    std::string value;                       // original address string, copied for match reporting
+    PrivateKeyGeneratorType generator;       // which generator this address belongs to
 };
 
 struct GeneratorGroup {
+    PrivateKeyGeneratorType selectedGenerator;        // filters which AddressDumps belong to this group
     std::unique_ptr<IPrivateKeyGenerator> generator;
-    std::vector<TargetAddress*> targets;   // pointers into the engine's flat TargetAddress list
+    std::vector<TargetAddress*> targets;              // pointers into the engine's flat TargetAddress list
+                                                      // only targets where target.generator == selectedGenerator
 };
 ```
 
 `TargetAddress` copies the fields it needs from `AddressDump` at construction time — no
 back-pointer. This avoids dangling-pointer risk if the `addressDumps` vector is ever reallocated.
 
+`selectedGenerator` in `GeneratorGroup` is the identity of the group: the constructor uses it
+to filter the flat `TargetAddress` list so each group's `targets` vector only contains entries
+whose `dump.privateKeyGenerator` matches.
+
 ### Constructor
 
-1. Pre-process each `AddressDump` → `TargetAddress` by hex-decoding the comparison bytes:
+1. Pre-process each `AddressDump` → `TargetAddress` by hex-decoding the comparison bytes
+   (also copy `dump.privateKeyGenerator` into `TargetAddress::generator`):
 
    | Address type | Source field       | Transform                        | `rawBytes` size |
    |--------------|--------------------|----------------------------------|-----------------|
@@ -196,7 +204,11 @@ back-pointer. This avoids dangling-pointer risk if the `addressDumps` vector is 
    All BTC types use `preEncoding` (the app stores pre-decoded bytes there at insertion time).
    Ethereum has no `preEncoding` — the checksummed hex address in `value` is the source.
 
-2. Group targets by `(privateKeyGenerator, rangeStart, rangeEnd)` → N `GeneratorGroup`s
+2. Collect the distinct `privateKeyGenerator` values across all `AddressDump` entries.
+   For each distinct value, create one `GeneratorGroup` with `selectedGenerator` set to that value,
+   instantiate the matching `IPrivateKeyGenerator` using `(rangeStart, rangeEnd)` from the first
+   dump in that group, then populate `targets` by filtering the flat `TargetAddress` list to entries
+   where `target.generator == selectedGenerator`.
 3. Instantiate one deriver per unique `AddressType` across all groups (shared)
 4. Allocate one `uint8_t derivedBuf[32]` (reused every iteration, never heap-allocated in loop)
 

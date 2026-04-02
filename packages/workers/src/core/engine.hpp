@@ -2,6 +2,7 @@
 
 #include "address.hpp"
 #include "core/generators/interface.hpp"
+#include <address.hpp>
 #include <memory>
 #include <string>
 #include <vector>
@@ -22,6 +23,7 @@ struct TargetAddress {
  * by the same private key generator.
  */
 struct GeneratorGroup {
+    AddressPrivateKeyGenerator selectedGenerator;
     std::unique_ptr<IPrivateKeyGenerator> generator;
     std::vector<TargetAddress*> targetAddresses;
 };
