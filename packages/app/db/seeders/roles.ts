@@ -18,7 +18,7 @@ export enum SEEDED_USER_ROLE_SLUGS {
 }
 
 /**
- * Seed the roles into the database.
+ * Seeds the roles into the database.
  */
 export default async function seedRoles() {
     await db

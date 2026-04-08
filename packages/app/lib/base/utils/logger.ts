@@ -35,7 +35,7 @@ export type LoggerInstance = {
 }
 
 /**
- * Create a logger instance with an optional default prefix, indicators are
+ * Creates a logger instance with an optional default prefix, indicators are
  * automatically hidden in browser environments (no ANSI support).
  * @param defaultPrefix An optional prefix prepended to all messages as `[prefix]`.
  */

@@ -8,7 +8,7 @@ import { db } from "@app/lib/server/connectors/db"
 import { and, asc, eq, inArray, sql } from "drizzle-orm"
 
 /**
- * Retrieve the dynamic application config from the database (single row table).
+ * Retrieves the dynamic application config from the database (single row table).
  * @returns The application config object or null if not found.
  */
 export async function dbGetDynamicConfig() {
@@ -17,7 +17,7 @@ export async function dbGetDynamicConfig() {
 }
 
 /**
- * Retrieve all address lists that are enabled from the database.
+ * Retrieves all address lists that are enabled from the database.
  * @returns An array of enabled address lists.
  */
 export async function dbGetEnabledAddressLists() {
@@ -31,7 +31,7 @@ export async function dbGetEnabledAddressLists() {
 }
 
 /**
- * Retrieve all addresses from a specific address list.
+ * Retrieves all addresses from a specific address list.
  * @param addressListId The ID of the address list to retrieve addresses from.
  * @param includeDisabled Whether to include disabled addresses in the results (optional, defaults to false).
  * @returns An array of addresses from the specified address list.
@@ -99,7 +99,7 @@ export async function dbIncrementAttemptCounts(attempts: string, addressListId: 
 }
 
 /**
- * Retrieve the address list along with the user who created it.
+ * Retrieves the address list along with the user who created it.
  * @param addressListId The ID of the address list to retrieve.
  * @returns The address list and user information, or null if not found.
  */
@@ -135,7 +135,7 @@ export async function dbSaveWorkerMatchToDb(addressListId: string, address: stri
 }
 
 /**
- * Disable an address list in the database.
+ * Disables an address list in the database.
  * @param addressListId The ID of the address list to disable.
  */
 export async function dbDisableAddressList(addressListId: string) {
@@ -143,7 +143,7 @@ export async function dbDisableAddressList(addressListId: string) {
 }
 
 /**
- * Retrieve user options for a set of user IDs, returned as a map keyed by userId.
+ * Retrieves user options for a set of user IDs, returned as a map keyed by userId.
  * Users with no options row are omitted from the map.
  * @param userIds The user IDs to look up.
  * @returns A map of userId -> user options row.

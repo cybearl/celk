@@ -2,7 +2,7 @@ import { trpcClient } from "@app/lib/client/connectors/trpcClient"
 import { mutate } from "swr"
 
 /**
- * Retrieve all addresses for the current user by sending a query request to the tRPC API.
+ * Retrieves all addresses for the current user by sending a query request to the tRPC API.
  * @returns An array of address records returned from the API.
  */
 export async function getAddresses() {
@@ -10,7 +10,7 @@ export async function getAddresses() {
 }
 
 /**
- * Retrieve only the balances for each address belonging to the current user,
+ * Retrieves only the balances for each address belonging to the current user,
  * also fetches the last checked date for each balance for display purposes,
  * by sending a query request to the tRPC API.
  * @returns An array of objects containing each address ID, its current balance
@@ -21,7 +21,7 @@ export async function getAddressBalances() {
 }
 
 /**
- * Retrieve only the attempt counts for each address by sending a query request to the tRPC API.
+ * Retrieves only the attempt counts for each address by sending a query request to the tRPC API.
  * @returns An array of objects containing each address ID and its current attempts count.
  */
 export async function getAddressAttempts() {
@@ -29,7 +29,7 @@ export async function getAddressAttempts() {
 }
 
 /**
- * Retrieve all addresses for a specific address list by sending a query request to the tRPC API.
+ * Retrieves all addresses for a specific address list by sending a query request to the tRPC API.
  * @param listId The ID of the address list to retrieve addresses from.
  * @returns An array of address records returned from the API.
  */
@@ -38,7 +38,7 @@ export async function getAddressesByListId(listId: string) {
 }
 
 /**
- * Create a new address by sending a mutation request to the tRPC API.
+ * Creates a new address by sending a mutation request to the tRPC API.
  * @param data The data for the new address.
  * @returns The created address returned from the API.
  */
@@ -49,7 +49,7 @@ export async function createAddress(data: Parameters<typeof trpcClient.addresses
 }
 
 /**
- * Retrieve an address by its ID by sending a query request to the tRPC API.
+ * Retrieves an address by its ID by sending a query request to the tRPC API.
  * @param id The ID of the address to retrieve.
  * @returns The address returned from the API, or null if not found.
  */
@@ -58,7 +58,7 @@ export async function getAddressById(id: string) {
 }
 
 /**
- * Update the `isDisabled` flag for an address by sending a mutation request to the tRPC API.
+ * Updates the `isDisabled` flag for an address by sending a mutation request to the tRPC API.
  * @param id The ID of the address to update.
  * @param isDisabled The new value for the `isDisabled` flag.
  * @returns The updated address returned from the API.
@@ -68,7 +68,7 @@ export async function updateAddressIsDisabled(id: string, isDisabled: boolean) {
 }
 
 /**
- * Delete an address by its ID by sending a mutation request to the tRPC API.
+ * Deletes an address by its ID by sending a mutation request to the tRPC API.
  * @param id The ID of the address to delete.
  */
 export async function deleteAddressById(id: string) {

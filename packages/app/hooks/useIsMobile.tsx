@@ -6,7 +6,7 @@ import { useEffect, useState } from "react"
 const MOBILE_BREAKPOINT = 768
 
 /**
- * A custom React hook that determines if the current device is a mobile device based on the window width.
+ * A hook that determines if the current device is a mobile device based on the window width.
  * @returns A boolean indicating if the device is mobile.
  */
 export function useIsMobile() {

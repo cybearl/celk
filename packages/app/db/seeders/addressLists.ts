@@ -5,7 +5,7 @@ import { db } from "@app/lib/server/connectors/db"
 import dedent from "dedent"
 
 /**
- * Seed base address lists into the database.
+ * Seeds base address lists into the database.
  */
 export default async function seedAddressLists() {
     if (!PRIVATE_ENV.defaultAdmin.username) {

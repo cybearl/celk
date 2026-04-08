@@ -5,7 +5,6 @@
  * Returns a tuple `[coefficient, exponent]` so callers can render the
  * exponent as a superscript if desired (e.g., `["4.61", 18]` for a value
  * around 4.61 × 10^18).
- *
  * @param value The bigint to format.
  * @param precision Number of decimal digits in the coefficient (default 2).
  */
@@ -28,6 +27,8 @@ export function bigintToScientific(value: bigint, precision = 2): [coefficient: 
  * Converts a bigint to a `en-US` formatted string with metric prefixes (e.g., 1,500 -> 1.5k).
  *
  * Note: This method supports any length of number up to exa.
+ * @param value The bigint to format.
+ * @returns The formatted string representation of the bigint with metric prefixes.
  */
 export function bigintToMetricFormatted(value: bigint): string {
     const isNegative = value < 0n

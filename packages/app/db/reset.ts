@@ -10,7 +10,7 @@ config({ path: "../.env" })
 if (!process.env.DATABASE_URL) throw new Error("Missing required environment variable: DATABASE_URL")
 
 /**
- * Drop and recreate the public schema, wiping all tables, enums, and constraints.
+ * Drops and recreates the public schema, wiping all tables, enums, and constraints.
  */
 async function main() {
     const readline = createInterface({ input: process.stdin, output: process.stdout })

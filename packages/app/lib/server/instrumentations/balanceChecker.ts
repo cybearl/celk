@@ -35,7 +35,7 @@ class BalanceChecker {
     }
 
     /**
-     * Clear the timeout for the check operation.
+     * Clears the timeout for the check operation.
      */
     private _clearTimeout(): void {
         if (this._checkTimeout) clearTimeout(this._checkTimeout)
@@ -43,7 +43,7 @@ class BalanceChecker {
     }
 
     /**
-     * Retrieve all required data in parallel during fetching.
+     * Retrieves all required data in parallel during fetching.
      */
     private async _fetchRequiredData(): Promise<void> {
         const [dynamicConfig] = await Promise.all([dbGetDynamicConfig()])
@@ -51,7 +51,7 @@ class BalanceChecker {
     }
 
     /**
-     * Fetch the address with oldest `balanceCheckedAt` date if all addresses have one,
+     * Fetches the address with oldest `balanceCheckedAt` date if all addresses have one,
      * otherwise, fetches the first address with a `null` `balanceCheckedAt`.
      * @returns The next address to check or null if none is found.
      */
@@ -77,7 +77,7 @@ class BalanceChecker {
     }
 
     /**
-     * Fetch the balance of an address depending on its network.
+     * Fetches the balance of an address depending on its network.
      * @param address The address to fetch the balance for.
      * @returns The balance of the address as a numeric, or null if an error
      * occurs or if the network is unsupported.
@@ -103,7 +103,7 @@ class BalanceChecker {
     }
 
     /**
-     * Fetch the user options for the user owning a specific address.
+     * Fetches the user options for the user owning a specific address.
      * @param address The address to fetch user options for.
      * @returns The user options for the specified address or null if not found.
      */
@@ -118,7 +118,7 @@ class BalanceChecker {
     }
 
     /**
-     * Update the balance of an address in the database.
+     * Updates the balance of an address in the database.
      * @param address The address to update.
      * @param balance The balance to update in the database (as a numeric).
      * @param disableAddress Whether to disable the address too.
@@ -144,7 +144,7 @@ class BalanceChecker {
     }
 
     /**
-     * Check the balance of an address depending on its last checked date or if it
+     * Checks the balance of an address depending on its last checked date or if it
      * has not been checked before.
      */
     private async _check(): Promise<void> {

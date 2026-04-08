@@ -1,7 +1,7 @@
 import { type RefObject, useEffect } from "react"
 
 /**
- * Hook that triggers a callback when a click is detected outside the referenced element.
+ * A hook that triggers a callback when a click is detected outside the referenced element.
  * @param ref The ref of the element to detect outside clicks for.
  * @param callback The callback to trigger on outside click.
  */

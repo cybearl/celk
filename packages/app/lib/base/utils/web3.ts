@@ -1,7 +1,7 @@
 import { ADDRESS_NETWORK, type AddressSelectModel } from "@app/db/schema/address"
 
 /**
- * Convert a numeric representing an Eth-based value in `GWei` to a human-readable format in `ether`.
+ * Converts a numeric representing an Eth-based value in `GWei` to a human-readable format in `ether`.
  * @param gWeiValue The GWei value to convert (as a numeric).
  * @param decimalPlaces The number of decimal places to include in the formatted output (optional, defaults to 2).
  * @returns The converted ether value as a string.
@@ -15,7 +15,7 @@ export function formatGWeiToEther(gWeiValue: string, decimalPlaces = 2): string 
 }
 
 /**
- * Convert a numeric representing a Bitcoin-based value in `satoshis` to a human-readable format in `bitcoin`.
+ * Converts a numeric representing a Bitcoin-based value in `satoshis` to a human-readable format in `bitcoin`.
  * @param satoshiValue The satoshi value to convert (as a numeric).
  * @param decimalPlaces The number of decimal places to include in the formatted output (optional, defaults to 2).
  * @returns The converted bitcoin value as a string.
@@ -29,7 +29,7 @@ export function formatSatoshisToBitcoin(satoshiValue: string, decimalPlaces = 2)
 }
 
 /**
- * Get the raw unit of the balance of an address based on its network (GWei/satoshis).
+ * Gets the raw unit of the balance of an address based on its network (GWei/satoshis).
  * @param address The address to get the balance unit for.
  * @returns The raw unit of the balance as a string.
  */
@@ -47,7 +47,7 @@ export function getRawAddressBalanceUnit(address: AddressSelectModel): string {
 }
 
 /**
- * Get the unit of the balance of an address based on its network.
+ * Gets the unit of the balance of an address based on its network.
  * @param address The address to get the balance unit for.
  * @returns The unit of the balance as a string.
  */

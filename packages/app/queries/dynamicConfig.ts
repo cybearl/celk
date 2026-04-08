@@ -2,7 +2,7 @@ import { trpcClient } from "@app/lib/client/connectors/trpcClient"
 import { mutate } from "swr"
 
 /**
- * Retrieve the application dynamic application config by sending a query request to the tRPC API.
+ * Retrieves the application dynamic application config by sending a query request to the tRPC API.
  * @returns The config object returned from the API.
  */
 export async function getDynamicConfig() {
@@ -10,7 +10,7 @@ export async function getDynamicConfig() {
 }
 
 /**
- * Retrieve only the global attempt counts from the config by sending a query request to the tRPC API.
+ * Retrieves only the global attempt counts from the config by sending a query request to the tRPC API.
  * @returns An object containing the current attempts count.
  */
 export async function getDynamicConfigAttempts() {

@@ -3,7 +3,7 @@ import { getAddressById, getAddresses, getAddressesByListId } from "@app/queries
 import useSWR from "swr"
 
 /**
- * Retrieve all addresses for the current user by sending a query request to the tRPC API.
+ * Retrieves all addresses for the current user by sending a query request to the tRPC API.
  * @param initialData Initial data to use before the first fetch completes (e.g., from SSR).
  * @returns An array of address objects returned from the API, or null if not found.
  */
@@ -13,7 +13,7 @@ export function useAddresses(initialData?: AddressSelectModel[] | null) {
 }
 
 /**
- * Retrieve all addresses for a specific address list by sending a query request to the tRPC API.
+ * Retrieves all addresses for a specific address list by sending a query request to the tRPC API.
  * @param listId The ID of the address list to retrieve addresses from.
  * @returns An array of address objects returned from the API.
  */
@@ -24,7 +24,7 @@ export function useAddressesByListId(listId?: string, initialData?: AddressSelec
 }
 
 /**
- * Retrieve an address by its ID by sending a query request to the tRPC API.
+ * Retrieves an address by its ID by sending a query request to the tRPC API.
  * @param id The ID of the address to retrieve.
  * @param initialData Initial data to use before the first fetch completes (e.g., from SSR).
  * @returns The address object returned from the API, or null if not found.

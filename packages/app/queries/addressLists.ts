@@ -2,7 +2,7 @@ import { trpcClient } from "@app/lib/client/connectors/trpcClient"
 import { mutate } from "swr"
 
 /**
- * Retrieve all address lists for the current user by sending a query request to the tRPC API.
+ * Retrieves all address lists for the current user by sending a query request to the tRPC API.
  * @returns An array of address list objects returned from the API.
  */
 export async function getAddressLists() {
@@ -10,7 +10,7 @@ export async function getAddressLists() {
 }
 
 /**
- * Retrieve only the attempt counts for each address list by sending a query request to the tRPC API.
+ * Retrieves only the attempt counts for each address list by sending a query request to the tRPC API.
  * @returns An array of objects containing each address list ID and its current attempts count.
  */
 export async function getAddressListAttempts() {
@@ -18,7 +18,7 @@ export async function getAddressListAttempts() {
 }
 
 /**
- * Retrieve all currently enabled address lists for the current user by sending a query
+ * Retrieves all currently enabled address lists for the current user by sending a query
  * request to the tRPC API.
  * @returns An array of enabled address list objects returned from the API.
  */
@@ -27,7 +27,7 @@ export async function getEnabledAddressLists() {
 }
 
 /**
- * Create a new address list by sending a mutation request to the tRPC API.
+ * Creates a new address list by sending a mutation request to the tRPC API.
  * @param data The data for the new address list, including its name and initial address IDs.
  * @returns The created address list object returned from the API.
  */
@@ -38,7 +38,7 @@ export async function createAddressList(data: Parameters<typeof trpcClient.addre
 }
 
 /**
- * Retrieve an address list by its ID by sending a query request to the tRPC API.
+ * Retrieves an address list by its ID by sending a query request to the tRPC API.
  * @param id The ID of the address list to retrieve.
  * @returns The address list object (including its member address IDs) returned from the API.
  */
@@ -47,7 +47,7 @@ export async function getAddressListById(id: string) {
 }
 
 /**
- * Delete an address list by its ID by sending a mutation request to the tRPC API.
+ * Deletes an address list by its ID by sending a mutation request to the tRPC API.
  * @param id The ID of the address list to delete.
  */
 export async function deleteAddressListById(id: string) {
@@ -56,7 +56,7 @@ export async function deleteAddressListById(id: string) {
 }
 
 /**
- * Add an address to an address list by sending a mutation request to the tRPC API.
+ * Adds an address to an address list by sending a mutation request to the tRPC API.
  * @param id The ID of the address list.
  * @param addressId The ID of the address to add.
  * @returns The created membership record returned from the API.
@@ -68,7 +68,7 @@ export async function addAddressToList(id: string, addressId: string) {
 }
 
 /**
- * Remove an address from an address list by sending a mutation request to the tRPC API.
+ * Removes an address from an address list by sending a mutation request to the tRPC API.
  * @param id The ID of the address list.
  * @param addressId The ID of the address to remove.
  */
@@ -78,7 +78,7 @@ export async function removeAddressFromList(id: string, addressId: string) {
 }
 
 /**
- * Update the `stopOnFirstMatch` flag for an address list by sending a mutation request to the tRPC API.
+ * Updates the `stopOnFirstMatch` flag for an address list by sending a mutation request to the tRPC API.
  * @param id The ID of the address list to update.
  * @param stopOnFirstMatch The new value for the `stopOnFirstMatch` flag.
  * @returns The updated address list object returned from the API.
@@ -90,7 +90,7 @@ export async function updateAddressListStopOnFirstMatch(id: string, stopOnFirstM
 }
 
 /**
- * Enable an address list by sending a mutation request to the tRPC API.
+ * Enables an address list by sending a mutation request to the tRPC API.
  * @param id The ID of the address list to enable.
  * @returns The updated address list object returned from the API.
  */
@@ -101,7 +101,7 @@ export async function enableAddressList(id: string) {
 }
 
 /**
- * Disable an address list by sending a mutation request to the tRPC API.
+ * Disables an address list by sending a mutation request to the tRPC API.
  * @param id The ID of the address list to disable.
  * @returns The updated address list object returned from the API.
  */

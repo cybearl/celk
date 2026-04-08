@@ -2,8 +2,8 @@ import { useRouter } from "next/router"
 import { useCallback, useEffect, useState } from "react"
 
 /**
- * Triggers a `router.back()` followed by a `router.push("/")` if a `setTimeout` ends up triggering
- * because the `router.back()` did not work.
+ * A hook that triggers a `router.back()` followed by a `router.push("/")` if a
+ * `setTimeout` ends up triggering because the `router.back()` did not work.
  */
 export default function useGoBack() {
     const router = useRouter()

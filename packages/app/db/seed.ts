@@ -13,7 +13,7 @@ config({ path: "../.env" })
 const validEnvs: string[] = ["development", "production", "test"]
 
 /**
- * Seed the database with initial data.
+ * Seeds the database with initial data.
  */
 async function main() {
     if (!process.env.NODE_ENV || !validEnvs.includes(process.env.NODE_ENV)) {

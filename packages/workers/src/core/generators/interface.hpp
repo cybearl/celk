@@ -20,5 +20,8 @@ struct IPrivateKeyGenerator {
      */
     virtual AddressPrivateKeyGenerator getType() const = 0;
 
+    /**
+     * @brief Virtual destructor to ensure proper cleanup of derived classes.
+     */
     virtual ~IPrivateKeyGenerator() = default;
 };

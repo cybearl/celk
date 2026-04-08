@@ -2,7 +2,7 @@ import { ENV_RUNTIME_VALUES, REQUIRED_ENV_VARS } from "@app/config/env"
 import { logger } from "@app/lib/base/utils/logger"
 
 /**
- * Check for required environment variables and throws if any are missing.
+ * Checks for required environment variables and throws if any are missing.
  *
  * Notes:
  * - Does **not** throw if `NODE_ENV` is set to "production", that prevents a complete crash of the application.
@@ -45,7 +45,9 @@ export function checkEnvironmentVariables() {
 
         if (privateVarsInPublic.length > 0) {
             if (process.env.NODE_ENV === "production") {
-                logger.error(`The following private environment variables are set but should not be exposed: ${privateVarsInPublic.join(", ")}`)
+                logger.error(
+                    `The following private environment variables are set but should not be exposed: ${privateVarsInPublic.join(", ")}`,
+                )
             } else {
                 throw new Error(
                     `The following private environment variables are set but should not be exposed: ${privateVarsInPublic.join(", ")}`,

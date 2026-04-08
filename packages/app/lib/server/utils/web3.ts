@@ -4,7 +4,7 @@ import type { LoggerInstance } from "@app/lib/base/utils/logger"
 import { jsonRpcProviders } from "@app/lib/server/connectors/web3"
 
 /**
- * Fetch the balance **in GWei** of any Ethereum-compatible address based on its network.
+ * Fetches the balance **in GWei** of any Ethereum-compatible address based on its network.
  * @param address The address to fetch the balance for.
  * @param logger The Web3-related logger.
  * @returns The balance (as a numeric) of the address or null if the call fails
@@ -30,7 +30,7 @@ export async function getEthCompatibleAddressBalance(address: AddressSelectModel
 }
 
 /**
- * Fetch the balance **in satoshis** of a Bitcoin address via Mempool.space.
+ * Fetches the balance **in satoshis** of a Bitcoin address via Mempool.space.
  * @param address The Bitcoin address to fetch the balance for.
  * @param logger The Web3-related logger.
  * @returns The balance (as a numeric) of the address or null if the fetch fails.

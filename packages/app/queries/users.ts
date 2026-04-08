@@ -13,7 +13,7 @@ export async function updateUserInfo(data: Parameters<typeof trpcClient.users.up
 }
 
 /**
- * Retrieve the current user's options by sending a query request to the tRPC API.
+ * Retrieves the current user's options by sending a query request to the tRPC API.
  * @returns The user options object, or null if not yet created.
  */
 export async function getUserOptions() {
@@ -32,7 +32,7 @@ export async function updateUserOptions(data: Parameters<typeof trpcClient.users
 }
 
 /**
- * Delete the current user's account by sending a mutation request to the tRPC API.
+ * Deletes the current user's account by sending a mutation request to the tRPC API.
  */
 export async function deleteUserAccount() {
     await trpcClient.users.deleteAccount.mutate()

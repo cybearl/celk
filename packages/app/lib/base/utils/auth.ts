@@ -70,7 +70,7 @@ export async function normalizeSession({
 }
 
 /**
- * Normalize a username into a display username:
+ * Normalizes a username into a display username:
  * - `username` => `Username`.
  * - `displayUsername` => `Display Username`.
  * - `user-name` => `User Name`.

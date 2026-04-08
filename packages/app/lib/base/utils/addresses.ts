@@ -13,7 +13,7 @@ import { base58, bech32, bech32m, createBase58check } from "@scure/base"
 const base58check = createBase58check(sha256)
 
 /**
- * Get a formatted version of the network of an address for display purposes.
+ * Gets a formatted version of the network of an address for display purposes.
  * @param network The network of the address.
  * @returns A formatted version of the network of the address.
  */
@@ -31,7 +31,7 @@ export function getFormattedAddressNetwork(network: ADDRESS_NETWORK) {
 }
 
 /**
- * Get a formatted version of the type of an address for display purposes.
+ * Gets a formatted version of the type of an address for display purposes.
  * @param type The type of the address.
  * @return A formatted version of the type of the address.
  */
@@ -53,7 +53,7 @@ export function getFormattedAddressType(type: ADDRESS_TYPE) {
 }
 
 /**
- * Get the compatible types for a given network.
+ * Gets the compatible types for a given network.
  * @param network The network to get the compatible types for.
  * @returns The compatible types as an array of `ADDRESS_TYPE`.
  */
@@ -70,7 +70,7 @@ export function getCompatibleAddressTypes(network: ADDRESS_NETWORK): ADDRESS_TYP
 }
 
 /**
- * Get the prefix of an address based on its value or type.
+ * Gets the prefix of an address based on its value or type.
  * @param address The address to get the prefix for (optional, required if `type` is not provided).
  * @param type The type of the address (optional, required if `address` is not provided).
  * @returns The prefix of the address or null if neither is provided / invalid.
@@ -101,7 +101,7 @@ export function getAddressPrefix({ address, type }: { address?: string; type?: A
 }
 
 /**
- * Get the type of an address depending on its prefix.
+ * Gets the type of an address depending on its prefix.
  * @param address The address to get the type for.
  * @returns The type of the address, or null if the format is unrecognized.
  */
@@ -115,7 +115,7 @@ export function getAddressType(address: string): ADDRESS_TYPE | null {
 }
 
 /**
- * Get the URL to the explorer for a given address on a given network.
+ * Gets the URL to the explorer for a given address on a given network.
  * @param address The address to get the explorer URL for.
  * @param network The network of the address.
  * @returns The URL to the explorer for the given address on the given network.
@@ -303,7 +303,7 @@ export function decodeBitcoinAddress(address: string): Uint8Array | null {
 }
 
 /**
- * Get the displayable label for a private key generator, based on its internal enum value.
+ * Gets the displayable label for a private key generator, based on its internal enum value.
  * @param generator The private key generator to get the label for.
  * @returns The displayable label for the private key generator.
  */

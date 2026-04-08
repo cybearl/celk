@@ -1,7 +1,7 @@
 import { bigintToMetricFormatted, bigintToScientific } from "@app/lib/base/utils/bigint"
 
 /**
- * Convert a hex string (without "0x" prefix) to a decimal string
+ * Converts a hex string (without "0x" prefix) to a decimal string
  * suitable for Postgres `numeric` columns.
  * @param hex The hex string to convert, without the "0x" prefix.
  * @returns The decimal string representation of the hex value,
@@ -12,7 +12,7 @@ export function hexToNumericString(hex: string): string {
 }
 
 /**
- * Convert a Postgres `numeric` decimal string to a hex string
+ * Converts a Postgres `numeric` decimal string to a hex string
  * with a "0x" prefix.
  * @param decimal The decimal string to convert, from a Postgres `numeric` column.
  * @returns The hex string representation of the decimal value, with a "0x" prefix.
@@ -32,7 +32,7 @@ export function numericStringToScientific(decimal: string, precision = 2): [coef
 }
 
 /**
- * Convert a numeric to a `en-US` formatted string.
+ * Converts a numeric to a `en-US` formatted string.
  * @param decimal The decimal string to convert, from a Postgres `numeric` column.
  * @returns The formatted string representation of the decimal value.
  */
@@ -41,7 +41,7 @@ export function numericStringToFormatted(decimal: string): string {
 }
 
 /**
- * Convert a numeric to a `en-US` formatted string with metric prefixes.
+ * Converts a numeric to a `en-US` formatted string with metric prefixes.
  * @param decimal The decimal string to convert, from a Postgres `numeric` column.
  * @returns The formatted string representation of the decimal value with metric prefixes.
  */

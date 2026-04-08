@@ -10,7 +10,7 @@ import z from "zod"
  */
 export const dynamicConfigRouter = router({
     /**
-     * Retrieve the dynamic application config row.
+     * Retrieves the dynamic application config row.
      * @returns The config object.
      */
     get: publicProcedure.query(async () => {
@@ -27,7 +27,7 @@ export const dynamicConfigRouter = router({
     }),
 
     /**
-     * Retrieve only the global attempt counts from the dynamic application config row.
+     * Retrieves only the global attempt counts from the dynamic application config row.
      * @returns An object containing the current attempts count.
      */
     getAttempts: publicProcedure.query(async () => {

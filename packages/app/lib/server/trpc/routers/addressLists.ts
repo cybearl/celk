@@ -13,7 +13,7 @@ import z from "zod"
  */
 export const addressListsRouter = router({
     /**
-     * Retrieve all address lists belonging to the current user.
+     * Retrieves all address lists belonging to the current user.
      * @param ctx The request context.
      * @returns An array of address list objects.
      */
@@ -26,7 +26,7 @@ export const addressListsRouter = router({
     }),
 
     /**
-     * Retrieve only the attempt counts for each address list belonging to the current user.
+     * Retrieves only the attempt counts for each address list belonging to the current user.
      * @param ctx The request context.
      * @returns An array of objects containing each address list ID and its current attempts count.
      */
@@ -38,7 +38,7 @@ export const addressListsRouter = router({
     }),
 
     /**
-     * Retrieve all currently enabled address lists belonging to the current user.
+     * Retrieves all currently enabled address lists belonging to the current user.
      * @param ctx The request context.
      * @returns An array of enabled address list objects.
      */
@@ -51,7 +51,7 @@ export const addressListsRouter = router({
     }),
 
     /**
-     * Create a new address list with an initial set of addresses for the current user.
+     * Creates a new address list with an initial set of addresses for the current user.
      * @param ctx The request context.
      * @param input The input object containing the address list details.
      * @returns The created address list object.
@@ -135,7 +135,7 @@ export const addressListsRouter = router({
         }),
 
     /**
-     * Retrieve an address list by its ID, including the IDs of all its member addresses.
+     * Retrieves an address list by its ID, including the IDs of all its member addresses.
      * @param ctx The request context.
      * @param input The input object containing the address list ID.
      * @returns The address list object with its member address IDs.
@@ -161,7 +161,7 @@ export const addressListsRouter = router({
     }),
 
     /**
-     * Delete an address list by its ID.
+     * Deletes an address list by its ID.
      * @param ctx The request context.
      * @param input The input object containing the address list ID.
      */
@@ -178,7 +178,7 @@ export const addressListsRouter = router({
     }),
 
     /**
-     * Add an address to an address list.
+     * Adds an address to an address list.
      * @param ctx The request context.
      * @param input The input object containing the address list ID and address ID.
      * @returns The created membership record.
@@ -239,7 +239,7 @@ export const addressListsRouter = router({
         }),
 
     /**
-     * Remove an address from an address list.
+     * Removes an address from an address list.
      * @param ctx The request context.
      * @param input The input object containing the address list ID and address ID.
      */
@@ -274,7 +274,7 @@ export const addressListsRouter = router({
         }),
 
     /**
-     * Update the `stopOnFirstMatch` flag for an address list.
+     * Updates the `stopOnFirstMatch` flag for an address list.
      * @param id The ID of the address list to update.
      * @param stopOnFirstMatch The new value for the `stopOnFirstMatch` flag.
      * @returns The updated address list object.
@@ -300,7 +300,7 @@ export const addressListsRouter = router({
         }),
 
     /**
-     * Enable an address list by taking the config's `maxRunningAddressListsPerUser` limitation into account.
+     * Enables an address list by taking the config's `maxRunningAddressListsPerUser` limitation into account.
      *
      * Note: Automatically disables the addresses with a balance of 0 if a user has the
      * `autoDisableZeroBalance` option enabled.
@@ -353,7 +353,7 @@ export const addressListsRouter = router({
     }),
 
     /**
-     * Disable an address list by its ID.
+     * Disables an address list by its ID.
      * @param ctx The request context.
      * @param input The input object containing the address list ID.
      * @returns The updated address list object.

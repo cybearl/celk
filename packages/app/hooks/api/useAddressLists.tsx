@@ -3,7 +3,7 @@ import { getAddressListById, getAddressLists, getEnabledAddressLists } from "@ap
 import useSWR from "swr"
 
 /**
- * Retrieve all address lists for the current user by sending a query request to the tRPC API.
+ * Retrieves all address lists for the current user by sending a query request to the tRPC API.
  * @param initialData Initial data to use before the first fetch completes (e.g., from SSR).
  * @returns An array of address list objects returned from the API, or null if not found.
  */
@@ -13,7 +13,7 @@ export function useAddressLists(initialData?: AddressListSelectModel[] | null) {
 }
 
 /**
- * Retrieve all currently enabled address lists for the current user by sending a query
+ * Retrieves all currently enabled address lists for the current user by sending a query
  * request to the tRPC API.
  * @param initialData Initial data to use before the first fetch completes (e.g., from SSR).
  * @returns An array of enabled address list objects returned from the API, or null if not found.
@@ -24,7 +24,7 @@ export function useEnabledAddressLists(initialData?: AddressListSelectModel[] | 
 }
 
 /**
- * Retrieve an address list by its ID by sending a query request to the tRPC API.
+ * Retrieves an address list by its ID by sending a query request to the tRPC API.
  * @param id The ID of the address list to retrieve.
  * @param initialData Initial data to use before the first fetch completes (e.g., from SSR).
  * @returns The address list object (including its member address IDs) returned from the API, or null if not found.

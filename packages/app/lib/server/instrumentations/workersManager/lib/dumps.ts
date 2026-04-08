@@ -10,7 +10,7 @@ import type { AddressDump, AddressListDumpMetadata } from "@app/lib/server/instr
 import { dbGetAddressesByAddressListId, dbSaveLatestDumpId } from "@app/lib/server/utils/queries"
 
 /**
- * Get the path of an address list dump file.
+ * Gets the path of an address list dump file.
  * @param addressListId The ID of the address list the dump file corresponds to.
  * @returns The path to the address list dump file.
  */
@@ -19,7 +19,7 @@ export function getAddressListDumpFilePath(addressListId: string) {
 }
 
 /**
- * Get the path of the metadata file for an address list dump (prevents reading an entire dump
+ * Gets the path of the metadata file for an address list dump (prevents reading an entire dump
  * just to get the ID and version).
  * @param addressListId The ID of the address list the metadata file corresponds to.
  * @returns The path to the address list metadata file.
@@ -136,7 +136,7 @@ export async function saveAddressListDumpFiles(addressList: AddressListSelectMod
 }
 
 /**
- * Delete the address list dump file for a given address list ID.
+ * Deletes the address list dump file for a given address list ID.
  * @param addressListId The ID of the address list to delete the dump for.
  */
 export function deleteAddressListDumpFile(addressListId: string) {
@@ -151,7 +151,7 @@ export function deleteAddressListDumpFile(addressListId: string) {
 }
 
 /**
- * Delete the metadata file for a given address list ID.
+ * Deletes the metadata file for a given address list ID.
  * @param addressListId The ID of the address list to delete the metadata for.
  */
 export function deleteAddressListDumpMetadataFile(addressListId: string) {

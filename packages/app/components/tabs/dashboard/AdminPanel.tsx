@@ -47,7 +47,7 @@ type AdminPanelDashboardTabProps = {
 }
 
 /**
- * Convert the dynamic config to form values.
+ * Converts the dynamic config to form values.
  * @param config The dynamic config to convert.
  * @returns The form values.
  */

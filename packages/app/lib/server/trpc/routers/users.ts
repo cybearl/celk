@@ -54,7 +54,7 @@ export const usersRouter = router({
         }),
 
     /**
-     * Retrieve the current user's options.
+     * Retrieves the current user's options.
      * @param ctx The request context.
      * @returns The user options object, or null if not yet created.
      */
@@ -102,7 +102,7 @@ export const usersRouter = router({
         }),
 
     /**
-     * Delete the current user's account and all their role assignments in a single transaction.
+     * Deletes the current user's account and all their role assignments in a single transaction.
      * @param ctx The request context.
      */
     deleteAccount: protectedProcedure.mutation(async ({ ctx }) => {

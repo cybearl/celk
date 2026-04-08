@@ -8,14 +8,23 @@
 #include <uint256_t.h>
 
 PCG64PrivateKeyGenerator::PCG64PrivateKeyGenerator(
-    uint64_t _seed, uint64_t _streamId, uint256_t _startRange, uint256_t _endRange)
-    : rng(_seed, _streamId)
+    uint64_t _seed, uint64_t _streamId, uint256_t _advance, uint256_t _startRange, uint256_t _endRange)
+    : highRng(_seed, _streamId * 2)
+    , lowRng(_seed, _streamId * 2 + 1)
     , startRange(_startRange)
     , rangeSize(_endRange - _startRange + 1) {
     // Validate the range beforehand
     if (startRange < 1 || _endRange > SECP256K1_ORDER - 1) {
         throw std::invalid_argument("Range must be within [1, SECP256K1_ORDER - 1]");
     }
+
+    // Converting the uint256 into a native __uint128_t for advancement
+    __uint128_t advanceVal
+        = ((__uint128_t)(uint64_t)_advance.lower().upper() << 64) | (uint64_t)_advance.lower().lower();
+
+    // Advancing twice since there's two operations per generator per call
+    highRng.advance(advanceVal * 2);
+    lowRng.advance(advanceVal * 2);
 }
 
 AddressPrivateKeyGenerator PCG64PrivateKeyGenerator::getType() const {
@@ -23,11 +32,11 @@ AddressPrivateKeyGenerator PCG64PrivateKeyGenerator::getType() const {
 }
 
 bool PCG64PrivateKeyGenerator::next(uint8_t privateKey[32]) {
-    // 4 PCG calls to get 256 bits of randomness
-    uint64_t hh = rng(); // 0 - 7
-    uint64_t hl = rng(); // 8 - 15
-    uint64_t lh = rng(); // 16 - 23
-    uint64_t ll = rng(); // 24 - 31
+    // Use 4 PCG64 calls to get 256 bits of randomness
+    uint64_t hh = highRng(); // 0 - 7
+    uint64_t hl = highRng(); // 8 - 15
+    uint64_t lh = lowRng(); // 16 - 23
+    uint64_t ll = lowRng(); // 24 - 31
 
     // Merge all 4 into a uint256
     uint256_t value(uint128_t(hh, hl), uint128_t(lh, ll));

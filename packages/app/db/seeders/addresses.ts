@@ -9,7 +9,7 @@ import { convertBytesToHexAddress, decodeBitcoinAddress } from "@app/lib/base/ut
 import { db } from "@app/lib/server/connectors/db"
 
 /**
- * Seed base addresses into the database.
+ * Seeds base addresses into the database.
  */
 export default async function seedAddresses() {
     if (!PRIVATE_ENV.defaultAdmin.username) {

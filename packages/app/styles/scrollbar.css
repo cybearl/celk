@@ -11,6 +11,6 @@
 
     /* Other options */
     --os-size: 10px; /* Width of vertical scrollbar */
-    --os-padding-perpendicular: 0; /* Remove padding if you want it flush against the edge */
+    --os-padding-perpendicular: 0; /* Removes padding if you want it flush against the edge */
     --os-corner-bg: transparent; /* Background color of the scrollbar corner */
 }

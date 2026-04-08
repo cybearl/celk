@@ -110,7 +110,7 @@ export default function TreeViewDashboardTab({ addresses }: TreeViewDashboardTab
     }, [containerSize, zoom, longestAddressByteLength])
 
     /**
-     * Get the x coordinate of a node based on its column index.
+     * Gets the x coordinate of a node based on its column index.
      * @param col The byte position (column index).
      * @return The x coordinate for the node center.
      */
@@ -123,7 +123,7 @@ export default function TreeViewDashboardTab({ addresses }: TreeViewDashboardTab
     )
 
     /**
-     * Get the y coordinate of a node based on its byte value.
+     * Gets the y coordinate of a node based on its byte value.
      * @param byteValue The byte value (0-255).
      * @return The y coordinate for the node center.
      */

@@ -8,16 +8,59 @@
 #include <uint256_t.h>
 
 /**
- * @brief Uses PCG64 to generate a private-key (4 uint64 merged into a uint256) within
- * a specified range.
+ * @brief Uses two independent PCG64 instances to generate a private key (2 x 2 uint64 merged
+ * into a uint256) within a specified range.
+ *
+ * `highRng` produces the upper 128 bits (stream `streamId * 2 + 1`) and `lowRng` produces the
+ * lower 128 bits (stream `streamId * 2`), keeping the two halves statistically independent.
+ *
+ * PCG64 is a deterministic "PRNG": given the same seed and stream IDs, it always produces the
+ * same sequence. This enables two key features:
+ *   - Resumability: reconstruct both generators with the same seed/streams, then call
+ *     `highRng.advance(attempts * 2)` and `lowRng.advance(attempts * 2)` (O(log n)) to
+ *     fast-forward to the last saved position. The `* 2` accounts for the two rng() calls
+ *     made per generator per `next()` invocation.
+ *   - Partitioning: assign different stream IDs to different workers so they traverse
+ *     non-overlapping subsequences of the same seed in parallel. Stream pairs are allocated
+ *     as `[streamId * 2, streamId * 2 + 1]` per worker.
+ *
+ * The seed must be stored per address in the DB. The current attempt count (also persisted
+ * in the DB) serves as the resume cursor.
  */
 struct PCG64PrivateKeyGenerator : IPrivateKeyGenerator {
-    pcg64 rng;
+    /**
+     * @brief The high RNG instance for generating the upper 128 bits of the private key.
+     */
+    pcg64 highRng;
+
+    /**
+     * @brief The low RNG instance for generating the lower 128 bits of the private key.
+     */
+    pcg64 lowRng;
+
+    /**
+     * @brief The start of the range for generated private keys.
+     */
     uint256_t startRange;
+
+    /**
+     * @brief The size of the range for generated private keys.
+     */
     uint256_t rangeSize;
 
-    PCG64PrivateKeyGenerator(
-        uint64_t _seed, uint64_t _streamId = 0, uint256_t _startRange = 1, uint256_t _endRange = SECP256K1_ORDER - 1);
+    /**
+     * @brief Constructs a `PCG64PrivateKeyGenerator`.
+     * @param _seed The seed to initialize the PRNG.
+     * @param _streamId The stream ID to use for this generator (optional, defaults to 0).
+     * @param _advance The number of attempts to advance the generator (optional, defaults to 0).
+     * @param _startRange The start of the range for generated private keys (optional, defaults to 1).
+     * @param _endRange The end of the range for generated private keys (optional, defaults to `SECP256K1_ORDER - 1`).
+     */
+    PCG64PrivateKeyGenerator(uint64_t _seed,
+        uint64_t _streamId = 0,
+        uint256_t _advance = 0,
+        uint256_t _startRange = 1,
+        uint256_t _endRange = SECP256K1_ORDER - 1);
 
     AddressPrivateKeyGenerator getType() const override;
     bool next(uint8_t privateKey[32]) override;

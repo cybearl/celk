@@ -2,7 +2,7 @@ import { PUBLIC_ENV } from "@app/config/env"
 import { checkEnvironmentVariables } from "@app/lib/base/utils/env"
 
 /**
- * This function will be called once when a new Next.js server instance is initiated.
+ * This function is called once when a new Next.js server instance is initiated.
  */
 export async function register() {
     checkEnvironmentVariables()

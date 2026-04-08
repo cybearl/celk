@@ -20,7 +20,7 @@ import z from "zod"
  */
 export const addressesRouter = router({
     /**
-     * Retrieve all addresses belonging to the current user.
+     * Retrieves all addresses belonging to the current user.
      * @param ctx The request context.
      * @returns An array of addresses.
      */
@@ -33,7 +33,7 @@ export const addressesRouter = router({
     }),
 
     /**
-     * Retrieve only the balances for each address belonging to the current user,
+     * Retrieves only the balances for each address belonging to the current user,
      * also fetches the last checked date for each balance for display purposes.
      * @param ctx The request context.
      * @returns An array of objects containing each address ID, its current balance
@@ -51,7 +51,7 @@ export const addressesRouter = router({
     }),
 
     /**
-     * Retrieve only the attempt counts for each address belonging to the current user.
+     * Retrieves only the attempt counts for each address belonging to the current user.
      * @param ctx The request context.
      * @returns An array of objects containing each address ID and its current attempts count.
      */
@@ -63,7 +63,7 @@ export const addressesRouter = router({
     }),
 
     /**
-     * Retrieve all addresses belonging to a specific address list.
+     * Retrieves all addresses belonging to a specific address list.
      * @param ctx The request context.
      * @param input The input object containing the list ID.
      * @returns An array of addresses.
@@ -86,7 +86,7 @@ export const addressesRouter = router({
     }),
 
     /**
-     * Create a new crypto address for the current user after validating its format and checksum,
+     * Creates a new crypto address for the current user after validating its format and checksum,
      * also automatically computes the pre-encoding for Bitcoin addresses.
      * @param ctx The request context.
      * @param input The input object containing the address details.
@@ -187,7 +187,7 @@ export const addressesRouter = router({
         }),
 
     /**
-     * Retrieve an address by its ID.
+     * Retrieves an address by its ID.
      * @param ctx The request context.
      * @param input The input object containing the address ID.
      * @returns The address.
@@ -205,7 +205,7 @@ export const addressesRouter = router({
     }),
 
     /**
-     * Update the `isDisabled` flag for an address.
+     * Updates the `isDisabled` flag for an address.
      * @param id The ID of the address to update.
      * @param isDisabled The new value for the `isDisabled` flag.
      * @returns The updated address object.
@@ -225,7 +225,7 @@ export const addressesRouter = router({
         }),
 
     /**
-     * Delete an address by its ID.
+     * Deletes an address by its ID.
      * @param ctx The request context.
      * @param input The input object containing the address ID.
      */

@@ -20,7 +20,7 @@ export default function AddressListEntries({ dynamicConfig, addresses, value, on
     const selectedAddresses = addresses?.filter(a => value.includes(a.id)) ?? []
 
     /**
-     * Add the currently selected pending address ID to the list of selected IDs.
+     * Adds the currently selected pending address ID to the list of selected IDs.
      */
     const handleAdd = useCallback(() => {
         if (!pendingId) return
@@ -30,7 +30,7 @@ export default function AddressListEntries({ dynamicConfig, addresses, value, on
     }, [pendingId, value, onChange])
 
     /**
-     * Remove an address ID from the list of selected IDs.
+     * Removes an address ID from the list of selected IDs.
      * @param id The ID of the address to remove.
      */
     const handleRemove = useCallback((id: string) => onChange(value.filter(v => v !== id)), [value, onChange])

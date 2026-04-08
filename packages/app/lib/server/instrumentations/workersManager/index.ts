@@ -48,7 +48,7 @@ class WorkersManager {
     }
 
     /**
-     * Clear the timeout for the worker polling.
+     * Clears the timeout for the worker polling.
      */
     private _clearTimeout(): void {
         if (this._pollTimeout) clearTimeout(this._pollTimeout)
@@ -56,7 +56,7 @@ class WorkersManager {
     }
 
     /**
-     * Retrieve all required data in parallel during synchronization.
+     * Retrieves all required data in parallel during synchronization.
      */
     private async _fetchRequiredData(): Promise<void> {
         const [dynamicConfig, enabledAddressLists] = await Promise.all([
