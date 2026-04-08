@@ -81,4 +81,5 @@ struct GeneratorGroup {
      * @brief Adds a target address to the generator group.
      * @param targetAddress The target address to add.
      */
+    void addTargetAddress(const TargetAddress& targetAddress);
 };

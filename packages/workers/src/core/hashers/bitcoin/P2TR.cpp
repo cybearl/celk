@@ -1,40 +1,29 @@
-#include "core/derivers/bitcoin/P2TR.hpp"
+#include "core/hashers/bitcoin/P2TR.hpp"
 #include "core/encoding/hash.hpp"
 #include <cstring>
 #include <secp256k1.h>
 #include <secp256k1_extrakeys.h>
 #include <stdexcept>
 
-BitcoinP2TRAddressDeriver::BitcoinP2TRAddressDeriver()
+BitcoinP2TRAddressHasher::BitcoinP2TRAddressHasher()
     : ctx(secp256k1_context_create(SECP256K1_CONTEXT_SIGN | SECP256K1_CONTEXT_VERIFY)) {
     // Write the hash of the TapTweak tag only once
     std::memcpy(tweakTagHash, tapTweakTagHash(), 32);
 }
 
-size_t BitcoinP2TRAddressDeriver::outputSize() const {
+size_t BitcoinP2TRAddressHasher::outputSize() const {
     return 32;
 }
 
-void BitcoinP2TRAddressDeriver::derive(const uint8_t privateKey[32], uint8_t* outputData) const {
-    secp256k1_keypair keypair;
-    if (!secp256k1_keypair_create(ctx, &keypair, privateKey)) {
-        throw std::runtime_error("Failed to create keypair from private key");
-    }
-
+void BitcoinP2TRAddressHasher::hash(const uint8_t* xonlyBytes, uint8_t* outputData) const {
+    // Reconstruct the struct from the 32 serialized bytes
     secp256k1_xonly_pubkey xOnlyPublicKey;
-    if (!secp256k1_keypair_xonly_pub(ctx, &xOnlyPublicKey, nullptr, &keypair)) {
-        throw std::runtime_error("Failed to get x-only public key from keypair");
-    }
-
-    uint8_t serializedXOnlyPublicKey[32];
-    if (!secp256k1_xonly_pubkey_serialize(ctx, serializedXOnlyPublicKey, &xOnlyPublicKey)) {
-        throw std::runtime_error("Failed to serialize x-only public key");
-    }
+    secp256k1_xonly_pubkey_parse(ctx, &xOnlyPublicKey, xonlyBytes);
 
     uint8_t tweakBuffer[96]; // Tap tweak || tap tweak || x-only public key
     std::memcpy(tweakBuffer, tweakTagHash, 32);
     std::memcpy(tweakBuffer + 32, tweakTagHash, 32);
-    std::memcpy(tweakBuffer + 64, serializedXOnlyPublicKey, 32);
+    std::memcpy(tweakBuffer + 64, xonlyBytes, 32);
 
     uint8_t tweak[32];
     sha256(tweakBuffer, 96, tweak);
@@ -54,6 +43,6 @@ void BitcoinP2TRAddressDeriver::derive(const uint8_t privateKey[32], uint8_t* ou
     }
 }
 
-BitcoinP2TRAddressDeriver::~BitcoinP2TRAddressDeriver() {
+BitcoinP2TRAddressHasher::~BitcoinP2TRAddressHasher() {
     secp256k1_context_destroy(ctx);
 }

@@ -32,3 +32,7 @@ GeneratorGroup::~GeneratorGroup() {
         delete targetAddress;
     }
 }
+
+void GeneratorGroup::addTargetAddress(const TargetAddress& targetAddress) {
+    targetAddresses.push_back(new TargetAddress(targetAddress));
+}

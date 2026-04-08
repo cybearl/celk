@@ -269,7 +269,7 @@ export function decodeBitcoinAddress(address: string): Uint8Array | null {
         case ADDRESS_TYPE.BTC_P2PKH:
         case ADDRESS_TYPE.BTC_P2SH: {
             try {
-                // 1 byte version + 20 bytes "hash160"
+                // 1 byte version + 20 bytes from HASH-160
                 const decoded = base58check.decode(address)
                 return decoded.slice(1) // strip version byte, keep 20-byte hash
             } catch {
