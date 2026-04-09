@@ -19,6 +19,8 @@ struct TargetAddress {
     AddressType type;
     std::vector<uint8_t> rawBytes;
     std::string value;
+    std::optional<uint256_t> startRange;
+    std::optional<uint256_t> endRange;
 };
 
 /**
@@ -34,8 +36,6 @@ struct RandBytesConfig { };
 struct PCG64Config {
     uint64_t seed;
     std::optional<uint64_t> streamId;
-    std::optional<uint256_t> startRange;
-    std::optional<uint256_t> endRange;
 };
 
 /**

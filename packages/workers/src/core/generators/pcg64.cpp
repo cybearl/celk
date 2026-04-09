@@ -7,17 +7,9 @@
 #include <uint128_t.h>
 #include <uint256_t.h>
 
-PCG64PrivateKeyGenerator::PCG64PrivateKeyGenerator(
-    uint64_t _seed, uint64_t _streamId, uint256_t _advance, uint256_t _startRange, uint256_t _endRange)
+PCG64PrivateKeyGenerator::PCG64PrivateKeyGenerator(uint64_t _seed, uint64_t _streamId, uint256_t _advance)
     : highRng(_seed, _streamId * 2)
-    , lowRng(_seed, _streamId * 2 + 1)
-    , startRange(_startRange)
-    , rangeSize(_endRange - _startRange + 1) {
-    // Validate the range beforehand
-    if (startRange < 1 || _endRange > SECP256K1_ORDER - 1) {
-        throw std::invalid_argument("Range must be within [1, SECP256K1_ORDER - 1]");
-    }
-
+    , lowRng(_seed, _streamId * 2 + 1) {
     // Converting the uint256 into a native __uint128_t for advancement
     __uint128_t advanceVal
         = ((__uint128_t)(uint64_t)_advance.lower().upper() << 64) | (uint64_t)_advance.lower().lower();
@@ -32,25 +24,13 @@ AddressPrivateKeyGenerator PCG64PrivateKeyGenerator::getType() const {
 }
 
 bool PCG64PrivateKeyGenerator::next(uint8_t privateKey[32]) {
-    // Use 4 PCG64 calls to get 256 bits of randomness
-    uint64_t hh = highRng(); // 0 - 7
-    uint64_t hl = highRng(); // 8 - 15
-    uint64_t lh = lowRng(); // 16 - 23
-    uint64_t ll = lowRng(); // 24 - 31
-
-    // Merge all 4 into a uint256
-    uint256_t value(uint128_t(hh, hl), uint128_t(lh, ll));
-
-    // Clamping to get into the range
-    uint256_t clampedValue = startRange + (value % rangeSize);
-
-    // Serialize by getting the upper and lower values as uint128s from the uint256
-    // and then doing the same with the returned uint128s to get 4 uint64s
+    // Use 4 PCG64 calls to get 256 bits of randomness,
+    // keeping in 4 uint64 parts for memcopy operations
     uint64_t parts[4] = {
-        (uint64_t)clampedValue.upper().upper(),
-        (uint64_t)clampedValue.upper().lower(),
-        (uint64_t)clampedValue.lower().upper(),
-        (uint64_t)clampedValue.lower().lower(),
+        highRng(), // 0 - 7
+        highRng(), // 8 - 15
+        lowRng(), // 16 - 23
+        lowRng() // 24 - 31
     };
 
     // Copy the 4 uint64s into the private key array while swapping the byte
