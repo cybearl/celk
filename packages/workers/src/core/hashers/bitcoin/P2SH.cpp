@@ -8,7 +8,7 @@ size_t BitcoinP2SHAddressHasher::outputSize() const {
     return 20;
 }
 
-void BitcoinP2SHAddressHasher::hash(const uint8_t publicKey[32], uint8_t* outputData) const {
+void BitcoinP2SHAddressHasher::hash(const uint8_t* publicKey, uint8_t* outputData) const {
     hash160(publicKey, 33, outputData);
 
     uint8_t redeemScript[23];

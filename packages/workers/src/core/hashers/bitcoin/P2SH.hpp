@@ -7,5 +7,5 @@
  */
 struct BitcoinP2SHAddressHasher : IAddressHasher {
     size_t outputSize() const override;
-    void hash(const uint8_t publicKey[32], uint8_t* outputData) const override;
+    void hash(const uint8_t* publicKey, uint8_t* outputData) const override;
 };

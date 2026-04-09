@@ -4,6 +4,9 @@
 #include <mutex>
 #include <string>
 
+/**
+ * @brief Represents the state of a match inside the worker, with support for concurrent access.
+ */
 struct MatchState {
     std::atomic<bool> isFound { false };
 
