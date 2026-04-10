@@ -10,9 +10,11 @@ InsertNewlineAtEOF: true
 BreakBeforeBraces: Attach
 SpaceBeforeParens: ControlStatements
 PointerAlignment: Left
+InsertBraces: true
 
 # Modern C++ / "Prettier" style wrapping
 BinPackArguments: false
 BinPackParameters: false
 AllowShortFunctionsOnASingleLine: Empty
+BreakBeforeBinaryOperators: All
 IndentCaseLabels: true

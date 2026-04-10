@@ -19,6 +19,8 @@
         "configure:release": "cmake --preset release",
         "build": "cmake --build --preset default",
         "build:release": "cmake --build --preset release",
-        "install:dev": "cmake --install build --prefix ../app/.celk"
+        "install:dev": "cmake --install build --prefix ../app/.celk",
+        "deploy": "cmake --build --preset default && cmake --install build --prefix ../app/.celk",
+        "test": "cmake --build --preset default --target workerTests && ctest --test-dir build --output-on-failure"
     }
 }
