@@ -1,3 +1,5 @@
+#pragma once
+
 #include "address.hpp"
 #include <cstdint>
 

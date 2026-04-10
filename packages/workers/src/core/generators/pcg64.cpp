@@ -25,7 +25,7 @@ AddressPrivateKeyGenerator PCG64PrivateKeyGenerator::getType() const {
 
 bool PCG64PrivateKeyGenerator::next(uint8_t privateKey[32]) {
     // Use 4 PCG64 calls to get 256 bits of randomness,
-    // keeping in 4 uint64 parts for memcopy operations
+    // keeping it as 4 uint64s for memcopy operations
     uint64_t parts[4] = {
         highRng(), // 0 - 7
         highRng(), // 8 - 15
@@ -37,7 +37,7 @@ bool PCG64PrivateKeyGenerator::next(uint8_t privateKey[32]) {
     // order of each uint64 to match the expected big-endian format
     // (secp256k1 uses big-endian)
     for (int i = 0; i < 4; i++) {
-        uint64_t be = __builtin_bswap64(parts[i]);
+        uint64_t be = _byteswap_uint64(parts[i]);
         std::memcpy(privateKey + i * 8, &be, 8);
     }
 

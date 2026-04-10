@@ -44,7 +44,7 @@ struct PCG64PrivateKeyGenerator : IPrivateKeyGenerator {
      * @param _streamId The stream ID to use for this generator (optional, defaults to 0).
      * @param _advance The number of attempts to advance the generator (optional, defaults to 0).
      */
-    PCG64PrivateKeyGenerator(uint64_t _seed, uint64_t _streamId = 0, uint256_t _advance = 0);
+    explicit PCG64PrivateKeyGenerator(uint64_t _seed, uint64_t _streamId = 0, uint256_t _advance = 0);
 
     AddressPrivateKeyGenerator getType() const override;
     bool next(uint8_t privateKey[32]) override;

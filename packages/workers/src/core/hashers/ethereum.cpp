@@ -1,5 +1,5 @@
 #include "core/hashers/ethereum.hpp"
-#include "core/encoding/hash.hpp"
+#include "utils/hash.hpp"
 #include <cstring>
 
 size_t EthereumAddressHasher::outputSize() const {

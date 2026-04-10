@@ -1,4 +1,4 @@
-#include "core/encoding/hash.hpp"
+#include "utils/hash.hpp"
 #include <cstring>
 #include <keccak-tiny.h>
 #include <openssl/ripemd.h>

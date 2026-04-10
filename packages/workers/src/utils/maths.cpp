@@ -1,5 +1,6 @@
 #include "utils/maths.hpp"
 #include "core/constants.hpp"
+#include <cstring>
 #include <stdexcept>
 #include <uint128_t.h>
 #include <uint256_t.h>

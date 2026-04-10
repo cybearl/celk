@@ -1,5 +1,5 @@
 #include "core/hashers/bitcoin/P2PKH.hpp"
-#include "core/encoding/hash.hpp"
+#include "utils/hash.hpp"
 #include <cstring>
 #include <secp256k1.h>
 #include <stdexcept>

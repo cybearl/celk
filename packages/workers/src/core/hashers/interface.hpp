@@ -17,9 +17,8 @@ struct IAddressHasher {
 
     /**
      * @brief Hashes a public key into the raw bytes of a derived address.
-     * @param publicKey The array containing the serialized public key to hash,
-     * the expected size depends on the associated `IPublicKeyDeriver` (33 bytes for compressed,
-     * 65 bytes for uncompressed, 32 bytes for x-only).
+     * @param publicKey The array containing the serialized public key to hash
+     * (33 bytes for compressed, 65 bytes for uncompressed, 32 bytes for x-only).
      * @param outputData The array to fill with the raw bytes of the hashed address,
      * must be at least `outputSize()` bytes long.
      */

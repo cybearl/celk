@@ -1,4 +1,5 @@
 #include "core/generatorGroup.hpp"
+#include "core/addressComparator.hpp"
 #include "core/constants.hpp"
 #include "core/generators/PCG64.hpp"
 #include "core/generators/randBytes.hpp"
@@ -24,15 +25,52 @@ GeneratorGroup::GeneratorGroup(const GeneratorConfig& _config, const TargetAddre
         },
         _config);
 
-    targetAddresses = { new TargetAddress(_firstTargetAddress) };
-}
-
-GeneratorGroup::~GeneratorGroup() {
-    for (auto* targetAddress : targetAddresses) {
-        delete targetAddress;
-    }
+    RangeSubGroup& subGroup = _findOrCreateRangeSubGroup(_firstTargetAddress);
+    subGroup.targetAddresses.push_back(new TargetAddress(_firstTargetAddress));
+    subGroup.requiredAddressTypes.insert(_firstTargetAddress.type);
 }
 
 void GeneratorGroup::addTargetAddress(const TargetAddress& targetAddress) {
-    targetAddresses.push_back(new TargetAddress(targetAddress));
+    RangeSubGroup& subGroup = _findOrCreateRangeSubGroup(targetAddress);
+    subGroup.targetAddresses.push_back(new TargetAddress(targetAddress));
+    subGroup.requiredAddressTypes.insert(targetAddress.type);
+}
+
+void GeneratorGroup::initComparator(const std::vector<TargetAddress*>& targetAddresses) {
+    comparator = std::make_unique<AddressComparator>(targetAddresses);
+}
+
+std::vector<TargetAddress*> GeneratorGroup::getAllTargetAddresses() const {
+    std::vector<TargetAddress*> targetAddresses;
+
+    for (const RangeSubGroup& subGroup : rangeSubGroups) {
+        targetAddresses.insert(targetAddresses.end(), subGroup.targetAddresses.begin(), subGroup.targetAddresses.end());
+    }
+
+    return targetAddresses;
+}
+
+RangeSubGroup& GeneratorGroup::_findOrCreateRangeSubGroup(const TargetAddress& targetAddress) {
+    for (RangeSubGroup& subGroup : rangeSubGroups) {
+        if (subGroup.rangeStart == targetAddress.startRange && subGroup.rangeEnd == targetAddress.endRange) {
+            return subGroup;
+        }
+    }
+
+    // If no matching subgroup is found, create a new one
+    RangeSubGroup newSubGroup;
+
+    newSubGroup.rangeStart = targetAddress.startRange;
+    newSubGroup.rangeEnd = targetAddress.endRange;
+    rangeSubGroups.push_back(std::move(newSubGroup));
+
+    return rangeSubGroups.back();
+}
+
+GeneratorGroup::~GeneratorGroup() {
+    for (RangeSubGroup& subGroup : rangeSubGroups) {
+        for (TargetAddress* targetAddress : subGroup.targetAddresses) {
+            delete targetAddress;
+        }
+    }
 }

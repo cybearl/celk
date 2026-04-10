@@ -41,7 +41,7 @@ bool SequentialPrivateKeyGenerator::next(uint8_t privateKey[32]) {
     // order of each uint64 to match the expected big-endian format
     // (secp256k1 uses big-endian)
     for (int i = 0; i < 4; i++) {
-        uint64_t be = __builtin_bswap64(parts[i]);
+        uint64_t be = _byteswap_uint64(parts[i]);
         std::memcpy(privateKey + i * 8, &be, 8);
     }
 

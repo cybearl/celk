@@ -1,35 +1,37 @@
 #pragma once
 
 #include "core/generatorGroup.hpp"
+#include "types.hpp"
+#include "userOptions.hpp"
+#include <atomic>
 #include <vector>
 
-// Map address dumps to target addresses while filtering out all addresses that
-// does not have the same generator as the one selected for this generator group
-// for (const auto& addressDump : _addressDumps) {
-//    if (addressDump.privateKeyGenerator == generator->getType()) {
-//        TargetAddress* targetAddress = new TargetAddress();
+struct AddressDump;
 
-//        targetAddress->id = addressDump.id;
-//        targetAddress->type = addressDump.type;
-//        targetAddress->rawBytes = hexStringToVector(addressDump.preEncoding.value_or(addressDump.value));
-//        targetAddress->value = addressDump.value;
-
-//        targetAddresses.push_back(targetAddress);
-//    }
-//}
-
-// Basically, what the engine will do is:
-// - Go through address dumps
-// - For each address dump, it will check if there's a generator group instantiated inside a vector?
-// - If there's is, call addTargetAddress with the new target address
-// - Otherwise, it will create a new generator group and add the first target address to it
-//
-// For the run function, in parallel per generator group, it will:
-// - Generate a private key via generatorGroup::generator
-// - Convert the generated private key into X public keys via the derivers (since secp256k1 params vary depending on the
-// address types)
-// - Then, for each
-
+/**
+ * @brief The engine that orchestrates private key generation, derivation, and address comparison.
+ */
 struct Engine {
+    /**
+     * @brief The generator groups built from the address dump, one per private key generator type.
+     */
     std::vector<GeneratorGroup> generatorGroups;
+
+    /**
+     * @brief Builds generator groups from the address dump and initializes comparators.
+     * @param dumps The address dump to build the engine from.
+     * @param userOptions The user options, including the `mixGenerators` flag.
+     */
+    void build(const std::vector<AddressDump>& dumps, const UserOptions& userOptions);
+
+    /**
+     * @brief Runs the engine, spawning one thread per generator group, blocks until `stopFlag`
+     * is set or all sequential generators exhaust their range.
+     * @param stopFlag Set to true to stop all generator threads.
+     * @param attempts Atomically incremented on each iteration across all threads.
+     * @param matchState Updated on an exact match.
+     * @param stopOnFirstMatch If true, sets `stopFlag` immediately on a match.
+     */
+    void run(
+        std::atomic<bool>& stopFlag, std::atomic<uint64_t>& attempts, MatchState& matchState, bool stopOnFirstMatch);
 };

@@ -1,4 +1,5 @@
 #include "core/dump.hpp"
+#include "core/engine.hpp"
 #include "core/io.hpp"
 #include "protocol.hpp"
 #include "types.hpp"
@@ -49,13 +50,16 @@ int main() {
         return 1;
     }
 
-    // Stub worker thread for now
-    std::thread workerThread([&stopFlag, &attempts]() {
-        while (!stopFlag.load(std::memory_order_relaxed)) {
-            attempts.fetch_add(1, std::memory_order_relaxed);
-            std::this_thread::sleep_for(std::chrono::milliseconds(1));
-        }
-    });
+    Engine engine;
+
+    try {
+        engine.build(addressDumps, startMessage.userOptions);
+    } catch (const std::exception& e) {
+        sendError(e.what());
+        return 1;
+    }
+
+    std::thread workerThread([&]() { engine.run(stopFlag, attempts, matchState, startMessage.stopOnFirstMatch); });
 
     auto initialTime = std::chrono::steady_clock::now();
     auto lastHeartbeat { initialTime };
@@ -130,6 +134,19 @@ int main() {
             message.addressListId = startMessage.addressListId;
             message.attempts = std::to_string(drainedAttempts);
 
+            // Merge closest matches from all subgroups, keeping the best score per target
+            std::unordered_map<std::string, uint8_t> bestScores;
+
+            for (const GeneratorGroup& group : engine.generatorGroups) {
+                for (const auto& [address, closestMatch] : group.comparator->closestMatches) {
+                    auto iterator = bestScores.find(address);
+                    if (iterator == bestScores.end() || closestMatch.score > iterator->second) {
+                        bestScores[address] = closestMatch.score;
+                        message.closestMatches[address] = closestMatch.bytes;
+                    }
+                }
+            }
+
             std::string line = serializeJson(nlohmann::json(message));
             ioWrite(line);
 
@@ -143,8 +160,8 @@ int main() {
             WorkerMatchMessage message;
             message.type = WorkerMessageType::Match;
             message.addressListId = startMessage.addressListId;
-            message.address = "0x1234";
-            message.privateKey = "0x1234";
+            message.address = matchState.address;
+            message.privateKey = matchState.privateKey;
             message.totalAttempts = std::to_string(matchState.totalAttempts);
             message.stopOnFirstMatch = startMessage.stopOnFirstMatch;
 

@@ -1,5 +1,5 @@
 #include "core/hashers/bitcoin/P2WPKH.hpp"
-#include "core/encoding/hash.hpp"
+#include "utils/hash.hpp"
 #include <cstring>
 #include <stdexcept>
 

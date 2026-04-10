@@ -5,7 +5,7 @@ find_path(PCG_INCLUDE_DIRS "pcg_extras.hpp")
 find_package(fmt CONFIG REQUIRED)
 find_package(nlohmann_json CONFIG REQUIRED)
 find_package(unofficial-secp256k1 CONFIG REQUIRED)
-find_package(OpenSSL CONFIG REQUIRED)
+find_package(OpenSSL REQUIRED)
 find_package(unofficial-keccak-tiny CONFIG REQUIRED)
 
 # Fetch uint128_t (not on vcpkg, no CMakeLists.txt, defining target manually)

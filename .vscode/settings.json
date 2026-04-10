@@ -80,6 +80,9 @@
     // Ensure to use alias import paths
     "typescript.preferences.importModuleSpecifier": "non-relative",
     // CMake
+    "cmake.additionalCompilerSearchDirs": [
+        "C:/Program Files/Microsoft Visual Studio/18/Community/VC/Tools/MSVC/14.50.35717/bin/Hostx64/x64"
+    ],
     "cmake.sourceDirectory": "${workspaceFolder}/packages/workers",
     "cmake.buildDirectory": "${workspaceFolder}/packages/workers/build"
 }
