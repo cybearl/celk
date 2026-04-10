@@ -19,7 +19,8 @@ int main() {
     try {
         std::getline(std::cin, startLine);
         startMessage = deserializeJson(startLine).get<StartWorkerMessage>();
-    } catch (const std::exception&) {
+    } catch (const std::exception& e) {
+        std::cerr << "Failed to parse start message: " << e.what() << std::endl;
         exit(1);
     }
 
@@ -115,6 +116,7 @@ int main() {
 
         // Exit if the worker didn't receive the timeout in time
         if (elapsedTimeSinceLastHeartbeatAck >= startMessage.heartbeatTimeoutMs) {
+            std::cerr << "Heartbeat timeout: no ack received within " << startMessage.heartbeatTimeoutMs << "ms." << std::endl;
             exit(1);
         }
 
@@ -135,14 +137,11 @@ int main() {
             message.attempts = std::to_string(drainedAttempts);
 
             // Merge closest matches from all subgroups, keeping the best score per target
-            std::unordered_map<std::string, uint8_t> bestScores;
-
             for (const GeneratorGroup& group : engine.generatorGroups) {
                 for (const auto& [address, closestMatch] : group.comparator->closestMatches) {
-                    auto iterator = bestScores.find(address);
-                    if (iterator == bestScores.end() || closestMatch.score > iterator->second) {
-                        bestScores[address] = closestMatch.score;
-                        message.closestMatches[address] = closestMatch.bytes;
+                    auto iterator = message.closestMatches.find(address);
+                    if (iterator == message.closestMatches.end() || closestMatch.score > iterator->second) {
+                        message.closestMatches[address] = closestMatch.score;
                     }
                 }
             }

@@ -5,7 +5,7 @@ import scDynamicConfig, { DYNAMIC_CONFIG_ID } from "@app/db/schema/dynamicConfig
 import scUser from "@app/db/schema/user"
 import scUserOptions from "@app/db/schema/userOptions"
 import { db } from "@app/lib/server/connectors/db"
-import { and, asc, eq, inArray, sql } from "drizzle-orm"
+import { and, asc, eq, inArray, lt, sql } from "drizzle-orm"
 
 /**
  * Retrieves the dynamic application config from the database (single row table).
@@ -96,6 +96,42 @@ export async function dbIncrementAttemptCounts(attempts: string, addressListId: 
                 ),
         ])
     })
+}
+
+/**
+ * Updates the closest match score and timestamp for each address in a report,
+ * only when the incoming score beats the currently stored one.
+ * @param addressListId The ID of the address list the addresses belong to.
+ * @param closestMatches A map of address value to score (number of bytes matched).
+ */
+export async function dbUpdateClosestMatches(addressListId: string, closestMatches: Record<string, number>) {
+    const entries = Object.entries(closestMatches)
+    if (entries.length === 0) return
+
+    await Promise.all(
+        entries.map(([addressValue, score]) =>
+            db
+                .update(scAddress)
+                .set({
+                    closestMatch: score,
+                    closestMatchRegisteredAt: new Date(),
+                })
+                .where(
+                    and(
+                        eq(scAddress.value, addressValue),
+                        inArray(
+                            scAddress.id,
+                            db
+                                .select({ id: scPvtAddressListMember.addressId })
+                                .from(scPvtAddressListMember)
+                                .where(eq(scPvtAddressListMember.addressListId, addressListId)),
+                        ),
+                        lt(scAddress.closestMatch, score),
+                    ),
+                )
+                .execute(),
+        ),
+    )
 }
 
 /**

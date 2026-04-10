@@ -111,8 +111,12 @@ export type AddressInsertModel = InferInsertModel<typeof scAddress>
  * A JSON-serializable version of `AddressSelectModel` for use in `getServerSideProps` props:
  * - Date fields become ISO strings.
  */
-export type SerializedAddressSelectModel = Omit<AddressSelectModel, "createdAt" | "updatedAt" | "balanceCheckedAt"> & {
+export type SerializedAddressSelectModel = Omit<
+    AddressSelectModel,
+    "createdAt" | "updatedAt" | "balanceCheckedAt" | "closestMatchRegisteredAt"
+> & {
     createdAt: string
     updatedAt: string
     balanceCheckedAt: string | null
+    closestMatchRegisteredAt: string | null
 }

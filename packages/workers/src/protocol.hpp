@@ -94,7 +94,7 @@ NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(WorkerHeartbeatMessage, type, addressListId)
  * @brief The struct for closest matches attached to addresses inside a report message,
  * sent from the worker to the main process.
  */
-using AddressClosestMatches = std::unordered_map<std::string, std::vector<uint8_t>>;
+using AddressClosestMatches = std::unordered_map<std::string, uint8_t>;
 
 /**
  * @brief The struct for a report message sent from the worker to the main process,

@@ -21,6 +21,7 @@ import {
     dbGetAddressListWithUser,
     dbIncrementAttemptCounts,
     dbSaveWorkerMatchToDb,
+    dbUpdateClosestMatches,
 } from "@app/lib/server/utils/queries"
 
 /**
@@ -71,6 +72,11 @@ function routeWorkerMessage(
             // Fire-and-forget increment of attempt counts
             dbIncrementAttemptCounts(message.attempts, message.addressListId).catch(error => {
                 workerLogger.error(`Failed to increment attempt counts:`, { data: error })
+            })
+
+            // Fire-and-forget update of closest matches (only advances, never regresses)
+            dbUpdateClosestMatches(message.addressListId, message.closestMatches).catch(error => {
+                workerLogger.error(`Failed to update closest matches:`, { data: error })
             })
 
             break
@@ -172,7 +178,7 @@ export function listenToWorker(
             try {
                 const message = JSON.parse(line) as AnyIncomingWorkerMessage
 
-                workerLogger.debug(`New message received from '${generateWorkerLoggerPrefix(addressListId)}':`, {
+                workerLogger.debug(`New message received from '${generateWorkerLoggerPrefix(addressListId)}'`, {
                     data: message,
                 })
 
@@ -246,6 +252,7 @@ export function spawnWorker(
         stopOnFirstMatch: addressList.stopOnFirstMatch,
         userOptions: {
             autoDisableZeroBalance: userOptions?.autoDisableZeroBalance ?? false,
+            mixGenerators: userOptions?.mixGenerators ?? false,
         },
         addressesDumpFilePath: getAddressListDumpFilePath(addressList.id),
     }

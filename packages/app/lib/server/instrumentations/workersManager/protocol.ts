@@ -9,7 +9,7 @@ import type { UserOptionsSelectModel } from "@app/db/schema/userOptions"
 /**
  * The subset of user options passed to each worker via the start message.
  */
-export type WorkerUserOptions = Pick<UserOptionsSelectModel, "autoDisableZeroBalance">
+export type WorkerUserOptions = Pick<UserOptionsSelectModel, "autoDisableZeroBalance" | "mixGenerators">
 
 /**
  * The available types of messages between the main process and the worker.
@@ -74,7 +74,7 @@ export type WorkerHeartbeatMessage = WorkerMessage & {
  * The type for closest matches attached to addresses inside a report message
  * sent from the worker to the main process.
  */
-export type AddressClosestMatches = { [addressId: string]: number[] }
+export type AddressClosestMatches = { [addressValue: string]: number }
 
 /**
  * The type for a report message sent from the worker to the main process,
