@@ -54,8 +54,8 @@ export default async function seedAddressLists() {
     for (const addressList of addressListsToSeed) {
         const { addressValues, ...addressListData } = addressList
 
-        // Create the address list first
-        const createdAddressLists = await db
+        // Create the address list, or look up the existing one if it already exists
+        const [createdAddressList] = await db
             .insert(scAddressList)
             .values({
                 ...addressListData,
@@ -65,22 +65,34 @@ export default async function seedAddressLists() {
             .returning()
             .onConflictDoNothing({ target: [scAddressList.userId, scAddressList.name] })
 
-        if (createdAddressLists.length === 0) {
-            // Address list already exists, skip to the next one
-            continue
-        }
+        const addressListId =
+            createdAddressList?.id ??
+            (
+                await db.query.address_lists.findFirst({
+                    columns: { id: true },
+                    where: (currentAddressList, { and, eq }) =>
+                        and(
+                            eq(currentAddressList.userId, defaultAdminUser.id),
+                            eq(currentAddressList.name, addressList.name),
+                        ),
+                })
+            )?.id
+
+        if (!addressListId) continue
 
         // Find the address IDs for the given address values
         const addresses = await db.query.addresses.findMany({
             where: (addresses, { inArray }) => inArray(addresses.value, addressValues),
         })
 
-        // Create entries in the address list members pivot table
+        if (addresses.length === 0) continue
+
+        // Create entries in the address list members pivot table (idempotent)
         await db
             .insert(scPvtAddressListMember)
             .values(
                 addresses.map(address => ({
-                    addressListId: createdAddressLists[0].id,
+                    addressListId,
                     addressId: address.id,
                 })),
             )

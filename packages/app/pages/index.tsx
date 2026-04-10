@@ -14,6 +14,7 @@ import type { UserOptionsSelectModel } from "@app/db/schema/userOptions"
 import { useAttemptsSync } from "@app/hooks/api/useAttemptsSync"
 import { useBalancesSync } from "@app/hooks/api/useBalancesSync"
 import { useDynamicConfig } from "@app/hooks/api/useDynamicConfig"
+import { numericStringToFormatted } from "@app/lib/base/utils/numerics"
 import { appRouter } from "@app/lib/server/trpc/routers/_app"
 import { withSession } from "@app/lib/server/utils/session"
 import type { NextApiRequest, NextApiResponse } from "next"
@@ -62,6 +63,7 @@ export const getServerSideProps = withSession<HomepageProps>(async (ctx, session
             createdAt: row.createdAt.toISOString(),
             updatedAt: row.updatedAt.toISOString(),
             balanceCheckedAt: row.balanceCheckedAt?.toISOString() ?? null,
+            closestMatchRegisteredAt: row.closestMatchRegisteredAt?.toISOString() ?? null,
         }))
 
         initialAddressLists = addressListRows.map(row => ({
@@ -103,7 +105,7 @@ export default function Homepage({
         <MainLayout
             topRightSection={
                 <p className="text-foreground font-medium px-4">
-                    <Flash value={(dynamicConfig?.attempts ?? 0n).toLocaleString("en-US")} />
+                    <Flash value={numericStringToFormatted(dynamicConfig?.attempts ?? "0")} />
                 </p>
             }
             bottomLeftSection={

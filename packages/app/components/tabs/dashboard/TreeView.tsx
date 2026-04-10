@@ -224,7 +224,7 @@ export default function TreeViewDashboardTab({ addresses }: TreeViewDashboardTab
                 ctx.fillStyle = invert
             }
 
-            // For closest match, we only have the byte array up to the closest match position, so we draw a truncated pat
+            drawPath(matchBytes)
         }
     }, [layout, entries, zoom, getNodeX, getNodeY, highlightedEntryIndex])
 
