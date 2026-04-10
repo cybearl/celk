@@ -8,7 +8,7 @@
  * @param inputSize The size of the input data in bytes.
  * @param outputData A pointer to an array where the computed hash will be stored
  * (must be at least 32 bytes).
- * @returns True if the hash was computed successfully, false otherwise.
+ * @return True if the hash was computed successfully, false otherwise.
  */
 bool sha256(const uint8_t* inputData, size_t inputSize, uint8_t* outputData);
 

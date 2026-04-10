@@ -7,32 +7,36 @@
 #include <random>
 #include <thread>
 
-void Engine::build(const std::vector<AddressDump>& dumps, const UserOptions& userOptions) {
-    std::random_device rd;
-    const uint64_t pcg64Seed = (static_cast<uint64_t>(rd()) << 32) | rd();
+void Engine::build(const std::vector<AddressDump>& addressDumps, const UserOptions& userOptions) {
+    std::random_device randomDevice;
+    const uint64_t pcg64Seed = (static_cast<uint64_t>(randomDevice()) << 32) | randomDevice();
 
-    for (const AddressDump& dump : dumps) {
+    for (const AddressDump& addressDump : addressDumps) {
         TargetAddress targetAddress;
-        targetAddress.id = dump.id;
-        targetAddress.type = dump.type;
-        targetAddress.rawBytes = hexStringToVector(dump.preEncoding.value_or(dump.value));
-        targetAddress.value = dump.value;
+        targetAddress.id = addressDump.id;
+        targetAddress.type = addressDump.type;
+        targetAddress.rawBytes = hexStringToVector(addressDump.preEncoding.value_or(addressDump.value));
+        targetAddress.value = addressDump.value;
 
-        if (dump.privateKeyRangeStart.has_value()) {
-            targetAddress.startRange = uint256_t(*dump.privateKeyRangeStart, 16);
+        if (addressDump.privateKeyRangeStart.has_value()) {
+            targetAddress.startRange = uint256_t(*addressDump.privateKeyRangeStart, 10);
         }
 
-        if (dump.privateKeyRangeEnd.has_value()) {
-            targetAddress.endRange = uint256_t(*dump.privateKeyRangeEnd, 16);
+        if (addressDump.privateKeyRangeEnd.has_value()) {
+            targetAddress.endRange = uint256_t(*addressDump.privateKeyRangeEnd, 10);
         }
 
-        // Find an existing group matching this dump's generator type
+        // Find an existing generator group matching this address dump's generator type.
+        // Note: Sequential generators are never merged, each address owns its range independently
+        // and must drive its own counter from `startRange` to `endRange` without clamping.
         GeneratorGroup* matchingGroup = nullptr;
 
-        for (GeneratorGroup& generatorGroup : generatorGroups) {
-            if (generatorGroup.generator->getType() == dump.privateKeyGenerator) {
-                matchingGroup = &generatorGroup;
-                break;
+        if (addressDump.privateKeyGenerator != AddressPrivateKeyGenerator::Sequential) {
+            for (GeneratorGroup& generatorGroup : generatorGroups) {
+                if (generatorGroup.generator->getType() == addressDump.privateKeyGenerator) {
+                    matchingGroup = &generatorGroup;
+                    break;
+                }
             }
         }
 
@@ -41,7 +45,7 @@ void Engine::build(const std::vector<AddressDump>& dumps, const UserOptions& use
         } else {
             GeneratorConfig config;
 
-            switch (dump.privateKeyGenerator) {
+            switch (addressDump.privateKeyGenerator) {
                 case AddressPrivateKeyGenerator::RandBytes:
                     config = RandBytesConfig {};
                     break;
@@ -61,19 +65,19 @@ void Engine::build(const std::vector<AddressDump>& dumps, const UserOptions& use
     std::vector<TargetAddress*> allTargetAddresses;
 
     if (userOptions.mixGenerators) {
-        for (GeneratorGroup& group : generatorGroups) {
-            auto groupTargetAddresses = group.getAllTargetAddresses();
+        for (GeneratorGroup& generatorGroup : generatorGroups) {
+            auto groupTargetAddresses = generatorGroup.getAllTargetAddresses();
 
             allTargetAddresses.insert(
                 allTargetAddresses.end(), groupTargetAddresses.begin(), groupTargetAddresses.end());
         }
     }
 
-    for (GeneratorGroup& group : generatorGroups) {
+    for (GeneratorGroup& generatorGroup : generatorGroups) {
         const std::vector<TargetAddress*>& targetAddresses
-            = userOptions.mixGenerators ? allTargetAddresses : group.getAllTargetAddresses();
+            = userOptions.mixGenerators ? allTargetAddresses : generatorGroup.getAllTargetAddresses();
 
-        group.initComparator(targetAddresses);
+        generatorGroup.initComparator(targetAddresses);
     }
 }
 
@@ -82,19 +86,25 @@ void Engine::run(
     std::vector<std::thread> threads;
     threads.reserve(generatorGroups.size());
 
-    for (GeneratorGroup& group : generatorGroups) {
+    for (GeneratorGroup& generatorGroup : generatorGroups) {
         threads.emplace_back([&]() {
             PublicKeysDeriver deriver;
             uint8_t rawPrivateKey[32];
             uint8_t effectivePrivateKey[32];
 
+            // Sequential generators produce keys that are already within `[startRange, endRange]`,
+            // applying `clampPrivateKeyToRange` on top would shift every key by `startRange`
+            // (effective = startRange + (raw % rangeSize)), so the target private key is
+            // only hit when `raw == rangeSize`, i.e. the very last iteration, so we're skipping clamping
+            const bool isSequential = generatorGroup.generator->getType() == AddressPrivateKeyGenerator::Sequential;
+
             while (!stopFlag.load(std::memory_order_relaxed)) {
-                if (!group.generator->next(rawPrivateKey)) {
+                if (!generatorGroup.generator->next(rawPrivateKey)) {
                     break; // Sequential generator exhausted its range
                 }
 
-                for (RangeSubGroup& subGroup : group.rangeSubGroups) {
-                    if (subGroup.rangeStart.has_value()) {
+                for (RangeSubGroup& subGroup : generatorGroup.rangeSubGroups) {
+                    if (!isSequential && subGroup.rangeStart.has_value()) {
                         clampPrivateKeyToRange(
                             rawPrivateKey, effectivePrivateKey, *subGroup.rangeStart, *subGroup.rangeEnd);
                     } else {
@@ -102,7 +112,7 @@ void Engine::run(
                     }
 
                     deriver.derive(effectivePrivateKey);
-                    const TargetAddress* matchingAddress = group.comparator->compare(deriver);
+                    const TargetAddress* matchingAddress = generatorGroup.comparator->compare(deriver);
 
                     if (matchingAddress) {
                         std::lock_guard<std::mutex> lock(matchState.stateMutex);
