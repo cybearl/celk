@@ -116,7 +116,8 @@ int main() {
 
         // Exit if the worker didn't receive the timeout in time
         if (elapsedTimeSinceLastHeartbeatAck >= startMessage.heartbeatTimeoutMs) {
-            std::cerr << "Heartbeat timeout: no ack received within " << startMessage.heartbeatTimeoutMs << "ms." << std::endl;
+            std::cerr << "Heartbeat timeout: no ack received within " << startMessage.heartbeatTimeoutMs << "ms."
+                      << std::endl;
             exit(1);
         }
 
@@ -152,20 +153,28 @@ int main() {
             lastReport = now;
         }
 
-        // Send a match to the manager
+        // Send one match message per pending match (queue prevents overwriting when two matches
+        // land in the same poll cycle, e.g. sequential pk=1 and pk=2 both found within 10 ms)
         if (matchState.isFound.exchange(false)) {
             std::lock_guard<std::mutex> lock(matchState.stateMutex);
 
-            WorkerMatchMessage message;
-            message.type = WorkerMessageType::Match;
-            message.addressListId = startMessage.addressListId;
-            message.address = matchState.address;
-            message.privateKey = matchState.privateKey;
-            message.totalAttempts = std::to_string(matchState.totalAttempts);
-            message.stopOnFirstMatch = startMessage.stopOnFirstMatch;
+            // Snapshot of the total attempts accumulated by past reports + pending in the atomic counter
+            const uint64_t attemptsSnapshot = matchState.totalAttempts + attempts.load(std::memory_order_relaxed);
 
-            std::string line = serializeJson(nlohmann::json(message));
-            ioWrite(line);
+            while (!matchState.pendingMatches.empty()) {
+                const PendingMatch& pending = matchState.pendingMatches.front();
+
+                WorkerMatchMessage message;
+                message.type = WorkerMessageType::Match;
+                message.addressListId = startMessage.addressListId;
+                message.address = pending.address;
+                message.privateKey = pending.privateKey;
+                message.totalAttempts = std::to_string(attemptsSnapshot);
+                message.stopOnFirstMatch = startMessage.stopOnFirstMatch;
+
+                ioWrite(serializeJson(nlohmann::json(message)));
+                matchState.pendingMatches.pop();
+            }
 
             if (startMessage.stopOnFirstMatch) {
                 stopFlag.store(true, std::memory_order_relaxed);
@@ -173,6 +182,34 @@ int main() {
         }
 
         if (stopFlag.load(std::memory_order_relaxed)) {
+            // Final report to flush any attempts that accumulated since the last periodic report
+            uint64_t drainedAttempts = attempts.exchange(0);
+
+            {
+                std::lock_guard<std::mutex> lock(matchState.stateMutex);
+                matchState.totalAttempts += drainedAttempts;
+            }
+
+            if (drainedAttempts > 0) {
+                WorkerReportMessage finalReport;
+                finalReport.type = WorkerMessageType::Report;
+                finalReport.addressListId = startMessage.addressListId;
+                finalReport.attempts = std::to_string(drainedAttempts);
+
+                for (const GeneratorGroup& generatorGroup : engine.generatorGroups) {
+                    for (const auto& [address, closestMatch] : generatorGroup.comparator->closestMatches) {
+                        auto iterator = finalReport.closestMatches.find(address);
+
+                        // Merge closest matches from all subgroups, keeping the best score per target
+                        if (iterator == finalReport.closestMatches.end() || closestMatch.score > iterator->second) {
+                            finalReport.closestMatches[address] = closestMatch.score;
+                        }
+                    }
+                }
+
+                ioWrite(serializeJson(nlohmann::json(finalReport)));
+            }
+
             break;
         }
 

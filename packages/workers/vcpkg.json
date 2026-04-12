@@ -6,7 +6,6 @@
         "nlohmann-json",
         "secp256k1",
         "openssl",
-        "keccak-tiny",
-        "pcg"
+"pcg"
     ]
 }

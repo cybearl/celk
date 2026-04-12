@@ -32,8 +32,7 @@ target_link_libraries(workerLib PUBLIC
     unofficial::secp256k1
     unofficial::secp256k1_precomputed
     OpenSSL::Crypto
-    unofficial::keccak-tiny::keccak-tiny
-    uint256_t
+uint256_t
 )
 
 # Executable
@@ -81,10 +80,10 @@ endif()
 # Tests
 enable_testing()
 
-file(GLOB_RECURSE TEST_SOURCES CONFIGURE_DEPENDS tests/*.cpp)
+file(GLOB_RECURSE TEST_SOURCES CONFIGURE_DEPENDS tests/*.cpp tests/**/*.cpp)
 add_executable(workerTests ${TEST_SOURCES})
 apply_compiler_flags(workerTests)
-target_link_libraries(workerTests PRIVATE worker_lib Catch2::Catch2WithMain)
+target_link_libraries(workerTests PRIVATE workerLib Catch2::Catch2WithMain)
 
 catch_discover_tests(workerTests)
 

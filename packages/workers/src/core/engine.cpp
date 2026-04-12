@@ -117,10 +117,18 @@ void Engine::run(
                     if (matchingAddress) {
                         std::lock_guard<std::mutex> lock(matchState.stateMutex);
 
-                        matchState.address = matchingAddress->value;
-                        matchState.privateKey
-                            = "0x" + vectorToHexString({ effectivePrivateKey, effectivePrivateKey + 32 });
-                        matchState.isFound.store(true, std::memory_order_relaxed);
+                        // Only queue the match if this address hasn't been matched yet,
+                        // prevents duplicates when "mixGenerators" is on and multiple threads
+                        // find the same address independently
+                        if (matchState.matchedAddresses.find(matchingAddress->value)
+                            == matchState.matchedAddresses.end()) {
+                            matchState.pendingMatches.push({
+                                matchingAddress->value,
+                                "0x" + vectorToHexString({ effectivePrivateKey, effectivePrivateKey + 32 }),
+                            });
+                            matchState.matchedAddresses.insert(matchingAddress->value);
+                            matchState.isFound.store(true, std::memory_order_relaxed);
+                        }
 
                         if (stopOnFirstMatch) {
                             stopFlag.store(true, std::memory_order_relaxed);

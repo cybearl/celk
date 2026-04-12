@@ -42,11 +42,8 @@ const TargetAddress* AddressComparator::compare(const PublicKeysDeriver& deriver
 
         for (const TargetAddress* targetAddress : targetAddressesByType[addressType]) {
             if (std::memcmp(hashBuffer, targetAddress->rawBytes.data(), size) == 0) {
-                // Make sure the closest match is updated
-                auto& closestMatch = closestMatches[targetAddress->value];
-                closestMatch.score = static_cast<uint8_t>(size);
-                closestMatch.bytes.assign(hashBuffer, hashBuffer + size);
-
+                // No need to update the closest match since an address match automatically
+                // updates the closest match inside the app
                 return targetAddress;
             }
 

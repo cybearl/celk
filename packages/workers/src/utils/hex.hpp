@@ -17,3 +17,11 @@ std::vector<uint8_t> hexStringToVector(const std::string& hexString);
  * @return A hexadecimal string representation of the byte array.
  */
 std::string vectorToHexString(const std::vector<uint8_t>& byteArray);
+
+/**
+ * @brief Converts a raw buffer into a lowercase hex string.
+ * @param buffer A pointer to the buffer to convert.
+ * @param length The number of bytes to read from the buffer.
+ * @return A lowercase hex string representation of the buffer contents.
+ */
+std::string bufferToHex(const uint8_t* buffer, size_t length);

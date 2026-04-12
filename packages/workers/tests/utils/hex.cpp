@@ -3,7 +3,7 @@
 #include <cstdint>
 #include <vector>
 
-TEST_CASE("hexStringToVector", "[hex]") {
+TEST_CASE("hexStringToVector", "[utils][hex]") {
     SECTION("plain hex string") {
         auto result = hexStringToVector("deadbeef");
         CHECK(result == std::vector<uint8_t> { 0xde, 0xad, 0xbe, 0xef });
@@ -40,7 +40,7 @@ TEST_CASE("hexStringToVector", "[hex]") {
     }
 }
 
-TEST_CASE("vectorToHexString", "[hex]") {
+TEST_CASE("vectorToHexString", "[utils][hex]") {
     SECTION("basic bytes") {
         std::string result = vectorToHexString({ 0xde, 0xad, 0xbe, 0xef });
         CHECK(result == "deadbeef");
@@ -62,17 +62,38 @@ TEST_CASE("vectorToHexString", "[hex]") {
     }
 }
 
-TEST_CASE("hex round-trip", "[hex]") {
+TEST_CASE("hex round-trip", "[utils][hex]") {
     SECTION("encode then decode") {
         std::vector<uint8_t> original = { 0x01, 0x23, 0x45, 0x67, 0x89, 0xab, 0xcd, 0xef };
+
         std::string hex = vectorToHexString(original);
         auto decoded = hexStringToVector(hex);
+
         CHECK(decoded == original);
     }
 
     SECTION("decode then encode") {
         std::string original = "7e5f4552091a69125d5dfcb7b8c2659029395bdf";
+
         auto bytes = hexStringToVector(original);
+
         CHECK(vectorToHexString(bytes) == original);
+    }
+}
+
+TEST_CASE("bufferToHex", "[utils][hex]") {
+    SECTION("basic buffer") {
+        uint8_t buffer[] = { 0xde, 0xad, 0xbe, 0xef };
+        CHECK(bufferToHex(buffer, 4) == "deadbeef");
+    }
+
+    SECTION("empty buffer") {
+        uint8_t* buffer = nullptr;
+        CHECK(bufferToHex(buffer, 0) == "");
+    }
+
+    SECTION("single byte") {
+        uint8_t buffer[] = { 0xff };
+        CHECK(bufferToHex(buffer, 1) == "ff");
     }
 }

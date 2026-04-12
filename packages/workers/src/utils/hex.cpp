@@ -37,3 +37,7 @@ std::string vectorToHexString(const std::vector<uint8_t>& byteArray) {
 
     return hexString;
 }
+
+std::string bufferToHex(const uint8_t* buffer, size_t length) {
+    return vectorToHexString({ buffer, buffer + length });
+}
