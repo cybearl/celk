@@ -38,13 +38,27 @@ export const buttonVariants = cva(
 
 export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement>, VariantProps<typeof buttonVariants> {
     isLoading?: boolean
+    disableAsyncLoading?: boolean
     asChild?: boolean
     disabledText?: string
     onClick?: (event: MouseEvent<HTMLButtonElement>) => void | Promise<void>
 }
 
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
-    ({ className, variant, size, isLoading = false, asChild = false, disabledText, onClick, ...props }, ref) => {
+    (
+        {
+            className,
+            variant,
+            size,
+            isLoading = false,
+            disableAsyncLoading = false,
+            asChild = false,
+            disabledText,
+            onClick,
+            ...props
+        },
+        ref,
+    ) => {
         const [isLoadingInternally, setIsLoadingInternally] = useState(false)
 
         const Comp = asChild ? Slot : "button"
@@ -86,7 +100,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         // Regular button handling, if the button is loading, we replace the
         // default props with loading props, note that it takes priority
         // over the disabled state
-        if (isLoading || isLoadingInternally) {
+        if (!disableAsyncLoading && (isLoading || isLoadingInternally)) {
             props["aria-busy"] = true
             props["aria-label"] = "Loading"
             props.title = "Loading"
@@ -105,7 +119,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
 
         // If the button is disabled, we keep the children as is in order to keep the same size,
         // we simply set the opacity to 0 for the children and add the disabled text on top of it
-        if (!isLoading && !isLoadingInternally && props.disabled && disabledText) {
+        if ((disableAsyncLoading || (!isLoading && !isLoadingInternally)) && props.disabled && disabledText) {
             props["aria-label"] = disabledText
             props.title = disabledText
             props.disabled = true

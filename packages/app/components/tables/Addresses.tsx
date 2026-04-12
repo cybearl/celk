@@ -1,4 +1,5 @@
 import ConfirmationDialog from "@app/components/dialogs/Confirmation"
+import PrivateKeyDialog from "@app/components/dialogs/PrivateKey"
 import ConcatenatedAddress from "@app/components/ui/addresses/ConcatenatedAddress"
 import { Button, LinkButton } from "@app/components/ui/Button"
 import { Checkbox } from "@app/components/ui/Checkbox"
@@ -24,8 +25,8 @@ import {
 import { formatAddressBalance, formatRawAddressBalance } from "@app/lib/base/utils/web3"
 import { deleteAddressById, updateAddressIsDisabled } from "@app/queries/addresses"
 import dedent from "dedent"
-import { LinkIcon, TrashIcon } from "lucide-react"
-import { useCallback, useMemo, useState } from "react"
+import { LinkIcon, LockKeyholeIcon, LockKeyholeOpenIcon, TrashIcon } from "lucide-react"
+import { useCallback, useEffect, useMemo, useState } from "react"
 
 type AddressesTableProps = {
     dynamicConfig: DynamicConfigSelectModel | null
@@ -35,6 +36,11 @@ type AddressesTableProps = {
 export default function AddressesTable({ dynamicConfig, addresses }: AddressesTableProps) {
     // A local state for optimistic updates
     const [localAddresses, setLocalAddresses] = useState<AddressSelectModel[]>(addresses ?? [])
+
+    // Sync local state when the SWR-patched prop changes (e.g. attempts, closestMatch, encryptedPrivateKey)
+    useEffect(() => {
+        setLocalAddresses(addresses ?? [])
+    }, [addresses])
 
     /**
      * A mapping of each address ID to its corresponding explorer URL.
@@ -133,7 +139,7 @@ export default function AddressesTable({ dynamicConfig, addresses }: AddressesTa
 
             <TableBody>
                 {addresses?.map(address => (
-                    <TableRow key={address.id}>
+                    <TableRow key={address.id} className={address.encryptedPrivateKey !== null ? "bg-accent/40" : ""}>
                         <TableCell className="font-medium">{address.name}</TableCell>
                         <TableCell>
                             <TextPopover>{address.description ?? undefined}</TextPopover>
@@ -217,6 +223,18 @@ export default function AddressesTable({ dynamicConfig, addresses }: AddressesTa
                             />
                         </TableCell>
                         <TableCell className="text-right flex justify-end gap-2">
+                            {address.encryptedPrivateKey === null ? (
+                                <Button variant="ghost" size="icon-sm" disabled>
+                                    <LockKeyholeIcon />
+                                </Button>
+                            ) : (
+                                <PrivateKeyDialog addressId={address.id} addressName={address.name}>
+                                    <Button variant="ghost" size="icon-sm">
+                                        <LockKeyholeOpenIcon />
+                                    </Button>
+                                </PrivateKeyDialog>
+                            )}
+
                             {addressExplorerUrlsMap[address.id] && (
                                 <LinkButton
                                     variant="ghost"

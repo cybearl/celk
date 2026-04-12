@@ -5,7 +5,7 @@ import Empty from "@app/components/ui/Empty"
 import Scrollbar from "@app/components/ui/Scrollbar"
 import ADDRESSES_CONFIG from "@app/config/addresses"
 import type { AddressSelectModel } from "@app/db/schema/address"
-import { convertAddressToBytes, convertHexAddressToBytes } from "@app/lib/base/utils/addresses"
+import { convertAddressToBytes, convertHexStringToBytes } from "@app/lib/base/utils/addresses"
 import { extractNumberFromLocalStorage } from "@app/lib/base/utils/localStorage"
 import { applyHexColorOpacity, invertHexColor } from "@app/lib/base/utils/miscellaneous"
 import ColorHash from "color-hash"
@@ -59,7 +59,7 @@ export default function TreeViewDashboardTab({ addresses }: TreeViewDashboardTab
                             bytes &&
                             address.closestMatch !== null &&
                             address.closestMatch > 0 &&
-                            address.closestMatch <= convertHexAddressToBytes(address.value).length
+                            address.closestMatch <= convertHexStringToBytes(address.value).length
                                 ? bytes.slice(0, address.closestMatch)
                                 : null,
                     }

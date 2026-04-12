@@ -13,7 +13,12 @@ export default function ConcatenatedAddress({ address, successCopyMessage }: Con
                 {address.slice(0, ADDRESSES_CONFIG.concatenationSize)}...
                 {address.slice(-ADDRESSES_CONFIG.concatenationSize)}
             </span>
-            <CopyToClipboard text={address} successMessage={successCopyMessage} />
+            <CopyToClipboard
+                buttonLabel="Copy address"
+                text={address}
+                successMessage={successCopyMessage}
+                variant="icon"
+            />
         </div>
     )
 }

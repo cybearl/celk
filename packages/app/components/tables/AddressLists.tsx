@@ -16,7 +16,7 @@ import {
 } from "@app/queries/addressLists"
 import dedent from "dedent"
 import { TrashIcon } from "lucide-react"
-import { useCallback, useMemo, useState } from "react"
+import { useCallback, useEffect, useMemo, useState } from "react"
 
 type AddressListsTableProps = {
     dynamicConfig: DynamicConfigSelectModel | null
@@ -26,6 +26,11 @@ type AddressListsTableProps = {
 export default function AddressListsTable({ dynamicConfig, addressLists }: AddressListsTableProps) {
     // A local state for optimistic updates
     const [localAddressLists, setLocalAddressLists] = useState<AddressListSelectModel[]>(addressLists ?? [])
+
+    // Sync local state when the SWR-patched prop changes (e.g. server-side auto-disable)
+    useEffect(() => {
+        setLocalAddressLists(addressLists ?? [])
+    }, [addressLists])
 
     /**
      * Contain the IDs of all enabled address lists.

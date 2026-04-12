@@ -1,7 +1,7 @@
 {
     "name": "@cybearl/celk",
     "productName": "celk",
-    "version": "0.0.2",
+    "version": "1.0.1",
     "author": "Cybearl <contact@cybearl.com> (https://www.cybearl.com/)",
     "license": "MIT",
     "private": true,
@@ -24,7 +24,7 @@
         "nohoist": []
     },
     "scripts": {
-        "v-bump": "yarn version --patch",
+        "v-bump": "yarn version --patch && yarn workspaces foreach -pt run v-bump",
         "knip": "knip",
         "app": "yarn workspace @cybearl/celk-app",
         "wrk": "yarn workspace @cybearl/celk-workers",

@@ -15,7 +15,7 @@ type ConfirmationDialogProps = {
     title: string
     description: string
     confirmButtonText: string
-    cancelButtonText: string
+    cancelButtonText?: string
     onConfirm?: () => void
     onCancel?: () => void
 }
@@ -49,15 +49,19 @@ export default function ConfirmationDialog({
 
     return (
         <Dialog open={isOpen} onOpenChange={setIsOpen}>
-            <DialogContent>
-                <DialogHeader>
-                    <DialogTitle>{title}</DialogTitle>
-                    <DialogDescription>{description}</DialogDescription>
+            <DialogContent className="overflow-hidden">
+                <DialogHeader className="w-0 min-w-full">
+                    <DialogTitle className="truncate">{title}</DialogTitle>
+                    <DialogDescription className="truncate">{description}</DialogDescription>
                 </DialogHeader>
+
                 <DialogFooter>
-                    <Button variant="outline" onClick={handleCancel}>
-                        {cancelButtonText}
-                    </Button>
+                    {cancelButtonText && (
+                        <Button variant="outline" onClick={handleCancel}>
+                            {cancelButtonText}
+                        </Button>
+                    )}
+
                     <Button onClick={handleConfirm}>{confirmButtonText}</Button>
                 </DialogFooter>
             </DialogContent>

@@ -13,9 +13,12 @@ import {
 import { Input } from "@app/components/ui/Input"
 import Scrollbar from "@app/components/ui/Scrollbar"
 import { Separator } from "@app/components/ui/Separator"
+import StatCard from "@app/components/ui/StatCard"
 import toast from "@app/components/ui/Toast"
 import type { DynamicConfigSelectModel } from "@app/db/schema/dynamicConfig"
+import { useAddressLists } from "@app/hooks/api/useAddressLists"
 import { useDynamicConfig } from "@app/hooks/api/useDynamicConfig"
+import { numericStringToFormatted } from "@app/lib/base/utils/numerics"
 import { updateDynamicConfig } from "@app/queries/dynamicConfig"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { TRPCClientError } from "@trpc/client"
@@ -72,6 +75,12 @@ function configToFormValues(config: DynamicConfigSelectModel): AdminConfigFormDa
 
 export default function AdminPanelDashboardTab({ dynamicConfig: initialConfig }: AdminPanelDashboardTabProps) {
     const { data: config } = useDynamicConfig(initialConfig)
+    const { data: addressLists } = useAddressLists()
+
+    /**
+     * Calculates the global hash rate from the address lists.
+     */
+    const globalHashRate = addressLists?.filter(l => l.isEnabled).reduce((sum, l) => sum + l.averageHashRate, 0) ?? 0
 
     const form = useForm<AdminConfigFormData>({
         resolver: zodResolver(adminConfigFormSchema),
@@ -116,6 +125,19 @@ export default function AdminPanelDashboardTab({ dynamicConfig: initialConfig }:
         <form className="flex flex-col gap-8 h-0 min-h-full" onSubmit={form.handleSubmit(handleSubmit)}>
             <Scrollbar className="border border-border p-4 bg-black/30">
                 <div className="flex-1 overflow-y-auto flex flex-col gap-8 pr-6">
+                    <div className="flex justify-between gap-4">
+                        <StatCard
+                            title="Total Attempts"
+                            value={config?.attempts ? numericStringToFormatted(config.attempts) : "N/A"}
+                        />
+                        <StatCard
+                            title="Average Hash Rate"
+                            value={globalHashRate > 0 ? `${globalHashRate.toLocaleString("en-US")} addr/s` : "N/A"}
+                        />
+                    </div>
+
+                    <Separator />
+
                     <FieldSet>
                         <FieldLegend>Flags</FieldLegend>
                         <FieldGroup>
