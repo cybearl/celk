@@ -83,6 +83,18 @@ export default async function seedAddresses() {
             privateKeyGenerator: ADDRESS_PRIVATE_KEY_GENERATOR.RandBytes,
             isDisabled: false,
         },
+        // TEST ONLY:
+        // Private key: 0000000000000000000000000000000000000000000000000000000000000a7b
+        {
+            name: "BTC Challenge - Puzzle #12",
+            network: ADDRESS_NETWORK.BITCOIN,
+            type: ADDRESS_TYPE.BTC_P2PKH,
+            value: "1DBaumZxUkM4qMQRt2LVWyFJq5kDtSZQot",
+            privateKeyGenerator: ADDRESS_PRIVATE_KEY_GENERATOR.PCG64,
+            privateKeyRangeStart: 0x800n,
+            privateKeyRangeEnd: 0xfffn,
+            isDisabled: false,
+        },
         {
             name: "BTC Challenge - Puzzle #71",
             network: ADDRESS_NETWORK.BITCOIN,

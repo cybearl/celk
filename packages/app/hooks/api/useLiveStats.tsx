@@ -2,20 +2,21 @@ import type { AddressSelectModel } from "@app/db/schema/address"
 import type { AddressListSelectModel } from "@app/db/schema/addressList"
 import type { DynamicConfigSelectModel } from "@app/db/schema/dynamicConfig"
 import useInterval from "@app/hooks/useInterval"
-import { getAddressAttempts } from "@app/queries/addresses"
-import { getAddressListAttempts } from "@app/queries/addressLists"
-import { getDynamicConfigAttempts } from "@app/queries/dynamicConfig"
+import { getAddressLiveStats } from "@app/queries/addresses"
+import { getAddressListLiveStats } from "@app/queries/addressLists"
+import { getDynamicConfigLiveStats } from "@app/queries/dynamicConfig"
 import { mutate } from "swr"
 
 /**
- * Polls the attempt counts for the config, addresses, and address lists at a given interval,
- * patching only the `attempts` field in each existing SWR cache without triggering a full revalidation.
+ * Polls live worker-updated stats (attempts, closest match, private key presence) for all
+ * cached entities at a given interval, patching only the changed fields in the SWR cache
+ * without triggering a full revalidation.
  * @param refreshIntervalMs The polling interval in milliseconds, or null to disable polling.
  */
-export function useAttemptsSync(refreshIntervalMs: number | null) {
+export function useLiveStats(refreshIntervalMs: number | null) {
     useInterval(() => {
         Promise.all([
-            getDynamicConfigAttempts().then(({ attempts }) =>
+            getDynamicConfigLiveStats().then(({ attempts }) =>
                 mutate(
                     ["config"],
                     (current: DynamicConfigSelectModel | undefined) =>
@@ -28,7 +29,7 @@ export function useAttemptsSync(refreshIntervalMs: number | null) {
                     { revalidate: false },
                 ),
             ),
-            getAddressAttempts().then(data =>
+            getAddressLiveStats().then(data =>
                 mutate(
                     ["addresses"],
                     (current: AddressSelectModel[] | undefined) =>
@@ -39,13 +40,15 @@ export function useAttemptsSync(refreshIntervalMs: number | null) {
                                 ? {
                                       ...address,
                                       attempts: updated.attempts,
+                                      closestMatch: updated.closestMatch,
+                                      encryptedPrivateKey: updated.encryptedPrivateKey,
                                   }
                                 : address
                         }),
                     { revalidate: false },
                 ),
             ),
-            getAddressListAttempts().then(data =>
+            getAddressListLiveStats().then(data =>
                 mutate(
                     ["address_lists"],
                     (current: AddressListSelectModel[] | undefined) =>
@@ -56,6 +59,8 @@ export function useAttemptsSync(refreshIntervalMs: number | null) {
                                 ? {
                                       ...list,
                                       attempts: updated.attempts,
+                                      isEnabled: updated.isEnabled,
+                                      averageHashRate: updated.averageHashRate,
                                   }
                                 : list
                         }),

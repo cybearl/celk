@@ -10,11 +10,12 @@ export async function getAddressLists() {
 }
 
 /**
- * Retrieves only the attempt counts for each address list by sending a query request to the tRPC API.
- * @returns An array of objects containing each address list ID and its current attempts count.
+ * Retrieves live worker-updated stats for each address list by sending a query request to the tRPC API.
+ * @returns An array of objects containing each address list ID, its current attempts count,
+ * and whether it is currently enabled.
  */
-export async function getAddressListAttempts() {
-    return await trpcClient.addressLists.getAttempts.query()
+export async function getAddressListLiveStats() {
+    return await trpcClient.addressLists.getLiveStats.query()
 }
 
 /**

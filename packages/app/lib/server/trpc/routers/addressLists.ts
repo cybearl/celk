@@ -26,13 +26,19 @@ export const addressListsRouter = router({
     }),
 
     /**
-     * Retrieves only the attempt counts for each address list belonging to the current user.
+     * Retrieves live worker-updated stats for each address list belonging to the current user.
      * @param ctx The request context.
-     * @returns An array of objects containing each address list ID and its current attempts count.
+     * @returns An array of objects containing each address list ID, its current attempts count,
+     * and whether it is currently enabled.
      */
-    getAttempts: unlockedProcedure.query(async ({ ctx }) => {
+    getLiveStats: unlockedProcedure.query(async ({ ctx }) => {
         return await db
-            .select({ id: scAddressList.id, attempts: scAddressList.attempts })
+            .select({
+                id: scAddressList.id,
+                attempts: scAddressList.attempts,
+                isEnabled: scAddressList.isEnabled,
+                averageHashRate: scAddressList.averageHashRate,
+            })
             .from(scAddressList)
             .where(eq(scAddressList.userId, ctx.session.user.id))
     }),
@@ -118,6 +124,7 @@ export const addressListsRouter = router({
                     isEnabled: false,
                     stopOnFirstMatch: false,
                     attempts: "0",
+                    averageHashRate: 0,
                     userId: ctx.session.user.id,
                 })
                 .returning()

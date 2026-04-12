@@ -11,6 +11,7 @@ import { convertBytesToHexAddress, decodeBitcoinAddress, isValidCryptoAddress } 
 import { hexToNumericString } from "@app/lib/base/utils/numerics"
 import { db } from "@app/lib/server/connectors/db"
 import { router, unlockedProcedure } from "@app/lib/server/trpc/trpc"
+import { decryptPrivateKey } from "@app/lib/server/utils/encryption"
 import { TRPCError } from "@trpc/server"
 import { and, count, desc, eq, getTableColumns, sql } from "drizzle-orm"
 import z from "zod"
@@ -51,13 +52,19 @@ export const addressesRouter = router({
     }),
 
     /**
-     * Retrieves only the attempt counts for each address belonging to the current user.
+     * Retrieves live worker-updated stats for each address belonging to the current user.
      * @param ctx The request context.
-     * @returns An array of objects containing each address ID and its current attempts count.
+     * @returns An array of objects containing each address ID, its current attempts count,
+     * its closest match score, and its encrypted private key (null if not yet found).
      */
-    getAttempts: unlockedProcedure.query(async ({ ctx }) => {
+    getLiveStats: unlockedProcedure.query(async ({ ctx }) => {
         return await db
-            .select({ id: scAddress.id, attempts: scAddress.attempts })
+            .select({
+                id: scAddress.id,
+                attempts: scAddress.attempts,
+                closestMatch: scAddress.closestMatch,
+                encryptedPrivateKey: scAddress.encryptedPrivateKey,
+            })
             .from(scAddress)
             .where(eq(scAddress.userId, ctx.session.user.id))
     }),
@@ -200,7 +207,6 @@ export const addressesRouter = router({
             .limit(1)
 
         if (!address) throw new TRPCError({ code: "NOT_FOUND" })
-
         return address
     }),
 
@@ -220,9 +226,35 @@ export const addressesRouter = router({
                 .returning()
 
             if (!address) throw new TRPCError({ code: "NOT_FOUND" })
-
             return address
         }),
+
+    /**
+     * Decrypts and returns the private key for an address owned by the current user.
+     * @param ctx The request context.
+     * @param input The input object containing the address ID.
+     * @returns The plaintext private key.
+     */
+    decryptPrivateKey: unlockedProcedure.input(z.object({ id: z.string() })).query(async ({ ctx, input }) => {
+        const [address] = await db
+            .select({ encryptedPrivateKey: scAddress.encryptedPrivateKey })
+            .from(scAddress)
+            .where(and(eq(scAddress.id, input.id), eq(scAddress.userId, ctx.session.user.id)))
+            .limit(1)
+
+        if (!address) throw new TRPCError({ code: "NOT_FOUND" })
+
+        if (!address.encryptedPrivateKey) {
+            throw new TRPCError({
+                code: "NOT_FOUND",
+                message: "No private key found for this address.",
+            })
+        }
+
+        return {
+            privateKey: decryptPrivateKey(address.encryptedPrivateKey),
+        }
+    }),
 
     /**
      * Deletes an address by its ID.
@@ -235,9 +267,6 @@ export const addressesRouter = router({
             .where(and(eq(scAddress.id, input.id), eq(scAddress.userId, ctx.session.user.id)))
 
         if (result.rowCount === 0) throw new TRPCError({ code: "NOT_FOUND" })
-
-        return {
-            success: true,
-        }
+        return { success: true }
     }),
 })

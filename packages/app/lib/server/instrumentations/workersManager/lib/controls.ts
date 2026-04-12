@@ -17,6 +17,8 @@ import {
 import { sendMatchAlert } from "@app/lib/server/utils/emails"
 import { encryptPrivateKey } from "@app/lib/server/utils/encryption"
 import {
+    dbAutoDisableAddressListIfAllMatched,
+    dbCalculateAverageAddressListHashRate,
     dbDisableAddressList,
     dbGetAddressListWithUser,
     dbIncrementAttemptCounts,
@@ -79,6 +81,11 @@ function routeWorkerMessage(
                 workerLogger.error(`Failed to update closest matches:`, { data: error })
             })
 
+            // Fire-and-forget update the average hash rate for this address list
+            dbCalculateAverageAddressListHashRate(message.attempts, message.addressListId).catch(error => {
+                workerLogger.error(`Failed to update average hash rate:`, { data: error })
+            })
+
             break
         case WORKER_MESSAGE_TYPE.Match: {
             let encryptedPrivateKey: string
@@ -104,10 +111,12 @@ function routeWorkerMessage(
                 // Continuing as local failure must not block DB/email
             }
 
-            // DB persistence
-            dbSaveWorkerMatchToDb(message.addressListId, message.address, encryptedPrivateKey).catch(error => {
-                workerLogger.error(`Failed to save match to DB:`, { data: error })
-            })
+            // Disabling list of all address matched only after saving the match
+            dbSaveWorkerMatchToDb(message.addressListId, message.address, encryptedPrivateKey)
+                .then(() => dbAutoDisableAddressListIfAllMatched(message.addressListId))
+                .catch(error => {
+                    workerLogger.error(`Failed to save match to DB or auto-disable address list:`, { data: error })
+                })
 
             // Email alert
             dbGetAddressListWithUser(message.addressListId)

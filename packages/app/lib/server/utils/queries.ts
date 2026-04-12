@@ -1,11 +1,12 @@
 import scAddress from "@app/db/schema/address"
-import scAddressList from "@app/db/schema/addressList"
+import scAddressList, { type AddressListInsertModel } from "@app/db/schema/addressList"
 import scPvtAddressListMember from "@app/db/schema/addressListMember"
-import scDynamicConfig, { DYNAMIC_CONFIG_ID } from "@app/db/schema/dynamicConfig"
+import scDynamicConfig, { DYNAMIC_CONFIG_ID, type DynamicConfigInsertModel } from "@app/db/schema/dynamicConfig"
 import scUser from "@app/db/schema/user"
 import scUserOptions from "@app/db/schema/userOptions"
+import { convertHexStringToBytes } from "@app/lib/base/utils/addresses"
 import { db } from "@app/lib/server/connectors/db"
-import { and, asc, eq, inArray, lt, sql } from "drizzle-orm"
+import { and, asc, count, eq, inArray, isNull, lt, sql } from "drizzle-orm"
 
 /**
  * Retrieves the dynamic application config from the database (single row table).
@@ -14,6 +15,14 @@ import { and, asc, eq, inArray, lt, sql } from "drizzle-orm"
 export async function dbGetDynamicConfig() {
     const [config] = await db.select().from(scDynamicConfig).where(eq(scDynamicConfig.id, DYNAMIC_CONFIG_ID)).limit(1)
     return config
+}
+
+/**
+ * Updates the dynamic application config in the database.
+ * @param config The updated config object.
+ */
+export async function dbUpdateDynamicConfig(config: Partial<DynamicConfigInsertModel>) {
+    await db.update(scDynamicConfig).set(config).where(eq(scDynamicConfig.id, DYNAMIC_CONFIG_ID)).execute()
 }
 
 /**
@@ -151,23 +160,71 @@ export async function dbGetAddressListWithUser(addressListId: string) {
 }
 
 /**
+ * Update any value inside an address list.
+ * @param addressListId The ID of the address list to update.
+ * @param updates An object containing the fields to update and their new values.
+ */
+export async function dbUpdateAddressList(addressListId: string, updates: Partial<AddressListInsertModel>) {
+    await db.update(scAddressList).set(updates).where(eq(scAddressList.id, addressListId)).execute()
+}
+
+/**
+ * Calculates and updates the average hash rate for a specific address list.
+ *
+ * Note: all calculations are done via SQL to avoid loading extra rows per report.
+ * The interval is read from the config via a scalar subquery so no extra round-trip is needed.
+ * @param lastReportAttempts The number of attempts from the last report.
+ * @param addressListId The ID of the address list to update.
+ */
+export async function dbCalculateAverageAddressListHashRate(lastReportAttempts: string | number, addressListId: string) {
+    const intervalSubquery = db
+        .select({ val: scDynamicConfig.workerReportIntervalMs })
+        .from(scDynamicConfig)
+        .where(eq(scDynamicConfig.id, DYNAMIC_CONFIG_ID))
+        .limit(1)
+
+    await db
+        .update(scAddressList)
+        .set({
+            averageHashRate: sql`
+                ROUND(
+                    CASE WHEN ${scAddressList.averageHashRate} = 0
+                        THEN ${String(lastReportAttempts)}::numeric / ((${intervalSubquery}) / 1000.0)
+                        ELSE (${String(lastReportAttempts)}::numeric / ((${intervalSubquery}) / 1000.0) + ${scAddressList.averageHashRate}) / 2
+                    END
+                )::integer
+            `,
+        })
+        .where(eq(scAddressList.id, addressListId))
+        .execute()
+}
+
+/**
  * Save a worker match to the database.
  * @param addressListId The ID of the address list to save the match for.
- * @param address The address to save.
+ * @param addressValue The value of the address to save.
  * @param encryptedPrivateKey The encrypted private key to save.
  * @returns The ID of the saved match, or null if not found.
  */
-export async function dbSaveWorkerMatchToDb(addressListId: string, address: string, encryptedPrivateKey: string) {
+export async function dbSaveWorkerMatchToDb(addressListId: string, addressValue: string, encryptedPrivateKey: string) {
     const [row] = await db
         .select({ id: scAddress.id })
         .from(scAddress)
         .innerJoin(scPvtAddressListMember, eq(scPvtAddressListMember.addressId, scAddress.id))
-        .where(and(eq(scPvtAddressListMember.addressListId, addressListId), eq(scAddress.value, address)))
+        .where(and(eq(scPvtAddressListMember.addressListId, addressListId), eq(scAddress.value, addressValue)))
         .limit(1)
 
     if (!row) return // address not found, local file is the fallback
 
-    await db.update(scAddress).set({ privateKey: encryptedPrivateKey }).where(eq(scAddress.id, row.id)).execute()
+    await db
+        .update(scAddress)
+        .set({
+            encryptedPrivateKey,
+            // Also update the closest match to the max score
+            closestMatch: convertHexStringToBytes(addressValue).length,
+        })
+        .where(eq(scAddress.id, row.id))
+        .execute()
 }
 
 /**
@@ -176,6 +233,21 @@ export async function dbSaveWorkerMatchToDb(addressListId: string, address: stri
  */
 export async function dbDisableAddressList(addressListId: string) {
     await db.update(scAddressList).set({ isEnabled: false }).where(eq(scAddressList.id, addressListId)).execute()
+}
+
+/**
+ * Disables an address list if all its addresses now have a private key (i.e., are fully matched).
+ * @param addressListId The ID of the address list to check and potentially disable.
+ */
+export async function dbAutoDisableAddressListIfAllMatched(addressListId: string) {
+    const [row] = await db
+        .select({ count: count() })
+        .from(scAddress)
+        .innerJoin(scPvtAddressListMember, eq(scPvtAddressListMember.addressId, scAddress.id))
+        .where(and(eq(scPvtAddressListMember.addressListId, addressListId), isNull(scAddress.encryptedPrivateKey)))
+
+    // (Row count of 0 = all addresses inside the address list have a registered private key)
+    if (row && row.count === 0) await dbDisableAddressList(addressListId)
 }
 
 /**

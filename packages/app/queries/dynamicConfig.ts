@@ -10,11 +10,11 @@ export async function getDynamicConfig() {
 }
 
 /**
- * Retrieves only the global attempt counts from the config by sending a query request to the tRPC API.
- * @returns An object containing the current attempts count.
+ * Retrieves the dynamic application config global live stats.
+ * @returns An object containing the current global live stats.
  */
-export async function getDynamicConfigAttempts() {
-    return await trpcClient.dynamicConfig.getAttempts.query()
+export async function getDynamicConfigLiveStats() {
+    return await trpcClient.dynamicConfig.getLiveStats.query()
 }
 
 /**

@@ -78,7 +78,7 @@ const scAddress = pgTable(
 
         // Private key and optional ranges for its generation
         privateKeyGenerator: PG_ADDRESS_PRIVATE_KEY_GENERATOR("private_key_generator").notNull(),
-        privateKey: text("private_key"),
+        encryptedPrivateKey: text("encrypted_private_key"),
         privateKeyRangeStart: numeric("private_key_range_start"),
         privateKeyRangeEnd: numeric("private_key_range_end"),
 

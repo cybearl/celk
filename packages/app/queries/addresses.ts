@@ -21,11 +21,12 @@ export async function getAddressBalances() {
 }
 
 /**
- * Retrieves only the attempt counts for each address by sending a query request to the tRPC API.
- * @returns An array of objects containing each address ID and its current attempts count.
+ * Retrieves live worker-updated stats for each address by sending a query request to the tRPC API.
+ * @returns An array of objects containing each address ID, its current attempts count,
+ * its closest match score, and its encrypted private key (null if not yet found).
  */
-export async function getAddressAttempts() {
-    return await trpcClient.addresses.getAttempts.query()
+export async function getAddressLiveStats() {
+    return await trpcClient.addresses.getLiveStats.query()
 }
 
 /**
@@ -65,6 +66,15 @@ export async function getAddressById(id: string) {
  */
 export async function updateAddressIsDisabled(id: string, isDisabled: boolean) {
     return await trpcClient.addresses.updateIsDisabled.mutate({ id, isDisabled })
+}
+
+/**
+ * Decrypts and retrieves the plaintext private key for a given address.
+ * @param id The ID of the address whose private key to decrypt.
+ * @returns An object containing the plaintext private key.
+ */
+export async function decryptAddressPrivateKey(id: string) {
+    return await trpcClient.addresses.decryptPrivateKey.query({ id })
 }
 
 /**

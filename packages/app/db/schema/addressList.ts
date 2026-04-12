@@ -1,6 +1,6 @@
 import scUser from "@app/db/schema/user"
 import type { InferInsertModel, InferSelectModel } from "drizzle-orm"
-import { boolean, numeric, pgTable, text, timestamp, unique } from "drizzle-orm/pg-core"
+import { boolean, integer, numeric, pgTable, text, timestamp, unique } from "drizzle-orm/pg-core"
 
 /**
  * The schema for address lists.
@@ -16,6 +16,9 @@ const scAddressList = pgTable(
         description: text("description"),
         attempts: numeric("attempts").notNull(),
         latestDumpId: text("latest_dump_id"),
+
+        // Stats
+        averageHashRate: integer("average_hash_rate").notNull(),
 
         // Flags
         isEnabled: boolean("is_enabled").notNull(),

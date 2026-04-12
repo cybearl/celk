@@ -102,32 +102,32 @@ export function getAddressPrefix({ address, type }: { address?: string; type?: A
 
 /**
  * Gets the type of an address depending on its prefix.
- * @param address The address to get the type for.
+ * @param address The value of the address to get the type for.
  * @returns The type of the address, or null if the format is unrecognized.
  */
-export function getAddressType(address: string): ADDRESS_TYPE | null {
-    if (address.startsWith("0x")) return ADDRESS_TYPE.ETHEREUM
-    if (address.startsWith("1")) return ADDRESS_TYPE.BTC_P2PKH
-    if (address.startsWith("bc1q")) return ADDRESS_TYPE.BTC_P2WPKH
-    if (address.startsWith("3")) return ADDRESS_TYPE.BTC_P2SH
-    if (address.startsWith("bc1p")) return ADDRESS_TYPE.BTC_P2TR
+export function getAddressType(addressValue: string): ADDRESS_TYPE | null {
+    if (addressValue.startsWith("0x")) return ADDRESS_TYPE.ETHEREUM
+    if (addressValue.startsWith("1")) return ADDRESS_TYPE.BTC_P2PKH
+    if (addressValue.startsWith("bc1q")) return ADDRESS_TYPE.BTC_P2WPKH
+    if (addressValue.startsWith("3")) return ADDRESS_TYPE.BTC_P2SH
+    if (addressValue.startsWith("bc1p")) return ADDRESS_TYPE.BTC_P2TR
     return null
 }
 
 /**
  * Gets the URL to the explorer for a given address on a given network.
- * @param address The address to get the explorer URL for.
+ * @param addressValue The value of the address to get the explorer URL for.
  * @param network The network of the address.
  * @returns The URL to the explorer for the given address on the given network.
  */
-export function getAddressExplorerUrl(address: string, network: ADDRESS_NETWORK) {
+export function getAddressExplorerUrl(addressValue: string, network: ADDRESS_NETWORK) {
     switch (network) {
         case ADDRESS_NETWORK.BITCOIN:
-            return `https://www.blockchain.com/explorer/addresses/btc/${address}`
+            return `https://www.blockchain.com/explorer/addresses/btc/${addressValue}`
         case ADDRESS_NETWORK.ETHEREUM:
-            return `https://etherscan.io/address/${address}`
+            return `https://etherscan.io/address/${addressValue}`
         case ADDRESS_NETWORK.POLYGON:
-            return `https://polygonscan.com/address/${address}`
+            return `https://polygonscan.com/address/${addressValue}`
         default:
             return null
     }
@@ -135,12 +135,12 @@ export function getAddressExplorerUrl(address: string, network: ADDRESS_NETWORK)
 
 /**
  * Converts a hex string (with or without "0x" prefix) to a `Uint8Array` of bytes.
- * @param hexAddress The hex string to convert.
+ * @param hexString The hex string to convert.
  * @return A `Uint8Array` containing the bytes represented by the hex string.
  */
-export function convertHexAddressToBytes(hexAddress: string): Uint8Array {
+export function convertHexStringToBytes(hexString: string): Uint8Array {
     // Remove "0x" prefix and whitespace
-    const strippedHexAddress = hexAddress.replace(/^0x/i, "").replace(/\s+/g, "")
+    const strippedHexAddress = hexString.replace(/^0x/i, "").replace(/\s+/g, "")
     if (!strippedHexAddress.length) return new Uint8Array(0)
 
     // Pad with leading zero if the length is odd
@@ -180,10 +180,10 @@ export function convertBytesToHexAddress(bytes: Uint8Array): string {
  */
 export function convertAddressToBytes(address: AddressSelectModel): Uint8Array | null {
     // Prefer pre-encoding (raw bytes before Base58/encoding)
-    if (address.preEncoding) return convertHexAddressToBytes(address.preEncoding)
+    if (address.preEncoding) return convertHexStringToBytes(address.preEncoding)
 
     // Fallback to Ethereum hex format
-    if (/^0x[0-9a-f]*/i.test(address.value)) return convertHexAddressToBytes(address.value)
+    if (/^0x[0-9a-f]*/i.test(address.value)) return convertHexStringToBytes(address.value)
 
     return null
 }

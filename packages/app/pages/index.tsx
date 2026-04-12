@@ -11,9 +11,9 @@ import type { SerializedAddressSelectModel } from "@app/db/schema/address"
 import type { SerializedAddressListSelectModel } from "@app/db/schema/addressList"
 import type { DynamicConfigSelectModel, SerializedDynamicConfigSelectModel } from "@app/db/schema/dynamicConfig"
 import type { UserOptionsSelectModel } from "@app/db/schema/userOptions"
-import { useAttemptsSync } from "@app/hooks/api/useAttemptsSync"
 import { useBalancesSync } from "@app/hooks/api/useBalancesSync"
 import { useDynamicConfig } from "@app/hooks/api/useDynamicConfig"
+import { useLiveStats } from "@app/hooks/api/useLiveStats"
 import { numericStringToFormatted } from "@app/lib/base/utils/numerics"
 import { appRouter } from "@app/lib/server/trpc/routers/_app"
 import { withSession } from "@app/lib/server/utils/session"
@@ -97,9 +97,8 @@ export default function Homepage({
     // Sync the address balances
     useBalancesSync(session && dynamicConfig ? dynamicConfig.balanceCheckerDelayMs : null)
 
-    // Sync the attempt counts for the config, addresses, and address lists
-    // at a regular interval defined in the config
-    useAttemptsSync(session && dynamicConfig ? dynamicConfig.workerReportIntervalMs : null)
+    // Sync the different stats for addresses/address lists
+    useLiveStats(session && dynamicConfig ? dynamicConfig.workerReportIntervalMs : null)
 
     return (
         <MainLayout

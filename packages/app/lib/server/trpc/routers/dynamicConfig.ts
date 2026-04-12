@@ -27,10 +27,10 @@ export const dynamicConfigRouter = router({
     }),
 
     /**
-     * Retrieves only the global attempt counts from the dynamic application config row.
-     * @returns An object containing the current attempts count.
+     * Retrieves the dynamic application config global live stats.
+     * @returns An object containing the current global live stats.
      */
-    getAttempts: publicProcedure.query(async () => {
+    getLiveStats: publicProcedure.query(async () => {
         const [config] = await db
             .select({ attempts: scConfig.attempts })
             .from(scConfig)
