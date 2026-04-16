@@ -1,15 +1,9 @@
-import type { ADDRESS_NETWORK, ADDRESS_PRIVATE_KEY_GENERATOR, ADDRESS_TYPE } from "@app/db/schema/address"
-import type { UserOptionsSelectModel } from "@app/db/schema/userOptions"
+import type { ADDRESS_NETWORK, ADDRESS_PRIVATE_KEY_GENERATOR, ADDRESS_TYPE } from "./address"
+import type { WorkerUserOptions } from "./userOptions"
 
 /**
- * Note: All change to the protocol should be reflected in the worker's `protocol.hpp` file,
- * and any affiliated code that uses the protocol.
+ * Note: All changes to the protocol should be reflected on the C++ side of the Celk protocol.
  */
-
-/**
- * The subset of user options passed to each worker via the start message.
- */
-export type WorkerUserOptions = Pick<UserOptionsSelectModel, "autoDisableZeroBalance" | "mixGenerators">
 
 /**
  * The available types of messages between the main process and the worker.
@@ -36,6 +30,22 @@ export type WorkerMessage = {
 }
 
 /**
+ * The way that addresses are represented inside the protocol (inline payload).
+ */
+export type AddressDump = {
+    id: string
+    name: string
+    network: ADDRESS_NETWORK
+    type: ADDRESS_TYPE
+    value: string
+    preEncoding: string | null
+    privateKeyGenerator: ADDRESS_PRIVATE_KEY_GENERATOR
+    privateKeyRangeStart: string | null
+    privateKeyRangeEnd: string | null
+    addressListId: string
+}
+
+/**
  * The type for a start message sent from the main process to the worker.
  */
 export type StartWorkerMessage = WorkerMessage & {
@@ -45,7 +55,7 @@ export type StartWorkerMessage = WorkerMessage & {
     heartbeatTimeoutMs: number
     stopOnFirstMatch: boolean
     userOptions: WorkerUserOptions
-    addressesDumpFilePath: string
+    addressDumps: AddressDump[]
 }
 
 /**
@@ -74,7 +84,9 @@ export type WorkerHeartbeatMessage = WorkerMessage & {
  * The type for closest matches attached to addresses inside a report message
  * sent from the worker to the main process.
  */
-export type AddressClosestMatches = { [addressValue: string]: number }
+export type AddressClosestMatches = {
+    [addressValue: string]: number
+}
 
 /**
  * The type for a report message sent from the worker to the main process,
@@ -115,34 +127,10 @@ export type AnyIncomingWorkerMessage =
     | WorkerErrorMessage
 
 /**
- * The format of the metadata file for an address list dump.
- */
-export type AddressListDumpMetadata = {
-    id: string
-    version: number
-}
-
-/**
- * The way that addresses are represented inside the JSON dump files.
- */
-export type AddressDump = {
-    id: string
-    name: string
-    network: ADDRESS_NETWORK
-    type: ADDRESS_TYPE
-    value: string
-    preEncoding: string | null
-    privateKeyGenerator: ADDRESS_PRIVATE_KEY_GENERATOR
-    privateKeyRangeStart: string | null
-    privateKeyRangeEnd: string | null
-    addressListId: string
-}
-
-/**
- * A local representation of a match found by the worker (local save).
+ * A local representation of a match found by the worker.
  *
- * Note: Not synced with the worker's `protocol.hpp` file, as it's only used for
- * local saves and not for communication between the worker and the main process.
+ * Note: Not synced with the worker's `protocol.hpp` file, used only for local saves
+ * (orchestrator / runner side) and never sent over stdin/stdout.
  */
 export type AddressMatch = {
     addressListId: string

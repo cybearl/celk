@@ -26,7 +26,9 @@ const scPvtAddressListMember = pgTable(
         createdAt: timestamp("created_at").notNull().defaultNow(),
         updatedAt: timestamp("updated_at").notNull().defaultNow(),
     },
-    table => [unique("address_list_members_address_list_id_address_id_unique").on(table.addressListId, table.addressId)],
+    table => [
+        unique("address_list_members_address_list_id_address_id_unique").on(table.addressListId, table.addressId),
+    ],
 )
 
 export default scPvtAddressListMember

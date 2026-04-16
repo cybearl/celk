@@ -1,3 +1,5 @@
+import path from "node:path"
+
 /**
  * Required environment variables for the application.
  */
@@ -22,7 +24,9 @@ export const REQUIRED_ENV_VARS = {
         "SMTP_PORT",
         "SMTP_USER",
         "SMTP_PASSWORD",
-        "ADDRESS_LIST_DUMP_VERSION",
+        "RABBITMQ_URL",
+        "RABBITMQ_WORKER_COMMANDS_QUEUE",
+        "RABBITMQ_WORKER_EVENTS_QUEUE",
         "PRIVATE_KEYS_ENCRYPTION_SECRET",
         "WORKER_BIN_PATH",
         "DATA_DIR_PATH",
@@ -61,11 +65,16 @@ export const PRIVATE_ENV = {
         user: process.env.SMTP_USER as string | undefined,
         password: process.env.SMTP_PASSWORD as string | undefined,
     },
-    addressListDumpVersion: process.env.ADDRESS_LIST_DUMP_VERSION ? Number(process.env.ADDRESS_LIST_DUMP_VERSION) : 1,
+    rabbitmq: {
+        url: process.env.RABBITMQ_URL as string,
+        workerCommandsQueue: process.env.RABBITMQ_WORKER_COMMANDS_QUEUE as string,
+        workerEventsQueue: process.env.RABBITMQ_WORKER_EVENTS_QUEUE as string,
+    },
     privateKeysEncryptionSecret: process.env.PRIVATE_KEYS_ENCRYPTION_SECRET as string,
     paths: {
         workerBin: process.env.WORKER_BIN_PATH as string,
         dataDir: process.env.DATA_DIR_PATH as string,
+        matchesDir: path.join(process.env.DATA_DIR_PATH as string, "matches"),
     },
 }
 
@@ -91,7 +100,9 @@ export const ENV_RUNTIME_VALUES: Record<string, string | undefined> = {
     SMTP_PORT: process.env.SMTP_PORT,
     SMTP_USER: process.env.SMTP_USER,
     SMTP_PASSWORD: process.env.SMTP_PASSWORD,
-    ADDRESS_LIST_DUMP_VERSION: process.env.ADDRESS_LIST_DUMP_VERSION,
+    RABBITMQ_URL: process.env.RABBITMQ_URL,
+    RABBITMQ_WORKER_COMMANDS_QUEUE: process.env.RABBITMQ_WORKER_COMMANDS_QUEUE,
+    RABBITMQ_WORKER_EVENTS_QUEUE: process.env.RABBITMQ_WORKER_EVENTS_QUEUE,
     PRIVATE_KEYS_ENCRYPTION_SECRET: process.env.PRIVATE_KEYS_ENCRYPTION_SECRET,
     WORKER_BIN_PATH: process.env.WORKER_BIN_PATH,
     DATA_DIR_PATH: process.env.DATA_DIR_PATH,

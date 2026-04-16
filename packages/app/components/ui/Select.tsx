@@ -128,7 +128,10 @@ export function SelectScrollUpButton({ className, ...props }: ComponentProps<typ
     )
 }
 
-export function SelectScrollDownButton({ className, ...props }: ComponentProps<typeof SelectPrimitive.ScrollDownButton>) {
+export function SelectScrollDownButton({
+    className,
+    ...props
+}: ComponentProps<typeof SelectPrimitive.ScrollDownButton>) {
     return (
         <SelectPrimitive.ScrollDownButton
             data-slot="select-scroll-down-button"
@@ -142,4 +145,3 @@ export function SelectScrollDownButton({ className, ...props }: ComponentProps<t
         </SelectPrimitive.ScrollDownButton>
     )
 }
-

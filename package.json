@@ -24,12 +24,10 @@
         "nohoist": []
     },
     "scripts": {
-        "v-bump": "yarn version --patch && yarn workspaces foreach -pt run v-bump",
-        "knip": "knip",
         "app": "yarn workspace @cybearl/celk-app",
-        "wrk": "yarn workspace @cybearl/celk-workers",
-        "lint": "yarn workspace @cybearl/celk-app lint && yarn workspace @cybearl/celk-workers lint",
-        "lint:fix": "yarn workspace @cybearl/celk-app lint:fix && yarn workspace @cybearl/celk-workers lint:fix"
+        "prt": "yarn workspace @cybearl/celk-protocol",
+        "rnr": "yarn workspace @cybearl/celk-runner",
+        "wrk": "yarn workspace @cybearl/celk-workers"
     },
     "devDependencies": {
         "@biomejs/biome": "^2.3.14",
@@ -37,7 +35,6 @@
         "@types/react": "^19.2.13",
         "@types/react-dom": "^19.1.1",
         "concurrently": "^9.2.1",
-        "knip": "^5.83.1",
         "tsconfig-paths": "^4.2.0",
         "typescript": "^5.8.3",
         "yarn": "^1.22.22"

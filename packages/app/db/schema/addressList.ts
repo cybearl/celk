@@ -15,7 +15,6 @@ const scAddressList = pgTable(
         name: text("name").notNull(),
         description: text("description"),
         attempts: numeric("attempts").notNull(),
-        latestDumpId: text("latest_dump_id"),
 
         // Stats
         averageHashRate: integer("average_hash_rate").notNull(),

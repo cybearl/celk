@@ -1,9 +1,5 @@
-import {
-    ADDRESS_NETWORK,
-    ADDRESS_PRIVATE_KEY_GENERATOR,
-    ADDRESS_TYPE,
-    type AddressSelectModel,
-} from "@app/db/schema/address"
+import type { AddressSelectModel } from "@app/db/schema/address"
+import { ADDRESS_NETWORK, ADDRESS_PRIVATE_KEY_GENERATOR, ADDRESS_TYPE } from "@cybearl/celk-protocol"
 import { sha256 } from "@noble/hashes/sha2.js"
 import { base58, bech32, bech32m, createBase58check } from "@scure/base"
 
@@ -25,6 +21,8 @@ export function getFormattedAddressNetwork(network: ADDRESS_NETWORK) {
             return "Ethereum"
         case ADDRESS_NETWORK.POLYGON:
             return "Polygon"
+        case ADDRESS_NETWORK.BSC:
+            return "Binance Smart Chain"
         default:
             return network
     }
@@ -63,6 +61,7 @@ export function getCompatibleAddressTypes(network: ADDRESS_NETWORK): ADDRESS_TYP
             return [ADDRESS_TYPE.BTC_P2PKH, ADDRESS_TYPE.BTC_P2WPKH, ADDRESS_TYPE.BTC_P2SH, ADDRESS_TYPE.BTC_P2TR]
         case ADDRESS_NETWORK.ETHEREUM:
         case ADDRESS_NETWORK.POLYGON:
+        case ADDRESS_NETWORK.BSC:
             return [ADDRESS_TYPE.ETHEREUM]
         default:
             return []
@@ -128,6 +127,8 @@ export function getAddressExplorerUrl(addressValue: string, network: ADDRESS_NET
             return `https://etherscan.io/address/${addressValue}`
         case ADDRESS_NETWORK.POLYGON:
             return `https://polygonscan.com/address/${addressValue}`
+        case ADDRESS_NETWORK.BSC:
+            return `https://bscscan.com/address/${addressValue}`
         default:
             return null
     }
@@ -251,8 +252,6 @@ export function isValidCryptoAddress(type: ADDRESS_TYPE, value: string): boolean
             }
         }
     }
-
-    return false
 }
 
 /**

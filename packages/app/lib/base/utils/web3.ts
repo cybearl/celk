@@ -1,4 +1,5 @@
-import { ADDRESS_NETWORK, type AddressSelectModel } from "@app/db/schema/address"
+import type { AddressSelectModel } from "@app/db/schema/address"
+import { ADDRESS_NETWORK } from "@cybearl/celk-protocol"
 
 /**
  * Converts a numeric representing an Eth-based value in `GWei` to a human-readable format in `ether`.
@@ -35,12 +36,12 @@ export function formatSatoshisToBitcoin(satoshiValue: string, decimalPlaces = 2)
  */
 export function getRawAddressBalanceUnit(address: AddressSelectModel): string {
     switch (address.network) {
-        case ADDRESS_NETWORK.ETHEREUM:
-        case ADDRESS_NETWORK.BSC:
-        case ADDRESS_NETWORK.POLYGON:
-            return "GWei"
         case ADDRESS_NETWORK.BITCOIN:
             return "Satoshi(s)"
+        case ADDRESS_NETWORK.ETHEREUM:
+        case ADDRESS_NETWORK.POLYGON:
+        case ADDRESS_NETWORK.BSC:
+            return "GWei"
         default:
             return "N/A"
     }
@@ -53,14 +54,14 @@ export function getRawAddressBalanceUnit(address: AddressSelectModel): string {
  */
 export function getAddressBalanceUnit(address: AddressSelectModel): string {
     switch (address.network) {
-        case ADDRESS_NETWORK.ETHEREUM:
-            return "ETH"
-        case ADDRESS_NETWORK.BSC:
-            return "BNB"
-        case ADDRESS_NETWORK.POLYGON:
-            return "POL"
         case ADDRESS_NETWORK.BITCOIN:
             return "BTC"
+        case ADDRESS_NETWORK.ETHEREUM:
+            return "ETH"
+        case ADDRESS_NETWORK.POLYGON:
+            return "POL"
+        case ADDRESS_NETWORK.BSC:
+            return "BNB"
         default:
             return "N/A"
     }
@@ -77,11 +78,11 @@ export function formatRawAddressBalance(address: AddressSelectModel): string {
     const unit = ` ${getRawAddressBalanceUnit(address)}`
 
     switch (address.network) {
-        case ADDRESS_NETWORK.ETHEREUM:
-        case ADDRESS_NETWORK.BSC:
-        case ADDRESS_NETWORK.POLYGON:
-            return BigInt(address.balance).toLocaleString("en-US") + unit
         case ADDRESS_NETWORK.BITCOIN:
+            return BigInt(address.balance).toLocaleString("en-US") + unit
+        case ADDRESS_NETWORK.ETHEREUM:
+        case ADDRESS_NETWORK.POLYGON:
+        case ADDRESS_NETWORK.BSC:
             return BigInt(address.balance).toLocaleString("en-US") + unit
         default:
             return "N/A"
@@ -101,12 +102,12 @@ export function formatAddressBalance(address: AddressSelectModel): string {
     const unit = ` ${getAddressBalanceUnit(address)}`
 
     switch (address.network) {
-        case ADDRESS_NETWORK.ETHEREUM:
-        case ADDRESS_NETWORK.BSC:
-        case ADDRESS_NETWORK.POLYGON:
-            return formatGWeiToEther(address.balance) + unit
         case ADDRESS_NETWORK.BITCOIN:
             return formatSatoshisToBitcoin(address.balance) + unit
+        case ADDRESS_NETWORK.ETHEREUM:
+        case ADDRESS_NETWORK.POLYGON:
+        case ADDRESS_NETWORK.BSC:
+            return formatGWeiToEther(address.balance) + unit
         default:
             return "N/A"
     }

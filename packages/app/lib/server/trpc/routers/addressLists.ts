@@ -239,9 +239,6 @@ export const addressListsRouter = router({
                 })
                 .returning()
 
-            // Nullify the latest dump ID
-            await db.update(scAddressList).set({ latestDumpId: null }).where(eq(scAddressList.id, input.id))
-
             return member
         }),
 
@@ -271,9 +268,6 @@ export const addressListsRouter = router({
                 )
 
             if (result.rowCount === 0) throw new TRPCError({ code: "NOT_FOUND" })
-
-            // Nullify the latest dump ID
-            await db.update(scAddressList).set({ latestDumpId: null }).where(eq(scAddressList.id, input.id))
 
             return {
                 success: true,

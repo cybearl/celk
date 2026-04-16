@@ -60,15 +60,6 @@ export async function dbGetAddressesByAddressListId(addressListId: string, inclu
 }
 
 /**
- * Save the latest dump ID of an address list to the database.
- * @param addressListId The ID of the address list to update.
- * @param latestDumpId The latest dump ID to save.
- */
-export async function dbSaveLatestDumpId(addressListId: string, latestDumpId: string) {
-    await db.update(scAddressList).set({ latestDumpId }).where(eq(scAddressList.id, addressListId)).execute()
-}
-
-/**
  * Increment the attempt counts across the config, the address list and each address
  * in the address list by a certain amount.
  * @param attempts The amount to increment the attempts by (as a numeric).
@@ -176,7 +167,10 @@ export async function dbUpdateAddressList(addressListId: string, updates: Partia
  * @param lastReportAttempts The number of attempts from the last report.
  * @param addressListId The ID of the address list to update.
  */
-export async function dbCalculateAverageAddressListHashRate(lastReportAttempts: string | number, addressListId: string) {
+export async function dbCalculateAverageAddressListHashRate(
+    lastReportAttempts: string | number,
+    addressListId: string,
+) {
     const intervalSubquery = db
         .select({ val: scDynamicConfig.workerReportIntervalMs })
         .from(scDynamicConfig)

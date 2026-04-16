@@ -1,6 +1,6 @@
 import DYNAMIC_CONFIG from "@app/config/dynamicConfig"
 import { PUBLIC_ENV } from "@app/config/env"
-import scAddress, { ADDRESS_NETWORK, type AddressSelectModel } from "@app/db/schema/address"
+import scAddress, { type AddressSelectModel } from "@app/db/schema/address"
 import type { DynamicConfigSelectModel } from "@app/db/schema/dynamicConfig"
 import scUserOptions, { type UserOptionsSelectModel } from "@app/db/schema/userOptions"
 import { logger } from "@app/lib/base/utils/logger"
@@ -9,6 +9,7 @@ import { sendBalanceCheckerFailureAlert } from "@app/lib/server/utils/emails"
 import { dbGetDynamicConfig } from "@app/lib/server/utils/queries"
 import { getBalanceCheckerRetryDelay } from "@app/lib/server/utils/time"
 import { getBitcoinAddressBalance, getEthCompatibleAddressBalance } from "@app/lib/server/utils/web3"
+import { ADDRESS_NETWORK } from "@cybearl/celk-protocol"
 import { asc, eq, isNull, not } from "drizzle-orm"
 
 class BalanceChecker {
@@ -90,8 +91,8 @@ class BalanceChecker {
                 balance = await getBitcoinAddressBalance(address, this._balanceCheckerLogger)
                 break
             case ADDRESS_NETWORK.ETHEREUM:
-            case ADDRESS_NETWORK.BSC:
             case ADDRESS_NETWORK.POLYGON:
+            case ADDRESS_NETWORK.BSC:
                 balance = await getEthCompatibleAddressBalance(address, this._balanceCheckerLogger)
                 break
             default:

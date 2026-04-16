@@ -1,9 +1,4 @@
-import scAddress, {
-    ADDRESS_NETWORK,
-    ADDRESS_PRIVATE_KEY_GENERATOR,
-    ADDRESS_PRIVATE_KEY_GENERATOR_SUPPORTS_RANGE,
-    ADDRESS_TYPE,
-} from "@app/db/schema/address"
+import scAddress from "@app/db/schema/address"
 import scAddressList from "@app/db/schema/addressList"
 import scPvtAddressListMember from "@app/db/schema/addressListMember"
 import scDynamicConfig, { DYNAMIC_CONFIG_ID } from "@app/db/schema/dynamicConfig"
@@ -12,6 +7,12 @@ import { hexToNumericString } from "@app/lib/base/utils/numerics"
 import { db } from "@app/lib/server/connectors/db"
 import { router, unlockedProcedure } from "@app/lib/server/trpc/trpc"
 import { decryptPrivateKey } from "@app/lib/server/utils/encryption"
+import {
+    ADDRESS_NETWORK,
+    ADDRESS_PRIVATE_KEY_GENERATOR,
+    ADDRESS_PRIVATE_KEY_GENERATOR_SUPPORTS_RANGE,
+    ADDRESS_TYPE,
+} from "@cybearl/celk-protocol"
 import { TRPCError } from "@trpc/server"
 import { and, count, desc, eq, getTableColumns, sql } from "drizzle-orm"
 import z from "zod"

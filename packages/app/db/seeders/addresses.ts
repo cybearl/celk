@@ -1,12 +1,8 @@
 import { PRIVATE_ENV } from "@app/config/env"
-import scAddress, {
-    ADDRESS_NETWORK,
-    ADDRESS_PRIVATE_KEY_GENERATOR,
-    ADDRESS_TYPE,
-    type AddressInsertModel,
-} from "@app/db/schema/address"
+import scAddress, { type AddressInsertModel } from "@app/db/schema/address"
 import { convertBytesToHexAddress, decodeBitcoinAddress } from "@app/lib/base/utils/addresses"
 import { db } from "@app/lib/server/connectors/db"
+import { ADDRESS_NETWORK, ADDRESS_PRIVATE_KEY_GENERATOR, ADDRESS_TYPE } from "@cybearl/celk-protocol"
 
 /**
  * Seeds base addresses into the database.

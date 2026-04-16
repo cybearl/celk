@@ -42,6 +42,8 @@ const scDynamicConfig = pgTable("dynamic_config", {
 
     // Worker settings
     workerReportIntervalMs: integer("worker_report_interval_ms").notNull(),
+    workerHeartbeatIntervalMs: integer("worker_heartbeat_interval_ms").notNull(),
+    workerHeartbeatTimeoutMs: integer("worker_heartbeat_timeout_ms").notNull(),
 
     // Timestamps
     updatedAt: timestamp("updated_at").notNull().defaultNow(),

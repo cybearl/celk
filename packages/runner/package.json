@@ -1,0 +1,30 @@
+{
+    "name": "@cybearl/celk-runner",
+    "version": "0.0.1",
+    "author": "Cybearl <contact@cybearl.com> (https://www.cybearl.com/)",
+    "license": "MIT",
+    "private": true,
+    "packageManager": "yarn@1.22.22",
+    "homepage": "https://github.com/cybearl/celk/tree/main/packages/runner",
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/cybearl/celk.git"
+    },
+    "bugs": {
+        "url": "https://github.com/cybearl/celk/issues"
+    },
+    "scripts": {
+        "v-bump": "yarn version --patch"
+    },
+    "dependencies": {
+        "@cybearl/celk-protocol": "*",
+        "@cybearl/celk-ts-utils": "*",
+        "@cybearl/cypack": "^1.10.7",
+        "dedent": "^1.7.2",
+        "dotenv": "^16.6.1"
+    },
+    "devDependencies": {
+        "tsx": "^4.21.0",
+        "typescript": "^5.8.3"
+    }
+}

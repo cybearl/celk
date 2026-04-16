@@ -1,7 +1,7 @@
-import { stringifyWithBigIntSupport } from "@app/lib/base/utils/json"
+import { stringifyWithBigIntSupport } from "@cybearl/celk-ts-utils"
 
 /**
- * A set of colored Next.js status indicators for console messages.
+ * A set of colored Next.js-based status indicators for console messages.
  */
 export const loggerIndicators = {
     success: "\x1b[32m ✓ \x1b[0m",
@@ -15,9 +15,14 @@ export const loggerIndicators = {
  * The type for the options of a logger function.
  */
 export type LoggerOptions = {
-    /** Overrides the logger's default prefix for this call. */
+    /**
+     * Overrides the logger's default prefix for this call.
+     */
     prefix?: string
-    /** Additional data to log alongside the message (e.g., an Error object). */
+
+    /**
+     * Additional data to log alongside the message (e.g., an `Error` object).
+     */
     data?: unknown
 }
 
@@ -30,7 +35,10 @@ export type LoggerInstance = {
     error: (message: string, options?: LoggerOptions) => void
     info: (message: string, options?: LoggerOptions) => void
     debug: (message: string, options?: LoggerOptions) => void
-    /** Returns a new logger instance with a fixed default prefix. */
+
+    /**
+     * Returns a new logger instance with a fixed default prefix.
+     */
     withPrefix: (prefix: string) => LoggerInstance
 }
 

@@ -22,6 +22,8 @@ async function main() {
         process.exit(1)
     }
 
+    console.log("\x1b[34m ▷ \x1b[0mSeeding database...")
+
     // Run all seeders
     for (const [name, seeder] of Object.entries(seeders)) {
         try {

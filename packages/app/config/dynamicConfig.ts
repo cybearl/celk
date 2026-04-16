@@ -34,6 +34,8 @@ const DYNAMIC_CONFIG: DynamicConfigInsertModel = {
 
     // Worker settings
     workerReportIntervalMs: 4_000, // 4 seconds
+    workerHeartbeatIntervalMs: 5_000, // 5 seconds
+    workerHeartbeatTimeoutMs: 15_000, // 15 seconds
 }
 
 export default DYNAMIC_CONFIG

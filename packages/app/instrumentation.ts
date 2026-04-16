@@ -13,7 +13,7 @@ export async function register() {
         const { balanceChecker } = await import("@app/lib/server/instrumentations/balanceChecker")
         balanceChecker.start()
 
-        const { workersManager } = await import("@app/lib/server/instrumentations/workersManager")
-        await workersManager.start()
+        const { workersOrchestrator } = await import("@app/lib/server/instrumentations/workersOrchestrator")
+        await workersOrchestrator.start()
     }
 }

@@ -69,6 +69,8 @@ export const dynamicConfigRouter = router({
                 workersManagerSyncRetryBaseDelayMs: z.number().int().positive(),
                 workersManagerSyncRetryMaxDelayMs: z.number().int().positive(),
                 workerReportIntervalMs: z.number().int().positive(),
+                workerHeartbeatIntervalMs: z.number().int().positive(),
+                workerHeartbeatTimeoutMs: z.number().int().positive(),
             }),
         )
         .mutation(async ({ input }) => {

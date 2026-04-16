@@ -1,4 +1,3 @@
-#include "core/dump.hpp"
 #include "core/engine.hpp"
 #include "core/io.hpp"
 #include "protocol.hpp"
@@ -39,22 +38,14 @@ int main() {
         ioWrite(serializeJson(nlohmann::json(err)));
     };
 
-    std::vector<AddressDump> addressDumps;
     std::atomic<bool> stopFlag { false };
     std::atomic<uint64_t> attempts { 0 };
     MatchState matchState;
 
-    try {
-        addressDumps = loadDumpFile(startMessage.addressesDumpFilePath);
-    } catch (const std::exception& e) {
-        sendError(e.what());
-        return 1;
-    }
-
     Engine engine;
 
     try {
-        engine.build(addressDumps, startMessage.userOptions);
+        engine.build(startMessage.addressDumps, startMessage.userOptions);
     } catch (const std::exception& e) {
         sendError(e.what());
         return 1;

@@ -1,0 +1,27 @@
+{
+    "name": "@cybearl/celk-ts-utils",
+    "version": "1.0.0",
+    "author": "Cybearl <contact@cybearl.com> (https://www.cybearl.com/)",
+    "license": "MIT",
+    "private": true,
+    "packageManager": "yarn@1.22.22",
+    "homepage": "https://github.com/cybearl/celk/tree/main/packages/ts-utils",
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/cybearl/celk.git"
+    },
+    "bugs": {
+        "url": "https://github.com/cybearl/celk/issues"
+    },
+    "main": "./src/index.ts",
+    "scripts": {
+        "v-bump": "yarn version --patch"
+    },
+    "dependencies": {
+        "dedent": "^1.7.2"
+    },
+    "devDependencies": {
+        "tsx": "^4.21.0",
+        "typescript": "^5.8.3"
+    }
+}

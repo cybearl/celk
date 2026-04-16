@@ -1,7 +1,8 @@
 import WEB3_CONFIG from "@app/config/web3"
-import { ADDRESS_NETWORK, type AddressSelectModel } from "@app/db/schema/address"
+import type { AddressSelectModel } from "@app/db/schema/address"
 import type { LoggerInstance } from "@app/lib/base/utils/logger"
 import { jsonRpcProviders } from "@app/lib/server/connectors/web3"
+import { ADDRESS_NETWORK } from "@cybearl/celk-protocol"
 
 /**
  * Fetches the balance **in GWei** of any Ethereum-compatible address based on its network.

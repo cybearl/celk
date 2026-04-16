@@ -1,17 +1,7 @@
 import scUser from "@app/db/schema/user"
+import { ADDRESS_NETWORK, ADDRESS_PRIVATE_KEY_GENERATOR, ADDRESS_TYPE } from "@cybearl/celk-protocol"
 import type { InferInsertModel, InferSelectModel } from "drizzle-orm"
 import { boolean, integer, numeric, pgEnum, pgTable, text, timestamp, unique } from "drizzle-orm/pg-core"
-
-/**
- * The type of an address.
- */
-export enum ADDRESS_TYPE {
-    ETHEREUM = "ethereum",
-    BTC_P2PKH = "btc-p2pkh", // "1..."   Base58Check
-    BTC_P2WPKH = "btc-p2wpkh", // "bc1q..."  Bech32
-    BTC_P2SH = "btc-p2sh", // "3..."   Base58Check (nested segwit)
-    BTC_P2TR = "btc-p2tr", // "bc1p..."  Bech32m
-}
 
 /**
  * The PG enum for address types.
@@ -19,42 +9,14 @@ export enum ADDRESS_TYPE {
 export const PG_ADDRESS_TYPE = pgEnum("address_type", ADDRESS_TYPE)
 
 /**
- * The network an address belongs to.
- */
-export enum ADDRESS_NETWORK {
-    BITCOIN = "bitcoin",
-    ETHEREUM = "ethereum",
-    BSC = "bsc",
-    POLYGON = "polygon",
-}
-
-/**
  * The PG enum for address networks.
  */
 export const PG_ADDRESS_NETWORK = pgEnum("address_network", ADDRESS_NETWORK)
 
 /**
- * The different private key generators available for an address.
- */
-export enum ADDRESS_PRIVATE_KEY_GENERATOR {
-    RandBytes = "rand-bytes",
-    PCG64 = "pcg64", // Supports ranges, defaults to it when start and end ranges are provided
-    Sequential = "sequential", // Supports ranges
-}
-
-/**
  * The PG enum for private key generators.
  */
 export const PG_ADDRESS_PRIVATE_KEY_GENERATOR = pgEnum("address_private_key_generator", ADDRESS_PRIVATE_KEY_GENERATOR)
-
-/**
- * Whether each worker private key generator supports range bounds.
- */
-export const ADDRESS_PRIVATE_KEY_GENERATOR_SUPPORTS_RANGE: Record<ADDRESS_PRIVATE_KEY_GENERATOR, boolean> = {
-    [ADDRESS_PRIVATE_KEY_GENERATOR.RandBytes]: false,
-    [ADDRESS_PRIVATE_KEY_GENERATOR.PCG64]: true,
-    [ADDRESS_PRIVATE_KEY_GENERATOR.Sequential]: true,
-}
 
 /**
  * The schema for addresses.
